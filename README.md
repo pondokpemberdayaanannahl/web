@@ -86,7 +86,7 @@ Buka file [`js/pendaftaran.js`](js/pendaftaran.js) dan ubah nilai pada baris ke-
 
 ```javascript
 const CONFIG = {
-  ADMIN_WA: '6281234567890', // Ganti dengan nomor WhatsApp resmi (awali dengan 62)
+  ADMIN_WA: '6281398908980', // Nomor WhatsApp resmi panitia
   TAHUN_AJARAN: '2025/2026',
   ...
 };
