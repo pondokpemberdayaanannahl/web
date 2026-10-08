@@ -5,7 +5,7 @@
 
 // Konfigurasi Nomor WhatsApp Panitia PSB (Ubah sesuai nomor resmi)
 const CONFIG = {
-  ADMIN_WA: '6281234567890', // Format: 628xxx (tanpa + atau 0)
+  ADMIN_WA: '6281398908980', // Format: 628xxx (tanpa + atau 0)
   TAHUN_AJARAN: '2025/2026',
   STORAGE_KEY: 'annahl_psb_draft_v1',
   REG_PREFIX: 'AN-25'
@@ -441,7 +441,7 @@ function restoreDraft() {
 // Utility: XSS escape
 function escapeHtml(str) {
   if (!str) return '';
-  return str.replace(/[&<>"']/g, function(m) {
+  return str.replace(/[&<>"']/g, function (m) {
     return {
       '&': '&amp;',
       '<': '&lt;',
