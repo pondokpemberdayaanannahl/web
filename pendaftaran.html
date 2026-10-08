@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulir Pendaftaran Santri Baru (PSB) | Ponpes An-Nahl</title>
+  <meta name="description" content="Formulir Pendaftaran Online Santri Baru (PSB) Pondok Pesantren Pemberdayaan Ummat An-Nahl Tahun Ajaran 2025/2026.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23D8AA30'><path d='M12 2L15 8L21 9L17 14L18 20L12 17L6 20L7 14L3 9L9 8L12 2Z'/></svg>">
+  
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Additional helper styles for registration form */
+    .input-error {
+      border-color: #EF4444 !important;
+      background-color: #FEF2F2 !important;
+    }
+    .badge-info {
+      background: var(--primary-100);
+      color: var(--primary-700);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= HEADER / TOPBAR ================= -->
+  <header class="header">
+    <div class="container">
+      <nav class="navbar">
+        <a href="index.html" class="brand-logo" aria-label="Kembali ke Beranda">
+          <div class="brand-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3v18"></path>
+              <path d="m19 9-7 3-7-3"></path>
+              <path d="m19 15-7 3-7-3"></path>
+              <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1>PONPES AN-NAHL</h1>
+            <p>Pemberdayaan Ummat</p>
+          </div>
+        </a>
+
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <a href="index.html" class="btn btn-outline btn-sm">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Kembali ke Beranda
+          </a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ================= BANNER TITLE ================= -->
+  <div class="reg-page-header">
+    <div class="container">
+      <span class="section-pill" style="background: rgba(236,194,82,0.2); color: var(--accent-gold-400);">Penerimaan Santri Baru T.A 2025/2026</span>
+      <h1>Formulir Pendaftaran Online</h1>
+      <p>
+        Silakan isi data calon santri dan orang tua/wali dengan teliti dan benar. Seluruh data tersimpan aman dan langsung terhubung dengan Panitia PSB.
+      </p>
+    </div>
+  </div>
+
+  <!-- ================= MAIN FORM CONTAINER ================= -->
+  <div class="container">
+    <div class="reg-container">
+      
+      <!-- Stepper Indicator -->
+      <div class="stepper-header">
+        <div class="step-indicator active" data-step="1">
+          <div class="step-num-badge">1</div>
+          <span>Data Calon Santri</span>
+        </div>
+        <div class="step-indicator" data-step="2">
+          <div class="step-num-badge">2</div>
+          <span>Data Orang Tua / Wali</span>
+        </div>
+        <div class="step-indicator" data-step="3">
+          <div class="step-num-badge">3</div>
+          <span>Kesehatan & Tambahan</span>
+        </div>
+        <div class="step-indicator" data-step="4">
+          <div class="step-num-badge">4</div>
+          <span>Konfirmasi & Kirim</span>
+        </div>
+      </div>
+
+      <!-- Registration Form -->
+      <form id="registrationForm" class="form-body" novalidate>
+        
+        <!-- ================= STEP 1: DATA CALON SANTRI ================= -->
+        <div class="form-step active" id="step-1">
+          <div class="step-title-box">
+            <h3>Langkah 1: Program Pilihan & Identitas Santri</h3>
+            <p>Pilih jenjang pendidikan dan lengkapi data pribadi calon santri.</p>
+          </div>
+
+          <!-- Radio Pilihan Program -->
+          <div class="form-group full-width" style="margin-bottom: 24px;">
+            <label class="form-label">Pilihan Jenjang Pendidikan <span class="req">*</span></label>
+            <div class="radio-cards-grid">
+              <label class="radio-card">
+                <input type="radio" name="jenjang" value="MTs / SMP Terpadu" checked required>
+                <div class="radio-card-content">
+                  <strong>MTs / SMP Terpadu An-Nahl</strong>
+                  <span>Lulusan SD/MI Sederajat &bull; Target Tahfidz 15 Juz & Akademik</span>
+                </div>
+              </label>
+
+              <label class="radio-card">
+                <input type="radio" name="jenjang" value="MA / SMA Terpadu" required>
+                <div class="radio-card-content">
+                  <strong>MA / SMA Terpadu An-Nahl</strong>
+                  <span>Lulusan SMP/MTs Sederajat &bull; Target 30 Juz & Persiapan PTN/LN</span>
+                </div>
+              </label>
+
+              <label class="radio-card">
+                <input type="radio" name="jenjang" value="Takhassus Tahfidz 30 Juz" required>
+                <div class="radio-card-content">
+                  <strong>Takhassus Tahfidz 30 Juz Mutqin</strong>
+                  <span>Program Khusus Fokus Hafalan & Kemandirian Santri</span>
+                </div>
+              </label>
+
+              <label class="radio-card">
+                <input type="radio" name="jenjang" value="Jalur Beasiswa Yatim / Dhuafa" required>
+                <div class="radio-card-content">
+                  <strong>Jalur Beasiswa Khusus</strong>
+                  <span>Khusus Calon Santri Yatim / Dhuafa Berprestasi (Kuota Terbatas)</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="nama_santri" class="form-label">Nama Lengkap Calon Santri (Sesuai Akta) <span class="req">*</span></label>
+              <input type="text" id="nama_santri" name="nama_santri" class="form-control" placeholder="Contoh: Muhammad Fatih Al-Hadi" required>
+            </div>
+
+            <div class="form-group">
+              <label for="nik_santri" class="form-label">Nomor Induk Kependudukan (NIK) <span class="req">*</span></label>
+              <input type="number" id="nik_santri" name="nik_santri" class="form-control" placeholder="16 Digit NIK di Kartu Keluarga" required>
+              <div class="form-help">Dapat dilihat pada Kartu Keluarga (KK).</div>
+            </div>
+
+            <div class="form-group">
+              <label for="nisn_santri" class="form-label">NISN (Nomor Induk Siswa Nasional)</label>
+              <input type="number" id="nisn_santri" name="nisn_santri" class="form-control" placeholder="10 Digit NISN (jika ada)">
+              <div class="form-help">Kosongkan jika belum memiliki NISN resmi.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Jenis Kelamin <span class="req">*</span></label>
+              <div style="display: flex; gap: 24px; padding-top: 10px;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                  <input type="radio" name="jenis_kelamin" value="Laki-laki" checked required> Laki-laki (Ikhwan)
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                  <input type="radio" name="jenis_kelamin" value="Perempuan" required> Perempuan (Akhwat)
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="tempat_lahir" class="form-label">Tempat Lahir <span class="req">*</span></label>
+              <input type="text" id="tempat_lahir" name="tempat_lahir" class="form-control" placeholder="Contoh: Bandung" required>
+            </div>
+
+            <div class="form-group">
+              <label for="tanggal_lahir" class="form-label">Tanggal Lahir <span class="req">*</span></label>
+              <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+              <label for="anak_ke" class="form-label">Anak Ke / Dari Bersaudara</label>
+              <div style="display:flex; gap:10px;">
+                <input type="number" id="anak_ke" name="anak_ke" class="form-control" placeholder="Anak Ke" min="1" value="1">
+                <input type="number" id="dari_saudara" name="dari_saudara" class="form-control" placeholder="Dari Jumlah Saudara" min="1" value="1">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="asal_sekolah" class="form-label">Asal Sekolah Sebelumnya <span class="req">*</span></label>
+              <input type="text" id="asal_sekolah" name="asal_sekolah" class="form-control" placeholder="Contoh: SDIT Al-Ihsan / SDN 01 Cimahi" required>
+            </div>
+
+            <div class="form-group">
+              <label for="hafalan_terakhir" class="form-label">Capaian Hafalan Al-Qur'an Saat Ini</label>
+              <select id="hafalan_terakhir" name="hafalan_terakhir" class="form-control">
+                <option value="Belum Ada / Beberapa Surat Pendek">Belum Ada / Baru Juz 'Amma sebagian</option>
+                <option value="1 Juz (Juz 30 Mutqin)">1 Juz (Juz 30 Mutqin)</option>
+                <option value="2 - 3 Juz">2 - 3 Juz</option>
+                <option value="4 - 5 Juz">4 - 5 Juz</option>
+                <option value="Lebih dari 5 Juz">Lebih dari 5 Juz</option>
+                <option value="10 Juz atau Lebih">10 Juz atau Lebih</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-actions" style="justify-content: flex-end;">
+            <button type="button" class="btn btn-primary btn-next-step">
+              Lanjut ke Data Wali
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= STEP 2: DATA ORANG TUA / WALI ================= -->
+        <div class="form-step" id="step-2">
+          <div class="step-title-box">
+            <h3>Langkah 2: Data Orang Tua / Wali</h3>
+            <p>Informasi kontak orang tua untuk keperluan administrasi dan pelaporan berkala.</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nama_wali" class="form-label">Nama Lengkap Orang Tua / Wali <span class="req">*</span></label>
+              <input type="text" id="nama_wali" name="nama_wali" class="form-control" placeholder="Nama Ayah/Ibu/Wali" required>
+            </div>
+
+            <div class="form-group">
+              <label for="hubungan_wali" class="form-label">Hubungan dengan Santri <span class="req">*</span></label>
+              <select id="hubungan_wali" name="hubungan_wali" class="form-control" required>
+                <option value="Ayah Kandung">Ayah Kandung</option>
+                <option value="Ibu Kandung">Ibu Kandung</option>
+                <option value="Wali / Kerabat Keluarga">Wali / Kerabat Keluarga</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="wa_wali" class="form-label">No. WhatsApp Aktif (Utama) <span class="req">*</span></label>
+              <input type="tel" id="wa_wali" name="wa_wali" class="form-control" placeholder="Contoh: 081234567890" required>
+              <div class="form-help">Pemberitahuan hasil tes dan administrasi akan dikirimkan ke nomor ini.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="pekerjaan_wali" class="form-label">Pekerjaan Orang Tua / Wali <span class="req">*</span></label>
+              <input type="text" id="pekerjaan_wali" name="pekerjaan_wali" class="form-control" placeholder="Contoh: PNS / Wiraswasta / Karyawan Swasta" required>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="alamat_lengkap" class="form-label">Alamat Lengkap Domisili Keluarga <span class="req">*</span></label>
+              <textarea id="alamat_lengkap" name="alamat_lengkap" class="form-control" placeholder="Nama Jalan, RT/RW, Kelurahan, Kecamatan, Kota/Kabupaten, Provinsi & Kode Pos" required></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline btn-prev-step">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              Kembali
+            </button>
+            <button type="button" class="btn btn-primary btn-next-step">
+              Lanjut ke Langkah 3
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= STEP 3: KESEHATAN & LAINNYA ================= -->
+        <div class="form-step" id="step-3">
+          <div class="step-title-box">
+            <h3>Langkah 3: Riwayat Kesehatan & Informasi Tambahan</h3>
+            <p>Data penunjang untuk kenyamanan dan kesehatan santri selama di pondok.</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="riwayat_penyakit" class="form-label">Riwayat Penyakit Khusus / Alergi (Jika Ada)</label>
+              <input type="text" id="riwayat_penyakit" name="riwayat_penyakit" class="form-control" placeholder="Contoh: Asma ringan, alergi udang, dsb. (Tulis 'Tidak Ada' jika sehat)">
+            </div>
+
+            <div class="form-group">
+              <label for="ukuran_seragam" class="form-label">Estimasi Ukuran Seragam Santri</label>
+              <select id="ukuran_seragam" name="ukuran_seragam" class="form-control">
+                <option value="S">S (Kecil)</option>
+                <option value="M" selected>M (Sedang)</option>
+                <option value="L">L (Besar)</option>
+                <option value="XL">XL (Ekstra Besar)</option>
+                <option value="XXL">XXL</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="info_sumber" class="form-label">Mengetahui Ponpes An-Nahl Dari Mana?</label>
+              <select id="info_sumber" name="info_sumber" class="form-control">
+                <option value="Website & Google">Website & Google Pencarian</option>
+                <option value="Instagram / Media Sosial">Instagram / Facebook / Media Sosial</option>
+                <option value="Rekomendasi Alumni / Wali Santri">Rekomendasi Alumni / Wali Santri</option>
+                <option value="Brosur / Spanduk">Brosur / Spanduk</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="catatan_khusus" class="form-label">Catatan Tambahan / Harapan Orang Tua terhadap Santri</label>
+              <textarea id="catatan_khusus" name="catatan_khusus" class="form-control" placeholder="Tuliskan harapan khusus orang tua terhadap perkembangan akhlak atau target anak di pondok..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline btn-prev-step">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              Kembali
+            </button>
+            <button type="button" class="btn btn-primary btn-next-step">
+              Tinjau Ringkasan Data
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= STEP 4: KONFIRMASI & SUBMIT ================= -->
+        <div class="form-step" id="step-4">
+          <div class="step-title-box">
+            <h3>Langkah 4: Ringkasan & Konfirmasi Pendaftaran</h3>
+            <p>Pastikan data yang dimasukkan sudah benar sebelum mengirimkan formulir.</p>
+          </div>
+
+          <!-- Dynamic Summary Container -->
+          <div class="summary-box" id="summaryDetails">
+            <!-- Will be dynamically filled by JS -->
+          </div>
+
+          <!-- Agreement Checkbox -->
+          <div style="background: #FFFBEB; border: 1px solid #FCD34D; border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px;">
+            <label style="display: flex; gap: 12px; align-items: flex-start; cursor: pointer; font-size: 0.9rem; color: #92400E;">
+              <input type="checkbox" id="agree_terms" required style="margin-top: 4px;">
+              <span>
+                Dengan ini saya menyatakan bahwa data yang diisi adalah benar dan sah. Saya bersedia mengikuti tata tertib serta tahapan seleksi Penerimaan Santri Baru di Pondok Pesantren Pemberdayaan Ummat An-Nahl.
+              </span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline btn-prev-step">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              Ubah Data
+            </button>
+            <button type="submit" class="btn btn-gold btn-lg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Kirim Formulir Pendaftaran
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- ================= SUCCESS STATE & PRINTABLE CARD ================= -->
+      <div id="registrationSuccess" style="display: none;" class="success-card">
+        <div class="success-icon-wrap">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+
+        <h2 style="font-size: 1.8rem; color: var(--primary-900); font-weight: 800; margin-bottom: 8px;">
+          Pendaftaran Berhasil Dikirim!
+        </h2>
+        <p style="color: var(--neutral-600); max-width: 580px; margin: 0 auto 16px;">
+          Alhamdulillah, formulir pendaftaran santri baru Anda telah tersimpan di sistem kami.
+        </p>
+
+        <div>
+          <span style="font-size: 0.85rem; color: var(--neutral-500); font-weight: 600;">Nomor Registrasi Anda:</span><br>
+          <div class="reg-number-badge" id="displayRegNumber">AN-25-0000</div>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 14px; margin: 24px 0 36px; flex-wrap: wrap;">
+          <!-- Tombol WhatsApp Konfirmasi Otomatis -->
+          <a id="btnSendWhatsapp" href="#" target="_blank" class="btn btn-primary btn-lg" style="background: #25D366; border-color: #25D366;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+            Kirim Konfirmasi ke WhatsApp Panitia
+          </a>
+
+          <!-- Tombol Cetak Kartu Bukti -->
+          <button type="button" class="btn btn-outline btn-lg" onclick="window.print()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9"></polyline>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+              <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            Cetak / Simpan PDF Kartu Bukti
+          </button>
+        </div>
+
+        <!-- Printable Slip Card Content -->
+        <div id="printable-slip" style="max-width: 750px; margin: 0 auto; text-align: left; background: #FFF; border: 1px solid var(--neutral-300); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm);">
+          <div id="printableSlipContent">
+            <!-- Will be dynamically populated by JS -->
+          </div>
+        </div>
+
+        <div style="margin-top: 30px;" class="no-print">
+          <a href="index.html" class="btn btn-outline btn-sm">Kembali ke Halaman Depan</a>
+          <button type="button" class="btn btn-outline btn-sm" onclick="location.reload()" style="margin-left: 8px;">Daftar Calon Santri Lain</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/pendaftaran.js"></script>
+  <script>
+    // Handle URL parameters if any (e.g. ?jenjang=MTs or ?jenjang=MA)
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const jenjangParam = urlParams.get('jenjang');
+      if (jenjangParam) {
+        const matchingRadio = document.querySelector(`input[name="jenjang"][value*="${jenjangParam}"]`);
+        if (matchingRadio) {
+          matchingRadio.checked = true;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
