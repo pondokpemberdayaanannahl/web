@@ -17,6 +17,13 @@ document.addEventListener('DOMContentLoaded',async()=>{
    if(!campaign)throw Error('Program donasi tidak ditemukan. Pilih program dari beranda.');
    if(campaign.status!=='berjalan')throw Error('Program donasi ini sudah selesai.');
    donationEl('campaignTitle').textContent=campaign.title;
+   document.title='Donasi: '+campaign.title+' | An-Nahl';
+   donationEl('campaignDescription').textContent=campaign.content;
+   const campaignImage=donationEl('campaignImage');
+   if(campaign.image){campaignImage.src=campaign.image;campaignImage.alt='Penggalangan dana '+campaign.title;campaignImage.hidden=false;}
+   const campaignPercent=Math.min(100,campaign.collected/campaign.target*100);
+   donationEl('campaignProgress').innerHTML=`<div class="donation-values"><strong>${rupiah(campaign.collected)}</strong><span>${Math.round(campaignPercent)}%</span></div><progress value="${campaignPercent}" max="100" aria-label="Progress penggalangan dana ${esc(campaign.title)}">${Math.round(campaignPercent)}%</progress><div class="donation-target">Target ${rupiah(campaign.target)}</div>`;
+   donationEl('donorAmount').setAttribute('aria-description','Donasi untuk '+campaign.title);
    let proof=draft?.proof||'',fileLoading=false;const id=draft?.id||crypto.randomUUID();
    if(draft){donationEl('donorName').value=draft.name==='Anonim'?'':draft.name;donationEl('donorRegion').value=draft.region;donationEl('donorAmount').value=draft.amount;donationEl('donorPrayer').value=draft.prayer;donationEl('proofPreview').src=proof;donationEl('proofPreview').hidden=!proof;}
    donationEl('donationFormView').hidden=false;
