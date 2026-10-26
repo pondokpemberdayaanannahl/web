@@ -1,0 +1,106 @@
+const articles = [
+  {
+    slug: 'wisuda-tahfidz-angkatan-12',
+    category: 'Akademik',
+    title: 'Wisuda Tahfidz Angkatan ke-12: 45 Santri Resmi Hafidz',
+    date: '12 April 2026',
+    img: photos.berita.wisuda,
+    excerpt: 'Alhamdulillah, 45 santri berhasil menyelesaikan hafalan 30 juz Al-Qur\'an dan diwisuda dalam acara yang dihadiri para orang tua dan tokoh masyarakat.',
+    content: `
+      <p>Alhamdulillah, Pondok Pesantren Pemberdayaan Ummat An-Nahl kembali menorehkan prestasi gemilang dengan mewisuda 45 santri yang telah berhasil menyelesaikan hafalan 30 juz Al-Qur'an.</p>
+      <p>Acara wisuda tahfidz angkatan ke-12 ini berlangsung khidmat di Aula Utama Pesantren An-Nahl pada hari Sabtu, 12 April 2026. Dihadiri oleh para orang tua santri, tokoh masyarakat, pejabat daerah, serta ustadz dan ustadzah pembimbing.</p>
+      <h3>Pencapaian yang Membanggakan</h3>
+      <p>Dari 45 wisudawan, 12 di antaranya berhasil menyelesaikan hafalan dalam waktu kurang dari 2 tahun — sebuah pencapaian luar biasa yang menunjukkan efektivitas metode talaqqi yang diterapkan di pesantren ini.</p>
+      <p>"Kami sangat bangga dengan pencapaian santri-santri kami. Ini bukti bahwa dengan bimbingan yang tepat dan lingkungan yang kondusif, setiap anak bisa menjadi hafidz," ujar KH. Muhammad Ridwan, Pengasuh Pesantren An-Nahl.</p>
+      <h3>Sanad Keilmuan</h3>
+      <p>Seluruh wisudawan menerima sanad keilmuan Al-Qur'an yang terhubung hingga ke Rasulullah ﷺ melalui jalur periwayatan yang terverifikasi. Sanad ini menjadi bukti otentisitas hafalan dan bacaan Al-Qur'an para santri.</p>
+      <p>Pesantren An-Nahl berkomitmen untuk terus meningkatkan kualitas program tahfidz dan mencetak lebih banyak generasi penghafal Al-Qur'an yang berakhlak mulia.</p>
+    `
+  },
+  {
+    slug: 'isra-miraj-1447h',
+    category: 'Keagamaan',
+    title: 'Peringatan Isra\' Mi\'raj 1447 H Bersama Ustadz Ahmad Fauzi',
+    date: '8 Maret 2026',
+    img: photos.berita.israMiraj,
+    excerpt: 'Seluruh civitas pesantren memperingati Isra\' Mi\'raj dengan tabligh akbar yang menghadirkan penceramah nasional.',
+    content: `
+      <p>Pesantren An-Nahl memperingati peristiwa Isra' Mi'raj Nabi Muhammad ﷺ 1447 H dengan menggelar tabligh akbar yang diikuti oleh seluruh santri, pengajar, serta masyarakat sekitar pesantren.</p>
+      <p>Acara yang digelar di halaman utama pesantren ini menghadirkan Ustadz Ahmad Fauzi, penceramah nasional yang dikenal dengan gaya dakwah yang menyentuh hati dan mudah dipahami anak muda.</p>
+      <h3>Hikmah Isra' Mi'raj</h3>
+      <p>Dalam ceramahnya, Ustadz Ahmad Fauzi menekankan pentingnya menjaga sholat lima waktu sebagai buah dari peristiwa Isra' Mi'raj. "Sholat adalah mi'raj-nya orang beriman. Setiap kali kita sholat, kita sedang naik menghadap Allah," ujarnya.</p>
+      <p>Para santri juga menampilkan tilawah Al-Qur'an dan nasyid yang menambah khidmatnya acara peringatan ini.</p>
+    `
+  },
+  {
+    slug: 'pendaftaran-2026-2027',
+    category: 'Pengumuman',
+    title: 'Pendaftaran Santri Baru Tahun Ajaran 2026/2027 Dibuka',
+    date: '1 Februari 2026',
+    img: photos.berita.pendaftaran,
+    excerpt: 'Pesantren An-Nahl membuka pendaftaran santri baru untuk program Tahfidz, Formal, dan Pemberdayaan. Kuota terbatas.',
+    content: `
+      <p>Bismillah, Pondok Pesantren Pemberdayaan Ummat An-Nahl resmi membuka pendaftaran santri baru untuk Tahun Ajaran 2026/2027.</p>
+      <h3>Program yang Tersedia</h3>
+      <ul style="list-style:disc;padding-left:24px;margin:16px 0">
+        <li>Program Tahfidz Al-Qur'an (30 Juz dalam 3 Tahun)</li>
+        <li>Program Pendidikan Formal + Tahfidz (Setara SMP/SMA)</li>
+        <li>Program Pemberdayaan Ummat</li>
+      </ul>
+      <h3>Kuota Terbatas</h3>
+      <p>Tahun ini pesantren hanya menerima 120 santri baru untuk menjaga kualitas bimbingan personal. Pendaftaran dilakukan secara online melalui website dan akan ditutup ketika kuota terpenuhi.</p>
+      <p>Untuk informasi lebih lanjut, silakan hubungi kami melalui WhatsApp di 0812-3456-7890 atau kunjungi halaman pendaftaran di website ini.</p>
+    `
+  },
+  {
+    slug: 'bakti-sosial-5-desa',
+    category: 'Sosial',
+    title: 'Bakti Sosial Santri An-Nahl di 5 Desa Binaan',
+    date: '20 Januari 2026',
+    img: photos.berita.baktiSosial,
+    excerpt: 'Sebanyak 120 santri senior melaksanakan program bakti sosial meliputi pengajaran Al-Qur\'an, pembagian sembako, dan gotong royong.',
+    content: `
+      <p>Dalam rangka mengimplementasikan nilai pemberdayaan ummat, 120 santri senior Pesantren An-Nahl melaksanakan program bakti sosial di 5 desa binaan di Kecamatan Ciwidey.</p>
+      <h3>Kegiatan yang Dilaksanakan</h3>
+      <ul style="list-style:disc;padding-left:24px;margin:16px 0">
+        <li>Mengajar Al-Qur'an di musholla-musholla desa</li>
+        <li>Pembagian 500 paket sembako</li>
+        <li>Gotong royong bersih lingkungan</li>
+        <li>Pemeriksaan kesehatan gratis</li>
+        <li>Khutbah Jumat oleh santri senior</li>
+      </ul>
+      <p>Program ini merupakan bagian dari kurikulum pemberdayaan ummat yang menjadi ciri khas Pesantren An-Nahl. "Kami ingin santri tidak hanya pandai menghafal, tapi juga peduli dan bermanfaat bagi masyarakat," jelas Ustadz Hasan, koordinator kegiatan.</p>
+    `
+  },
+  {
+    slug: 'olimpiade-sains-emas',
+    category: 'Akademik',
+    title: 'Tim Olimpiade Sains An-Nahl Raih Medali Emas Tingkat Provinsi',
+    date: '5 Januari 2026',
+    img: photos.berita.olimpiade,
+    excerpt: 'Tiga santri An-Nahl berhasil meraih medali emas di ajang Olimpiade Sains tingkat Provinsi Jawa Barat bidang Matematika dan Fisika.',
+    content: `
+      <p>Alhamdulillah, tim Olimpiade Sains Pesantren An-Nahl kembali membuat prestasi dengan meraih 3 medali emas di Olimpiade Sains tingkat Provinsi Jawa Barat tahun 2026.</p>
+      <h3>Para Peraih Medali</h3>
+      <ul style="list-style:disc;padding-left:24px;margin:16px 0">
+        <li>Ahmad Faris — Medali Emas Matematika</li>
+        <li>Muhammad Rizki — Medali Emas Fisika</li>
+        <li>Umar Hadi — Medali Emas Matematika</li>
+      </ul>
+      <p>Prestasi ini membuktikan bahwa pendidikan pesantren tidak kalah dengan sekolah umum dalam bidang akademik. Ketiga santri ini memadukan jadwal belajar formal dengan hafalan Al-Qur'an secara seimbang.</p>
+    `
+  },
+  {
+    slug: 'khataman-akbar-2025',
+    category: 'Keagamaan',
+    title: 'Khataman Akbar & Doa Bersama Akhir Tahun',
+    date: '20 Desember 2025',
+    img: photos.berita.khataman,
+    excerpt: 'Pesantren An-Nahl menggelar khataman akbar Al-Qur\'an dan doa bersama sebagai penutup tahun 2025.',
+    content: `
+      <p>Pesantren An-Nahl menutup tahun 2025 dengan penuh berkah melalui acara Khataman Akbar Al-Qur'an yang diikuti seluruh santri dan civitas pesantren.</p>
+      <p>Dalam acara ini, seluruh santri yang berjumlah lebih dari 500 orang membaca Al-Qur'an secara serentak, sehingga Al-Qur'an 30 juz dikhatamkan dalam waktu yang sangat singkat.</p>
+      <p>Acara dilanjutkan dengan doa bersama yang dipimpin oleh KH. Muhammad Ridwan untuk kebaikan pesantren, santri, dan seluruh ummat Islam di tahun mendatang.</p>
+    `
+  },
+];
