@@ -75,7 +75,8 @@ export function createDemoStore(storage = sessionStorage) {
       }
       if (type === 'berita') {
         state.history.unshift({ news_id: next.id, action: previous ? 'update' : 'create', actor_name: 'Admin demo', dibuat_pada: next.updated_at, snapshot: { ...next } });
-        try { save(); } catch { /* The content is saved even if history storage is full. */ }
+        state.history = state.history.slice(0, 200);
+        try { save(); } catch { state.history.shift(); /* Keep future content writes usable when history storage is full. */ }
       }
       return next;
     },
@@ -162,7 +163,11 @@ export function createSupabaseStore(client, { userId, role = 'editor' } = {}) {
         payload.thumbnail_url = existing?.thumbnail_url || null;
         if (file) { payload.gambar_url = await upload(file); payload.thumbnail_url = thumbnail ? await upload(thumbnail) : null; }
       }
-        check(await (existing ? client.from(tables[type]).update(payload).eq('id', existing.id) : client.from(tables[type]).insert(payload)).select('id').single());
+        let query = existing ? client.from(tables[type]).update(payload).eq('id', existing.id) : client.from(tables[type]).insert(payload);
+        if (existing?.updated_at && type === 'berita') query = query.eq('updated_at', existing.updated_at);
+        const result = await query.select('id').single();
+        if (result.error?.code === 'PGRST116' && existing) throw new Error('Berita telah berubah atau akses diperbarui. Teks Anda tetap ada di editor; buka versi terbaru sebelum menimpa.');
+        check(result);
       } catch (error) {
         if (uploaded.length) await client.storage.from(bucket(type)).remove(uploaded);
         throw error;

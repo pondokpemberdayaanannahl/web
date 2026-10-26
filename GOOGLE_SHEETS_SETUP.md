@@ -1,130 +1,103 @@
-# Panduan Setup Google Sheets — Form Pendaftaran An-Nahl
+# Formulir langsung ke Google Sheets dan Drive akun pondok
 
-## LANGKAH 1 — Buat Google Sheets
+Pendaftaran dan konfirmasi donasi memakai alur **website → PHP Hostinger → Google**. Isian dicatat di [Rekap daftar dan Donasi](https://docs.google.com/spreadsheets/d/1GJJDb0AEv4a3yugzQpv2hMhU1ke9g_zIbsNGQMNlmg8/edit). Lampiran asli disimpan di folder privat Drive milik `pondokpemberdayaanannahl@gmail.com`; Sheet mencantumkan tautan foldernya. Penyimpanan menggunakan kuota Google akun pondok.
 
-1. Buka https://sheets.google.com
-2. Klik "Blank" untuk membuat spreadsheet baru
-3. Rename file menjadi: **"Data Pendaftaran Santri An-Nahl"**
-4. Di **Row 1**, isi header kolom berikut (PERSIS seperti ini):
-   - A1: `Timestamp`
-   - B1: `Nama Lengkap`
-   - C1: `Tempat Lahir`
-   - D1: `Tanggal Lahir`
-   - E1: `Jenis Kelamin`
-   - F1: `Asal Sekolah`
-   - G1: `Program`
-   - H1: `Nama Wali`
-   - I1: `No WhatsApp`
-   - J1: `Email`
-   - K1: `Alamat`
-   - L1: `Status`  ← (kolom ini untuk admin isi manual: Pending/Diterima/Ditolak)
+Supabase tetap melayani berita, galeri editorial, akun pengurus, dan kontak. Pendaftaran/donasi baru tidak dikirim ke Supabase. Panel admin membuka rekap Google. Tidak ada sinkronisasi lima menit atau basis data formulir tambahan di hosting.
 
----
+## Status penerapan
 
-## LANGKAH 2 — Pasang Google Apps Script
+- Pada 27 Oktober 2026, pengguna memilih **cukup menyiapkan paket**. Tidak ada izin untuk melanjutkan login/deployment Hostinger, perubahan izin Google, aktivasi endpoint, atau pengujian unggahan nyata. Langkah aktivasi di bawah disediakan untuk pemasangan manual kemudian.
+- Sheet dan dua tab sudah disiapkan; akses umumnya **Restricted / Private only to me**. Sheet1 asli dipertahankan.
+- Kode penerima Google, penghubung PHP, formulir lampiran, dan konfigurasi privat sudah disiapkan lokal. Build serta uji PHP/HTTP lokal lulus. Google pada uji HTTP masih berupa server tiruan.
+- Draft `Code.gs` baru juga sudah disimpan di editor Google dan dibandingkan dengan sumber lokal. Manifest baru masih perlu diterapkan dan diotorisasi; draft bukan deployment publik.
+- **Penerima baru belum di-deploy, folder Drive belum dibuat, izin penyimpanan Google belum diberikan, dan rilis belum dipasang di Hostinger. Unggahan Google yang sesungguhnya belum diuji.** Pemeriksaan Google yang sebelumnya lulus adalah milik rancangan sinkronisasi lama.
+- Akses browser ke login Hostinger ditolak peninjauan otomatis karena akses akunnya belum diizinkan secara khusus. Diperlukan izin untuk membuka login dan memasang rilis. Jangan melewati penolakan lewat metode akses lain.
+- Rancangan lama berada di `integrations/google-sheets/legacy/`, bukan daftar migrasi aktif. Migrasi sinkronisasi lama tidak pernah diterapkan dan trigger berkala tidak pernah dipasang.
 
-1. Di Google Sheets, klik menu **Extensions → Apps Script**
-2. Hapus semua kode yang ada, ganti dengan kode berikut:
+## Lampiran dan pengiriman
 
-```javascript
-// ═══════════════════════════════════════════
-// Google Apps Script — An-Nahl Registration
-// Paste this in Extensions > Apps Script
-// ═══════════════════════════════════════════
+Maksimal **3 berkas, 2 MB per berkas, 5 MB total**. Format: JPG/JPEG, PNG, WebP, PDF, DOCX, XLSX, PPTX. Server memeriksa isi berkas. Paket Office terenkripsi atau dengan makro, arsip biasa, executable, HTML, dan SVG tidak diterima.
 
-const SHEET_NAME = 'Sheet1'; // Ganti jika nama sheet berbeda
+Formulir menampilkan nama/ukuran lampiran, pilihan mengosongkan, proses pengiriman, dan hasil yang jelas. Isian dipertahankan saat gagal. Pesan sukses hanya muncul setelah Google mengonfirmasi ID kiriman yang sama. Retry tanpa mengubah isian dari halaman yang sama memakai ID dan hash yang sama; reload halaman tidak menjamin ID sebelumnya tetap dipakai.
 
-function doPost(e) {
-  try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-    const data = JSON.parse(e.postData.contents);
+Konfirmasi donasi mencatat laporan donatur dan bukti untuk diperiksa. Tidak memindahkan uang atau memverifikasi transfer bank. Ubah status tindak lanjut di Sheet. Kolom catatan tambahan di sebelah kanan tetap boleh digunakan.
 
-    sheet.appendRow([
-      new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }), // Timestamp WIB
-      data.nama        || '',
-      data.tempatLahir || '',
-      data.tanggalLahir|| '',
-      data.jenisKelamin|| '',
-      data.asalSekolah || '',
-      data.program     || '',
-      data.namaWali    || '',
-      data.noWA        || '',
-      data.email       || '',
-      data.alamat      || '',
-      'Pending',              // Status default
-    ]);
+Tidak ada isian/lampiran di localStorage atau sessionStorage. PHP memprosesnya di memori dan meneruskan melalui HTTPS. Hosting hanya menyimpan konfigurasi privat dan penghitung percobaan (hash IP, jumlah, kedaluwarsa), tanpa isi formulir atau file. Penghitung kedaluwarsa dibersihkan ketika kelompok tersebut digunakan kembali.
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'success', message: 'Data berhasil disimpan' }))
-      .setMimeType(ContentService.MimeType.JSON);
+Penerima Google memeriksa tanda tangan, waktu, ID, batas file, hash isi, serta pemilik/izin folder dan file. Akses di luar pemilik membuat proses ditolak. Tidak ada pembuatan link publik untuk lampiran. Permintaan tanpa tanda tangan yang sah tidak dapat membaca atau menulis data.
 
-  } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
+Jika upload sebagian berhasil tetapi penulisan Sheet gagal, berkas privat tetap ada untuk dilanjutkan saat retry tanpa menggandakan. Pengurus dapat meninjau folder tidak lengkap. Tidak ada purge permanen otomatis.
 
-// Test function — jalankan ini sekali untuk verifikasi
-function testConnection() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-  Logger.log('Sheet ditemukan: ' + sheet.getName());
-  Logger.log('Koneksi berhasil!');
-}
+## Penempatan di Hostinger
+
+```text
+domain-folder/
+  annahl-private/                 # di luar public_html
+    forms-config.php             # URL deployment dan kunci privat
+    rate-limits/                 # metadata pembatasan percobaan saja
+  public_html/
+    index.html
+    admin.html
+    assets/
+    media/
+    api/forms.php
+    api/forms-core.php
 ```
 
-3. Klik **Save** (ikon disket)
-4. Klik **Run → testConnection** untuk memastikan koneksi berjalan
-5. Jika muncul popup izin, klik **"Review Permissions" → pilih akun Google Anda → Allow**
+Gunakan website PHP/HTML Hostinger dengan pengelola file, bukan hanya Website Builder. Dibutuhkan PHP 8.1+ dan cURL; tidak memerlukan MySQL atau Node.js di hosting. Verifikasi paket/konfigurasi hPanel sebelum pemasangan. HTTPS domain harus aktif dan batas badan permintaan PHP setidaknya 8 MB.
 
----
+## Aktivasi Google
 
-## LANGKAH 3 — Deploy sebagai Web App
+1. Masuk sebagai pemilik `pondokpemberdayaanannahl@gmail.com`. Buka Sheet → Extensions → Apps Script.
+2. Pasang `integrations/google-sheets/Code.gs` dan `appsscript.json`. Manifest mengaktifkan advanced Drive API v3.
+3. Pertahankan `ANNAHL_SPREADSHEET_ID` dan `ANNAHL_SHEETS_SECRET` yang sudah diisi. Properti URL/public key Supabase lama tidak dipakai penerima baru. Jangan menaruh kunci di Sheet, `VITE_*`, Git, atau chat.
+4. Tinjau izin Google: scope **spreadsheets** diperlukan untuk membuka rekap dari penerima web, serta **drive.file** untuk file yang dibuat/digunakan penghubung. Izin spreadsheet yang ditampilkan Google lebih luas daripada satu Sheet; kode membatasi ID tujuan pada rekap pondok. Rancangan lama memakai currentonly, sehingga izin baru harus ditinjau pemilik. Tidak ada izin trigger berkala pada manifest baru.
+5. Setelah pemilik menyetujui akses, jalankan `setupGoogleForms`. Fungsi memeriksa kolom, membuat folder Drive privat dengan pemilik yang benar, serta menyisipkan **Lampiran (Drive)**, **Hash Kiriman**, dan **Folder Berkas**. Dua kolom internal disembunyikan. Kolom catatan digeser, tidak ditimpa; Sheet1 tidak diubah.
+6. Jalankan `checkGoogleFormsSetup`. `onOpen` hanya membuat menu saat Sheet dibuka.
+7. Deploy → New deployment → Web app. Jalankan sebagai **Me / akun pondok**, dengan endpoint yang dapat dijangkau hosting. Tanda tangan server tetap diwajibkan; URL publik tidak memberikan akses ke isi Sheet/Drive. Tinjau penerapan sebelum publikasi.
+8. Simpan URL rilis berakhiran `/exec`, bukan `/dev`. PHP hanya mengikuti pengalihan hasil HTTPS ke `script.googleusercontent.com` dan tidak meneruskan badan formulir pada pengambilan hasil.
 
-1. Klik tombol **"Deploy"** (pojok kanan atas) → **"New deployment"**
-2. Klik ikon gear ⚙ di sebelah "Select type" → pilih **"Web app"**
-3. Isi konfigurasi:
-   - **Description**: `API Form Pendaftaran An-Nahl`
-   - **Execute as**: `Me (email Anda)`
-   - **Who has access**: `Anyone` ← PENTING agar website bisa mengirim data
-4. Klik **"Deploy"**
-5. Salin **Web App URL** yang muncul. Formatnya seperti ini:
-   ```
-   https://script.google.com/macros/s/AKfycby.../exec
-   ```
+Pemilik menyetujui izin Google dan menyelesaikan verifikasi akun secara langsung. Kunci baru juga harus dimasukkan pengguna sesuai aturan browser.
 
----
+## Konfigurasi dan paket rilis
 
-## LANGKAH 4 — Sambungkan ke Website
+```text
+npm run forms:prepare -- https://script.google.com/macros/s/DEPLOYMENT_ID/exec
+npm run build
+```
 
-1. Buka file: `d:\AN-NAHL\src\pages\pendaftaran.js`
-2. Temukan baris:
-   ```javascript
-   const GOOGLE_SCRIPT_URL = 'PASTE_URL_DISINI';
-   ```
-3. Ganti `PASTE_URL_DISINI` dengan URL Web App dari Langkah 3
+Persiapan membaca kunci yang sudah disimpan lokal tanpa mencetaknya. Hasil:
 
----
+- `annahl-private/forms-config.php`: konfigurasi lokal, diabaikan Git dan diblokir Vite.
+- `.backend-backups/google-forms/hostinger-private/forms-config.php`: konfigurasi domain; wajib di luar public_html.
+- `.backend-backups/google-forms/deployment.json`: catatan tujuan tanpa kunci.
 
-## LANGKAH 5 — Keamanan Google Sheets (Hanya Admin)
+Tanpa URL deployment, formulir menolak kiriman dengan pesan belum siap. Jangan menggantinya dengan sukses palsu atau fallback Supabase.
 
-Agar Google Sheets hanya bisa diakses admin:
+Setelah build, buat paket publik pada Windows:
 
-1. Di Google Sheets, klik **Share** (pojok kanan atas)
-2. Pastikan bagian **"General access"** diatur ke **"Restricted"**
-3. Tambahkan email admin pesantren di kolom "Add people"
-4. Atur permission ke **"Editor"** untuk admin yang perlu mengedit
-5. Klik **"Done"**
+```powershell
+.\scripts\package-hostinger.ps1
+```
 
-> ⚠️ PENTING: "Who has access: Anyone" di Apps Script (Langkah 3) hanya mengizinkan
-> website MENULIS data (kirim form). Bukan berarti siapapun bisa MEMBUKA Google Sheets-nya.
-> Google Sheets tetap private dan hanya bisa dibuka oleh akun yang Anda undang.
+Paket `.backend-backups/google-forms/hostinger-public.zip` berisi build publik yang diperiksa agar tidak memuat kunci/config privat. Konfigurasi privat disiapkan terpisah. Simpan backup file hosting yang akan diganti; jangan menghapus berkas lain di hosting.
 
----
+Migrasi `supabase/migrations/202610260002_google_forms_boundary.sql` disiapkan untuk membatasi insert Supabase menjadi **kontak** saja. Tidak menghapus data yang sudah ada dan tidak mengubah berita/akun. Koordinasikan dengan rilis formulir. Migrasi ini **belum diterapkan**.
 
-## Akses Admin — Export PDF
+## Pengujian
 
-Untuk mengekspor data sebagai PDF:
-1. Buka Google Sheets
-2. Klik **File → Download → PDF Document**
-3. Atur range, orientasi, dll → klik **Export**
+```text
+npm test
+npm run test:forms-php
+npm run test:forms-http
+npm run test:google-boundary
+npm run build
+```
+
+Uji HTTP memakai PHP sungguhan dan server Google tiruan pada loopback. Memeriksa tanda tangan, byte file, tanda terima sesuai ID, retry, origin/token/honeypot, pengalihan yang ditolak, dan tidak tersimpannya isi di penghitung hosting. Uji batas Supabase memakai PGlite yang dipasang terpisah di `.backend-backups/sql-test-runtime`.
+
+Pengembangan lokal memakai dua proses: `npm run forms:dev` dan `npm run dev -- --host 127.0.0.1 --port 5173`. Vite meneruskan endpoint formulir ke PHP port 5174. Folder privat diblokir dari server pengembangan.
+
+Setelah aktivasi, uji nyata dengan pendaftaran dan donasi rekaan, foto/PDF, retry, kepemilikan/akses Drive, serta respons dari domain publik. Bersihkan hanya fixture yang disetujui. Jangan menyatakan layanan aktif sebelum uji nyata selesai.
+
+Referensi: [Google web apps](https://developers.google.com/apps-script/guides/web#permissions), [Advanced Drive](https://developers.google.com/apps-script/advanced/drive), [Content Service](https://developers.google.com/apps-script/guides/content), [PHP Hostinger](https://www.hostinger.com/support/1575755-how-to-change-the-php-version-of-your-hostinger-hosting-plan/).

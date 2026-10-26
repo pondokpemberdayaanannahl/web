@@ -40,7 +40,7 @@ export function ringkasan(isi, maks = 150) {
 // Ubah baris database ke bentuk yang dipakai kartu dan modal
 function ubahKeArtikel(b) {
   return {
-    slug: b.id,
+    slug: String(b.id),
     category: escapeHtml(b.kategori),
     title: escapeHtml(b.judul),
     date: formatTanggal(b.dibuat_pada),

@@ -150,6 +150,17 @@ create policy public_submission on public.form_submissions for insert to anon,au
 create policy admin_submission_read on public.form_submissions for select to authenticated using((select private.pengurus_role())='admin');
 create policy admin_submission_update on public.form_submissions for update to authenticated using((select private.pengurus_role())='admin') with check((select private.pengurus_role())='admin');
 
+-- Check all references, including other authors' drafts, before allowing upload cleanup.
+create or replace function private.image_referenced(object_name text) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select case when auth.uid() is null then true else
+    exists(select 1 from public.berita b where b.gambar_url like '%/'||object_name or b.thumbnail_url like '%/'||object_name)
+    or exists(select 1 from public.berita_history h where h.snapshot->>'gambar_url' like '%/'||object_name or h.snapshot->>'thumbnail_url' like '%/'||object_name)
+  end
+$$;
+revoke all on function private.image_referenced(text) from public;
+grant execute on function private.image_referenced(text) to anon,authenticated;
+
 -- Public image buckets. Draft text is private; cover URLs are public, so do not upload confidential photos.
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values ('berita-gambar','berita-gambar',true,2097152,array['image/jpeg','image/png','image/webp','image/gif']),('galeri-foto','galeri-foto',true,2097152,array['image/jpeg','image/png','image/webp','image/gif'])
@@ -160,7 +171,7 @@ create policy annahl_upload_guard on storage.objects as restrictive for insert t
 drop policy if exists annahl_update_guard on storage.objects;
 create policy annahl_update_guard on storage.objects as restrictive for update to anon,authenticated using(bucket_id not in ('berita-gambar','galeri-foto')) with check(bucket_id not in ('berita-gambar','galeri-foto'));
 drop policy if exists annahl_delete_guard on storage.objects;
-create policy annahl_delete_guard on storage.objects as restrictive for delete to anon,authenticated using(bucket_id not in ('berita-gambar','galeri-foto') or (select private.pengurus_role())='admin' or (owner_id=(select auth.uid())::text and not exists(select 1 from public.berita b where b.gambar_url like '%/'||storage.objects.name or b.thumbnail_url like '%/'||storage.objects.name) and not exists(select 1 from public.berita_history h where h.snapshot->>'gambar_url' like '%/'||storage.objects.name or h.snapshot->>'thumbnail_url' like '%/'||storage.objects.name)));
+create policy annahl_delete_guard on storage.objects as restrictive for delete to anon,authenticated using(bucket_id not in ('berita-gambar','galeri-foto') or (select private.pengurus_role())='admin' or (owner_id=(select auth.uid())::text and not private.image_referenced(storage.objects.name)));
 drop policy if exists annahl_upload on storage.objects;
 create policy annahl_upload on storage.objects for insert to authenticated with check(bucket_id in ('berita-gambar','galeri-foto') and (select private.pengurus_role()) in ('admin','editor'));
 drop policy if exists annahl_delete on storage.objects;

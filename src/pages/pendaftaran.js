@@ -146,7 +146,7 @@ export function Pendaftaran() {
             </div>
             <div class="form-group">
               <label class="form-label">Program yang Diminati *</label>
-              <select class="form-select" required>
+              <select id="reg-program" class="form-select" required>
                 <option value="">Pilih program</option>
                 <option>Tahfidz Al-Qur'an</option>
                 <option>Pendidikan Formal + Tahfidz</option>
@@ -177,6 +177,16 @@ export function Pendaftaran() {
               <textarea id="reg-alamat" class="form-textarea" placeholder="Alamat lengkap tempat tinggal" style="min-height:100px" required></textarea>
             </div>
 
+            <div class="form-group attachment-box">
+              <label class="form-label" for="reg-files">Dokumen pendukung <span>(opsional)</span></label>
+              <p id="reg-files-help" class="attachment-help">Foto, PDF, DOCX, XLSX, atau PPTX. Pilih hingga 3 berkas, maksimal 2 MB per berkas dan 5 MB total.</p>
+              <input id="reg-files" data-form-files type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.docx,.xlsx,.pptx" aria-describedby="reg-files-help reg-files-feedback" />
+              <ul data-file-list class="attachment-list"></ul>
+              <p id="reg-files-feedback" data-file-feedback class="attachment-feedback" aria-live="polite"></p>
+              <button type="button" data-clear-files class="attachment-clear" hidden>Kosongkan lampiran</button>
+              <p class="attachment-privacy">Isian dan lampiran diterima melalui akun Google pondok. Berkas hanya dapat dibuka oleh pengurus yang memiliki akses.</p>
+            </div>
+            <div class="form-trap" aria-hidden="true"><label for="reg-website">Website<input id="reg-website" data-website type="text" tabindex="-1" autocomplete="off" /></label></div>
             <!-- Notifikasi -->
             <p id="reg-notif" class="submission-status" role="status"></p>
 

@@ -43,7 +43,7 @@ export async function optimizeImage(file) {
       return new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.${extension}`, { type: blob.type });
     };
     const optimized = await encode(1600);
-    const result = optimized.size < file.size ? optimized : file;
+    const result = Math.max(bitmap.width, bitmap.height) > 1600 || optimized.size < file.size ? optimized : file;
     if (result.size > 2 * 1024 * 1024) throw new Error('Foto masih di atas 2 MB setelah dikompres. Gunakan foto yang lebih kecil.');
     const thumbnail = await encode(480);
     return { file: result, thumbnail, note: `${Math.round(file.size / 1024)} KB → ${Math.round(result.size / 1024)} KB · thumbnail disiapkan` };

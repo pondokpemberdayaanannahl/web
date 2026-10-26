@@ -7,7 +7,17 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test",
+    "backend:check": "node scripts/check-backend.mjs",
+    "photos:library": "node scripts/build-photo-library.mjs",
+    "sheets:prepare": "node scripts/prepare-sheets-sync.mjs",
+    "test:sheets-db": "node scripts/check-sheets-sql.mjs",
+    "test:forms-php": "php tests/forms-php.php",
+    "test:forms-http": "node scripts/check-forms-http.mjs",
+    "forms:dev": "php -S 127.0.0.1:5174 -t public",
+    "forms:prepare": "node scripts/prepare-google-forms.mjs",
+    "test:google-boundary": "node scripts/check-google-boundary.mjs",
+    "test:private-config": "node scripts/check-vite-private.mjs"
   },
   "devDependencies": {
     "vite": "^8.0.10"

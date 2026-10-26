@@ -25,3 +25,8 @@ dist-ssr
 
 # env
 .env
+.photo-tools/
+.photo-tools-venv/
+.backend-backups/
+annahl-private/
+__pycache__/

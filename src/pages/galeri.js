@@ -1,4 +1,4 @@
-import { galleryImages, photos } from '../data/photos.js';
+import { galleryImages, photos, photoThumbnail } from '../data/photos.js';
 import { escapeHtml, safeUrl } from '../content-format.js';
 
 export function Galeri() {
@@ -165,7 +165,7 @@ if (!document.getElementById('galeri-styles')) {
 
 
 const imageCard = row => {
-  const full = safeUrl(row.gambar_url || row.src), thumb = safeUrl(row.thumbnail_url || full);
+  const full = safeUrl(row.gambar_url || row.src), thumb = safeUrl(row.thumbnail_url || photoThumbnail(full));
   if (!full || !thumb) return '';
   const title = row.judul || row.alt || 'Foto kegiatan';
   return `<button type="button" class="gallery-item" data-full="${escapeHtml(full)}" data-caption="${escapeHtml(row.caption || title)}" aria-label="Buka foto ${escapeHtml(title)}"><img src="${escapeHtml(thumb)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" /><span class="gallery-overlay"><span>${escapeHtml(title)}</span></span></button>`;

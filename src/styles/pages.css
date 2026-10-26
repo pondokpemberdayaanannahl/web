@@ -562,3 +562,18 @@ dialog.lightbox::backdrop { background:#000c; }
 .submission-status[data-state="error"] { color:#a12b22; }
 .article-detail-body ul { list-style:disc; padding-left:24px; margin:16px 0; }
 .article-detail-body .photo-caption { color:var(--neutral-500); font-size:13px; }
+.attachment-box { padding:20px; border:1px dashed var(--green-300); border-radius:var(--radius-md); background:var(--green-50); }
+.attachment-box .form-label { margin-bottom:8px; }
+.attachment-box .form-label span { font-size:13px; font-weight:400; }
+.attachment-help,.attachment-privacy { font-size:13px; line-height:1.6; color:var(--neutral-600); }
+.attachment-privacy { margin-top:12px; }
+.attachment-box input[type="file"] { width:100%; min-width:0; margin-top:12px; font:inherit; font-size:13px; }
+.attachment-box input::file-selector-button { padding:10px 14px; border:1px solid var(--green-300); border-radius:7px; background:white; color:var(--green-900); font:inherit; cursor:pointer; margin-right:10px; }
+.attachment-list { padding:0; margin:12px 0 0; list-style:none; }
+.attachment-list li { display:flex; align-items:start; gap:12px; padding:8px 0; border-top:1px solid var(--green-100); font-size:13px; }
+.attachment-list span { flex:1; min-width:0; overflow-wrap:anywhere; }
+.attachment-list small { white-space:nowrap; color:var(--neutral-500); }
+.attachment-feedback { color:#a12b22; font-size:13px; margin-top:10px; }
+.attachment-clear { border:0; padding:8px 0; background:none; font:inherit; font-size:13px; color:var(--green-800); text-decoration:underline; cursor:pointer; }
+.form-trap { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+@media(max-width:480px) { .attachment-box { padding:16px; } }

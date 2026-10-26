@@ -144,6 +144,17 @@ export function Donasi() {
               <label class="form-label">Pesan / Doa (Opsional)</label>
               <textarea id="donor-message" class="form-textarea" placeholder="Tuliskan pesan atau doa Anda..." style="min-height:100px"></textarea>
             </div>
+            <div class="form-group attachment-box">
+              <label class="form-label" for="donor-files">Bukti transfer <span>(opsional)</span></label>
+              <p id="donor-files-help" class="attachment-help">Foto, PDF, DOCX, XLSX, atau PPTX. Maksimal 3 berkas, 2 MB per berkas dan 5 MB total.</p>
+              <input id="donor-files" data-form-files type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.docx,.xlsx,.pptx" aria-describedby="donor-files-help donor-files-feedback" />
+              <ul data-file-list class="attachment-list"></ul>
+              <p id="donor-files-feedback" data-file-feedback class="attachment-feedback" aria-live="polite"></p>
+              <button type="button" data-clear-files class="attachment-clear" hidden>Kosongkan lampiran</button>
+              <p class="attachment-privacy">Bukti tersimpan di akun Google pondok untuk diperiksa pengurus. Konfirmasi ini belum merupakan verifikasi pembayaran.</p>
+            </div>
+            <div class="form-trap" aria-hidden="true"><label for="donor-website">Website<input id="donor-website" data-website type="text" tabindex="-1" autocomplete="off" /></label></div>
+            <p class="submission-status" role="status"></p>
             <button type="submit" class="btn btn-primary" style="width:100%">
               <i data-lucide="heart" style="width:18px;height:18px"></i>
               Konfirmasi Donasi

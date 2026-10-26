@@ -1,6 +1,9 @@
 import { PAGE_SIZE, createDemoStore, createSupabaseStore, validateImage, youtubeId } from './admin-data.js';
 import { renderBody, safeUrl } from './content-format.js';
 import { draftKey, saveDraft, readDraft, optimizeImage } from './editor-tools.js';
+import { loadPhotoLibrary, filterPhotoLibrary, LIBRARY_PAGE_SIZE } from './photo-library.js';
+import { readAuthFlow, validateNewPassword } from './auth-flow.js';
+import { RECAP_URL } from './google-forms.js';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -13,6 +16,8 @@ const demoEnabled = import.meta.env.DEV && import.meta.env.VITE_DUMMY_LOGIN_ENAB
 const demoUser = import.meta.env.VITE_DUMMY_USERNAME;
 const demoPassword = import.meta.env.VITE_DUMMY_PASSWORD;
 const backendConfigured = import.meta.env.VITE_SUPABASE_ANON_KEY && import.meta.env.VITE_SUPABASE_ANON_KEY !== 'local-preview-only';
+const incomingAuth = readAuthFlow(location.href);
+let passwordSetupClient = null, passwordSetupUser = null;
 let clientPromise;
 const getClient = () => clientPromise ||= import('./supabase.js').then(module => module.supabase);
 let store, isDemo = false, currentPanel = 'overview', mediaType = 'foto';
@@ -24,6 +29,7 @@ let currentUser = '', currentUserId = '', currentRole = 'editor';
 let draftTimer, activeDraftKey = '', draftStored = false, imageProcessing = false, imageSequence = 0, processedImage = null;
 let historyRows = [], historyTarget = null;
 let inboxPage = 1, inboxCount = 0, inboxRequest = 0;
+let libraryRows = [], filteredLibrary = [], libraryImageIndex = -1, librarySearchTimer;
 const labels = { overview: 'Ringkasan', berita: 'Berita', galeri: 'Galeri', pendaftaran: 'Pendaftaran', program: 'Program', donasi: 'Donasi', kontak: 'Pesan masuk' };
 const categories = { berita: ['Akademik', 'Keagamaan', 'Sosial', 'Pengumuman'], foto: ['Akademik', 'Ibadah', 'Acara', 'Fasilitas'], video: ['Profil', 'Acara', 'Kegiatan'] };
 
@@ -58,8 +64,8 @@ function mediaCard(row) {
   const image = mediaType === 'video' ? { ...row, gambar_url: thumbnail } : row;
   return `<div class="media-card">${cover(image, 'media-cover')}<div class="media-info"><span class="category">${escape(row.kategori)}</span><h3>${escape(row.judul)}</h3><div class="row-actions"><button class="row-action" data-edit="${escape(row.id)}" data-type="${mediaType}" aria-label="Edit ${escape(row.judul)}">Edit</button><button class="row-action danger" data-delete="${escape(row.id)}" data-type="${mediaType}" aria-label="Hapus ${escape(row.judul)}">Hapus</button></div></div></div>`;
 }
-function pagination(prefix, page, count) {
-  const pages = Math.max(1, Math.ceil(count / PAGE_SIZE));
+function pagination(prefix, page, count, pageSize = PAGE_SIZE) {
+  const pages = Math.max(1, Math.ceil(count / pageSize));
   $(`${prefix}-page-info`).textContent = count ? `Halaman ${page} dari ${pages} · ${count} konten` : 'Belum ada konten';
   $(`${prefix}-prev`).disabled = page <= 1;
   $(`${prefix}-next`).disabled = page >= pages;
@@ -102,6 +108,21 @@ async function loadMedia() {
   $('media-prev').disabled = $('media-next').disabled = true;
   loading('media-list');
   try {
+    if (type === 'library') {
+      libraryRows = await loadPhotoLibrary();
+      if (source !== store || request !== mediaRequest) return;
+      const folder = $('library-folder').value;
+      $('library-folder').innerHTML = '<option value="">Semua folder</option>' + [...new Set(libraryRows.map(row => row.folder))].sort((a, b) => a.localeCompare(b, 'id')).map(value => `<option value="${escape(value)}">${escape(value)}</option>`).join('');
+      $('library-folder').value = folder;
+      filteredLibrary = filterPhotoLibrary(libraryRows, $('library-search').value, folder, $('library-sort').value || 'folder');
+      mediaCount = filteredLibrary.length;
+      mediaPage = Math.min(mediaPage, Math.max(1, Math.ceil(mediaCount / LIBRARY_PAGE_SIZE)));
+      $('media-count').textContent = `${mediaCount} dari ${libraryRows.length} foto folder`;
+      const page = filteredLibrary.slice((mediaPage - 1) * LIBRARY_PAGE_SIZE, mediaPage * LIBRARY_PAGE_SIZE);
+      $('media-list').innerHTML = page.length ? `<div class="media-grid library-grid">${page.map(localPhotoCard).join('')}</div>` : empty('Foto belum ditemukan.', 'Coba nama kegiatan lain atau reset filter folder.');
+      pagination('media', mediaPage, mediaCount, LIBRARY_PAGE_SIZE);
+      return;
+    }
     const result = await source.list(type, { page: mediaPage });
     if (source !== store || request !== mediaRequest) return;
     mediaCount = result.count || 0;
@@ -114,8 +135,9 @@ async function loadMedia() {
 function setMedia(type) {
   mediaType = type;
   mediaPage = 1;
-  for (const kind of ['foto', 'video']) { $(`tab-${kind}`).classList.toggle('selected', type === kind); $(`tab-${kind}`).setAttribute('aria-pressed', String(type === kind)); }
-  $('add-media').textContent = `＋ Tambah ${type}`;
+  for (const kind of ['library', 'foto', 'video']) { $(`tab-${kind}`).classList.toggle('selected', type === kind); $(`tab-${kind}`).setAttribute('aria-pressed', String(type === kind)); }
+  $('library-tools').hidden = type !== 'library';
+  $('add-media').textContent = type === 'library' ? '＋ Unggah foto' : `＋ Tambah ${type}`;
 }
 function navigate(panel, focus = true) {
   if (!store || !labels[panel]) return;
@@ -161,10 +183,11 @@ function openDashboard(user, demo) {
   $('today').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
   $('password').value = '';
   $('login-view').hidden = true;
+  $('password-setup-view').hidden = true;
   $('dashboard-view').hidden = false;
   newsPage = mediaPage = 1;
   $('news-search').value = $('news-filter').value = $('news-status').value = '';
-  setMedia('foto');
+  setMedia('library');
   navigate('overview');
 }
 async function authorizedUser(client, user) {
@@ -385,11 +408,12 @@ async function submitContent(event, status = 'published') {
   $('editor-message').textContent = '';
   const values = { judul: $('judul').value.trim(), kategori: $('kategori').value };
   if (!values.judul) { $('editor-message').textContent = 'Judul belum diisi.'; return; }
-  if (editorType === 'berita') { values.isi = $('isi').value.trim(); if (!values.isi) { $('editor-message').textContent = 'Tuliskan isi berita terlebih dahulu.'; return; } }
+  if (editorType === 'berita') { values.isi = $('isi').value.trim(); if (!values.isi && currentRole === 'admin' && status === 'published') { $('editor-message').textContent = 'Tuliskan isi berita sebelum menerbitkan.'; return; } }
   if (editorType !== 'video') values.caption = $('image-caption').value.trim();
   if (editorType === 'berita') values.status = currentRole === 'admin' ? status : 'draft';
   if (editorType === 'video') { values.youtube_id = youtubeId($('video-link').value); if (!values.youtube_id) { $('editor-message').textContent = 'Gunakan link YouTube yang valid.'; return; } }
   const button = $('save-btn'), previousText = button.textContent;
+  if (editorType === 'berita') persistDraft();
   saving = true; button.disabled = true; button.textContent = 'Menyimpan…';
   const source = store;
   const controls = [...$('editor-form').elements].map(control => [control, control.disabled]);
@@ -411,7 +435,11 @@ async function submitContent(event, status = 'published') {
   }
 }
 $('editor-form').addEventListener('submit', event => submitContent(event));
-$('draft-btn').addEventListener('click', event => { if ($('editor-form').reportValidity()) submitContent(event, 'draft'); });
+$('draft-btn').addEventListener('click', async event => {
+  const required = $('isi').required; $('isi').required = false;
+  try { if ($('editor-form').reportValidity()) await submitContent(event, 'draft'); }
+  finally { $('isi').required = required; }
+});
 // Delegated actions keep listener count constant even as content changes.
 $('dashboard-view').addEventListener('click', async event => {
   const button = event.target.closest('button');
@@ -419,7 +447,8 @@ $('dashboard-view').addEventListener('click', async event => {
   if (button.dataset.panel) return navigate(button.dataset.panel);
   if (button.dataset.go) { if (button.dataset.kind) setMedia(button.dataset.kind); return navigate(button.dataset.go); }
   if (button.dataset.action === 'new-news') return openEditor('berita');
-  if (button.dataset.action === 'new-media' || button.id === 'add-media') { if (currentRole === 'admin') openEditor(mediaType); return; }
+  if (button.dataset.localPhoto) { showLibraryImage(button.dataset.localPhoto); return; }
+  if (button.dataset.action === 'new-media' || button.id === 'add-media') { if (currentRole === 'admin') openEditor(mediaType === 'library' ? 'foto' : mediaType); return; }
   if (button.dataset.action === 'refresh') return navigate(currentPanel, false);
   const id = button.dataset.edit || button.dataset.delete || button.dataset.restore || button.dataset.history;
   if (!id) return;
@@ -453,6 +482,12 @@ async function loadInbox() {
   if (!store || currentRole !== 'admin') return;
   const source = store, kind = currentPanel, request = ++inboxRequest;
   if (!['pendaftaran', 'kontak', 'donasi'].includes(kind)) return;
+  if (!isDemo && ['pendaftaran', 'donasi'].includes(kind)) {
+    $('inbox-prev').disabled = $('inbox-next').disabled = true;
+    $('inbox-page-info').textContent = 'Rekap dikelola melalui Google Sheets';
+    $('submission-list').innerHTML = `<div class="google-recap"><span class="eyebrow">REKAP PONDOK</span><h2>${kind === 'pendaftaran' ? 'Pendaftaran santri' : 'Konfirmasi donasi'}</h2><p>Isian tersimpan di Google Sheets akun pondok. Foto dan dokumen dapat dibuka melalui tautan lampiran di rekap.</p><a class="button" href="${RECAP_URL}" target="_blank" rel="noopener noreferrer">Buka Google Sheets ↗</a><small>Masuk dengan akun pondok yang memiliki akses. ${kind === 'donasi' ? 'Pengurus tetap perlu mencocokkan bukti dengan transfer yang diterima.' : 'Gunakan rekap untuk mencatat tindak lanjut pendaftaran.'}</small></div>`;
+    return;
+  }
   loading('submission-list'); $('inbox-prev').disabled = $('inbox-next').disabled = true;
   try {
     const { data, count } = await source.submissions(kind, inboxPage);
@@ -473,20 +508,100 @@ $('submission-list').addEventListener('click', async event => {
 });
 $('inbox-prev').addEventListener('click', () => { if (inboxPage > 1) { inboxPage--; loadInbox(); } });
 $('inbox-next').addEventListener('click', () => { if (inboxPage * PAGE_SIZE < inboxCount) { inboxPage++; loadInbox(); } });
-for (const type of ['foto', 'video']) $(`tab-${type}`).addEventListener('click', () => { setMedia(type); loadMedia(); });
+for (const type of ['library', 'foto', 'video']) $(`tab-${type}`).addEventListener('click', () => { setMedia(type); loadMedia(); });
 $('news-prev').addEventListener('click', () => { if (newsPage > 1) { newsPage--; loadNews(); } });
 $('news-next').addEventListener('click', () => { if (newsPage * PAGE_SIZE < newsCount) { newsPage++; loadNews(); } });
 $('media-prev').addEventListener('click', () => { if (mediaPage > 1) { mediaPage--; loadMedia(); } });
-$('media-next').addEventListener('click', () => { if (mediaPage * PAGE_SIZE < mediaCount) { mediaPage++; loadMedia(); } });
+$('media-next').addEventListener('click', () => { if (mediaPage * (mediaType === 'library' ? LIBRARY_PAGE_SIZE : PAGE_SIZE) < mediaCount) { mediaPage++; loadMedia(); } });
+function formatBytes(bytes) { return bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`; }
+function localPhotoCard(row) {
+  return `<article class="media-card local-photo-card"><button class="local-photo-open" data-local-photo="${escape(row.id)}" aria-label="Lihat ${escape(row.filename)}"><img class="media-cover" src="${safeImage(row.thumbnail)}" alt="${escape(row.folder)}" loading="lazy" decoding="async" /><span class="local-photo-zoom" aria-hidden="true">Lihat foto ↗</span></button><div class="media-info"><span class="category">${escape(row.format)}${['HEIC', 'HEIF'].includes(row.format) ? ' · pratinjau JPG' : ''}</span><h3 title="${escape(row.filename)}">${escape(row.filename)}</h3><p class="local-photo-folder" title="${escape(row.path)}">${escape(row.folder)}</p><span class="local-photo-size">Asli ${formatBytes(row.bytes)}</span></div></article>`;
+}
+function showLibraryImage(id) {
+  const index = filteredLibrary.findIndex(row => row.id === id);
+  if (index < 0) return;
+  libraryImageIndex = index;
+  const row = filteredLibrary[index];
+  $('library-preview-title').textContent = row.filename;
+  $('library-preview-image').src = row.full;
+  $('library-preview-image').alt = `${row.folder} — ${row.filename}`;
+  $('library-preview-folder').textContent = row.folder;
+  $('library-preview-meta').textContent = `${row.format} · Asli ${formatBytes(row.bytes)} · Pratinjau dioptimalkan`;
+  $('library-image-position').textContent = `${index + 1} / ${filteredLibrary.length}`;
+  $('library-image-prev').disabled = index === 0;
+  $('library-image-next').disabled = index === filteredLibrary.length - 1;
+  if (!$('library-dialog').open) $('library-dialog').showModal();
+}
+$('library-close').addEventListener('click', () => $('library-dialog').close());
+$('library-dialog').addEventListener('close', () => { $('library-preview-image').removeAttribute('src'); });
+$('library-dialog').addEventListener('keydown', event => {
+  if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+  event.preventDefault();
+  const next = filteredLibrary[libraryImageIndex + (event.key === 'ArrowLeft' ? -1 : 1)];
+  if (next) showLibraryImage(next.id);
+});
+$('library-image-prev').addEventListener('click', () => { const row = filteredLibrary[libraryImageIndex - 1]; if (row) showLibraryImage(row.id); });
+$('library-image-next').addEventListener('click', () => { const row = filteredLibrary[libraryImageIndex + 1]; if (row) showLibraryImage(row.id); });
+function refreshLibrary() { mediaPage = 1; if (mediaType === 'library') loadMedia(); }
+$('library-search').addEventListener('input', () => { clearTimeout(librarySearchTimer); librarySearchTimer = setTimeout(refreshLibrary, 180); });
+$('library-folder').addEventListener('change', refreshLibrary);
+$('library-sort').addEventListener('change', refreshLibrary);
+$('library-reset').addEventListener('click', () => { $('library-search').value = $('library-folder').value = ''; $('library-sort').value = 'folder'; refreshLibrary(); });
 window.addEventListener('beforeunload', event => { if (dirty) { persistDraft(); event.preventDefault(); event.returnValue = ''; } });
 async function restoreSession() {
   try {
-    if (demoEnabled && demoUser && sessionStorage.getItem('annahl-dummy-user') === demoUser) { openDashboard({}, true); return; }
+    if (incomingAuth.error) { $('login-error').textContent = 'Tautan aktivasi tidak valid atau sudah kedaluwarsa. Minta undangan baru kepada admin proyek.'; return; }
+    if (!incomingAuth.kind && demoEnabled && demoUser && sessionStorage.getItem('annahl-dummy-user') === demoUser) { openDashboard({}, true); return; }
     if (!backendConfigured) return;
     const client = await getClient();
     const { data, error } = await client.auth.getSession();
     if (error) throw error;
-    if (data.session) openDashboard(await authorizedUser(client, data.session.user), false);
+    if (data.session) {
+      if (incomingAuth.kind || sessionStorage.getItem('annahl-password-setup') === data.session.user.id) showPasswordSetup(client, data.session.user);
+      else openDashboard(await authorizedUser(client, data.session.user), false);
+    } else if (incomingAuth.kind) $('login-error').textContent = 'Tautan aktivasi tidak dapat dipakai. Buka tautan terbaru dari email undangan.';
   } catch { $('login-error').textContent = 'Sesi belum dapat dipulihkan. Silakan masuk kembali.'; }
 }
+function showPasswordSetup(client, user) {
+  passwordSetupClient = client; passwordSetupUser = user;
+  sessionStorage.setItem('annahl-password-setup', user.id);
+  sessionStorage.removeItem('annahl-dummy-user');
+  $('login-view').hidden = $('dashboard-view').hidden = true;
+  $('password-setup-view').hidden = false;
+  $('setup-account-email').textContent = user.email;
+  $('setup-password').focus();
+  document.title = 'Aktivasi akun — Ruang Pengurus An-Nahl';
+}
+$('password-setup-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!passwordSetupClient || $('setup-save').disabled) return;
+  const password = $('setup-password').value;
+  const message = validateNewPassword(password, $('setup-password-confirm').value);
+  $('setup-error').textContent = message;
+  if (message) return;
+  $('setup-save').disabled = $('setup-cancel').disabled = true;
+  $('setup-save').textContent = 'Mengaktifkan akun…';
+  try {
+    const { error } = await passwordSetupClient.auth.updateUser({ password });
+    if (error) throw new Error('Password belum dapat disimpan. Coba password lain atau minta tautan aktivasi baru.');
+    sessionStorage.removeItem('annahl-password-setup');
+    $('password-setup-form').reset();
+    openDashboard(await authorizedUser(passwordSetupClient, passwordSetupUser), false);
+    toast('Akun aktif. Selamat datang di ruang pengurus.');
+    passwordSetupClient = null; passwordSetupUser = null;
+  } catch (error) { $('setup-error').textContent = error.message; }
+  finally { $('setup-save').disabled = $('setup-cancel').disabled = false; $('setup-save').textContent = 'Aktifkan akun'; }
+});
+$('setup-cancel').addEventListener('click', async () => {
+  if (!passwordSetupClient) return;
+  $('setup-cancel').disabled = true;
+  try {
+    const { error } = await passwordSetupClient.auth.signOut();
+    if (error) throw error;
+    passwordSetupClient = null; passwordSetupUser = null;
+    $('password-setup-form').reset();
+    $('password-setup-view').hidden = true; $('login-view').hidden = false;
+  } catch { $('setup-error').textContent = 'Belum berhasil keluar. Silakan coba lagi.'; }
+  finally { $('setup-cancel').disabled = false; }
+});
 restoreSession();

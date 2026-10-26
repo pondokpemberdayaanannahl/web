@@ -2,9 +2,14 @@
 // Foto asli dari folder picture/
 // ═══════════════════════════════════════════
 
+import optimizedPhotos from './photo-manifest.json' with { type: 'json' };
+const thumbnails = new Map(Object.values(optimizedPhotos).map(image => [image.full, image.thumbnail]));
+
 export function photo(relativePath) {
-  return '/picture/' + relativePath.split('/').map(encodeURIComponent).join('/');
+  return optimizedPhotos[relativePath]?.full || '/picture/' + relativePath.split('/').map(encodeURIComponent).join('/');
 }
+
+export function photoThumbnail(path) { return thumbnails.get(path) || path; }
 
 export const photos = {
   hero: {

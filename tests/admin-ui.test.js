@@ -5,10 +5,14 @@ import vm from 'node:vm';
 import * as data from '../src/admin-data.js';
 import * as format from '../src/content-format.js';
 import * as editor from '../src/editor-tools.js';
+import * as library from '../src/photo-library.js';
+import * as authFlow from '../src/auth-flow.js';
+import { RECAP_URL } from '../src/google-forms.js';
 
 const html = fs.readFileSync(new URL('../admin.html', import.meta.url), 'utf8');
 const source = fs.readFileSync(new URL('../src/admin.js', import.meta.url), 'utf8');
 const tick = () => new Promise(resolve => setImmediate(resolve));
+const libraryData = JSON.parse(fs.readFileSync(new URL('../src/data/photo-library.json', import.meta.url), 'utf8')).photos;
 
 // A small DOM fixture exercises controller state without a browser dependency.
 function fixture(dev = true, restored = false) {
@@ -18,7 +22,7 @@ function fixture(dev = true, restored = false) {
     return { id, value: '', textContent: '', innerHTML: '', hidden: false, disabled: false, files: [], elements: [], dataset: {}, listeners: {}, classList: { toggle(name, active) { active ? classes.add(name) : classes.delete(name); } },
       addEventListener(type, callback) { (this.listeners[type] ||= []).push(callback); },
       setAttribute() {}, removeAttribute() {}, replaceChildren() { this.innerHTML = ''; }, focus() {},
-      reset() { for (const field of ['judul', 'isi', 'video-link', 'gambar']) { elements.get(field).value = ''; elements.get(field).files = []; } },
+      reset() { for (const field of ['judul', 'isi', 'video-link', 'gambar', 'image-caption']) { elements.get(field).value = ''; elements.get(field).files = []; } },
       reportValidity() { return true; }, showModal() { this.open = true; }, close() { this.open = false; this.listeners.close?.forEach(callback => callback()); },
     };
   }
@@ -28,7 +32,7 @@ function fixture(dev = true, restored = false) {
   const session = { getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value), removeItem: key => saved.delete(key) };
   const nav = [...html.matchAll(/class="nav-item[^"]*" data-panel="([^"]+)"/g)].map(([, panel]) => ({ ...element(panel), dataset: { panel } }));
   const context = {
-    ...data, ...format, ...editor, createDemoStore: () => data.createDemoStore(session),
+    ...data, ...format, ...editor, ...library, ...authFlow, RECAP_URL, loadPhotoLibrary: async () => libraryData, createDemoStore: () => data.createDemoStore(session),
     env: { DEV: dev, VITE_DUMMY_LOGIN_ENABLED: 'true', VITE_DUMMY_USERNAME: 'admin', VITE_DUMMY_PASSWORD: '123', VITE_SUPABASE_ANON_KEY: 'local-preview-only' },
     document: { getElementById: $, querySelectorAll: () => nav },
     sessionStorage: session, localStorage: session, location: { origin: 'http://localhost:5173' }, window: { addEventListener() {} },
@@ -106,4 +110,56 @@ test('production mode rejects dummy credentials even with stored demo session', 
   assert.match(ui.$('login-error').textContent, /belum sesuai/);
   assert.equal(ui.$('login-view').hidden, false);
   assert.equal(ui.$('login-btn').disabled, false);
+});
+
+test('autosave recovers editor text and server draft/archive/restore workflow stays unpublished', async () => {
+  const ui = fixture(true, true); await tick();
+  await ui.click({ dataset: { action: 'new-news' } });
+  ui.$('judul').value = 'Draft yang dipulihkan'; ui.$('isi').value = 'Belum selesai'; ui.$('kategori').value = 'Sosial';
+  await ui.fire('editor-form', 'input');
+  await ui.fire('editor-close', 'click');
+  await ui.click({ dataset: { action: 'new-news' } });
+  assert.equal(ui.$('judul').value, 'Draft yang dipulihkan');
+  assert.equal(ui.$('isi').value, 'Belum selesai');
+  await ui.fire('draft-btn', 'click');
+  let state = JSON.parse(ui.saved.get('annahl-demo-content-v1'));
+  let draft = state.berita.find(row => row.judul === 'Draft yang dipulihkan');
+  assert.equal(draft.status, 'draft');
+  assert.equal(ui.$('stat-news').textContent, 3);
+  await ui.click({ dataset: { go: 'berita' } });
+  await ui.click({ dataset: { delete: draft.id, type: 'berita' } });
+  ui.$('news-status').value = 'trash'; await ui.fire('news-status', 'change');
+  assert.match(ui.$('daftar-berita').innerHTML, /Pulihkan ke draft/);
+  await ui.click({ dataset: { restore: draft.id, type: 'berita' } });
+  state = JSON.parse(ui.saved.get('annahl-demo-content-v1'));
+  draft = state.berita.find(row => row.id === draft.id);
+  assert.equal(draft.status, 'draft'); assert.equal(draft.deleted_at, null);
+  assert.equal(ui.$('stat-news').textContent, 3);
+});
+
+test('local gallery shows every photo through pagination, folder filters and keyboard preview', async () => {
+  const ui = fixture(true, true); await tick();
+  await ui.click({ dataset: { panel: 'galeri' } });
+  assert.equal(ui.$('library-tools').hidden, false);
+  assert.equal(ui.$('media-count').textContent, `149 dari ${libraryData.length} foto folder`);
+  assert.equal((ui.$('media-list').innerHTML.match(/class="media-card local-photo-card"/g) || []).length, 24);
+  await ui.fire('media-next', 'click');
+  assert.match(ui.$('media-page-info').textContent, /Halaman 2/);
+  const folder = libraryData.find(row => row.format === 'HEIC').folder;
+  ui.$('library-folder').value = folder;
+  await ui.fire('library-folder', 'change');
+  const filtered = library.filterPhotoLibrary(libraryData, '', folder);
+  assert.equal(ui.$('media-count').textContent, `${filtered.length} dari ${libraryData.length} foto folder`);
+  await ui.click({ dataset: { localPhoto: filtered[0].id } });
+  assert.equal(ui.$('library-dialog').open, true);
+  assert.equal(ui.$('library-preview-image').src, filtered[0].full);
+  await ui.fire('library-dialog', 'keydown', { key: 'ArrowRight' });
+  assert.equal(ui.$('library-preview-image').src, filtered[1].full);
+  await ui.fire('library-close', 'click');
+  assert.equal(ui.$('library-dialog').open, false);
+  await ui.fire('library-reset', 'click');
+  assert.equal(ui.$('media-count').textContent, `${libraryData.length} dari ${libraryData.length} foto folder`);
+  await ui.fire('tab-foto', 'click');
+  assert.equal(ui.$('library-tools').hidden, true);
+  assert.match(ui.$('media-list').innerHTML, /Belum ada foto/);
 });
