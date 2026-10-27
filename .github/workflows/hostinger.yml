@@ -1,0 +1,67 @@
+name: Build untuk Hostinger
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hostinger-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+      VITE_DUMMY_LOGIN_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Periksa konfigurasi publik Supabase
+        run: node scripts/check-hostinger-build.mjs --env
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm run hostinger:check
+      - name: Perbarui cabang hostinger dengan isi dist
+        shell: bash
+        run: |
+          set -euo pipefail
+          latest=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$latest" != "$GITHUB_SHA" ]; then
+            echo 'Sudah ada push yang lebih baru; rilis ini dilewati.'
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          export GIT_INDEX_FILE="$RUNNER_TEMP/annahl-hostinger.index"
+          git read-tree --empty
+          git -C "$GITHUB_WORKSPACE/dist" --git-dir="$GITHUB_WORKSPACE/.git" --work-tree="$GITHUB_WORKSPACE/dist" add --all -- .
+          tree=$(git write-tree)
+
+          parent=$(git ls-remote origin refs/heads/hostinger | cut -f1)
+          parents=()
+          if [ -n "$parent" ]; then
+            git fetch --no-tags origin refs/heads/hostinger
+            parent=$(git rev-parse FETCH_HEAD)
+            if [ "$tree" = "$(git rev-parse "$parent^{tree}")" ]; then
+              echo 'Isi website sudah sama; tidak perlu rilis baru.'
+              exit 0
+            fi
+            parents=(-p "$parent")
+          fi
+          commit=$(printf 'Build Hostinger dari %s\n' "$GITHUB_SHA" | git commit-tree "$tree" "${parents[@]}")
+          git push origin "$commit:refs/heads/hostinger"

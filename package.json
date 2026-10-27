@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "hostinger:check": "node scripts/check-hostinger-build.mjs",
     "preview": "vite preview",
     "test": "node --test",
     "backend:check": "node scripts/check-backend.mjs",
