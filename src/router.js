@@ -7,6 +7,7 @@ export class Router {
     this.routes = routes;
     this.currentPage = null;
     this.renderTimer = null;
+    this.renderSequence = 0;
     this.observers = [];
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     window.addEventListener('hashchange', () => this.handleRoute());
@@ -27,6 +28,7 @@ export class Router {
   }
 
   render(route) {
+    const sequence = ++this.renderSequence;
     const app = document.getElementById('page-content');
     if (!app) return;
 
@@ -40,8 +42,18 @@ export class Router {
     app.style.opacity = '0';
     app.style.transform = 'translateY(10px)';
     
-    this.renderTimer = setTimeout(() => {
-      app.innerHTML = route.component();
+    this.renderTimer = setTimeout(async () => {
+      let markup;
+      try { markup = await route.component(); }
+      catch {
+        if (sequence !== this.renderSequence) return;
+        app.innerHTML = '<section class="section"><div class="container"><h1>Halaman belum dapat dibuka.</h1><p>Periksa koneksi internet lalu coba lagi.</p><button class="btn btn-primary" id="route-retry">Coba lagi</button></div></section>';
+        app.style.opacity = '1'; app.style.transform = 'none';
+        document.getElementById('route-retry')?.addEventListener('click', () => this.render(route));
+        return;
+      }
+      if (sequence !== this.renderSequence) return;
+      app.innerHTML = markup;
       window.scrollTo({ top: 0, behavior: 'instant' });
       const heading = app.querySelector('h1');
       if (heading && !firstRender) {

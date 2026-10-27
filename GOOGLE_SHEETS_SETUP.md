@@ -101,3 +101,10 @@ Pengembangan lokal memakai dua proses: `npm run forms:dev` dan `npm run dev -- -
 Setelah aktivasi, uji nyata dengan pendaftaran dan donasi rekaan, foto/PDF, retry, kepemilikan/akses Drive, serta respons dari domain publik. Bersihkan hanya fixture yang disetujui. Jangan menyatakan layanan aktif sebelum uji nyata selesai.
 
 Referensi: [Google web apps](https://developers.google.com/apps-script/guides/web#permissions), [Advanced Drive](https://developers.google.com/apps-script/advanced/drive), [Content Service](https://developers.google.com/apps-script/guides/content), [PHP Hostinger](https://www.hostinger.com/support/1575755-how-to-change-the-php-version-of-your-hostinger-hosting-plan/).
+
+## Pemeriksaan domain — 27 Oktober 2026
+
+Frontend sudah dipasang pengguna, tetapi penerima `/api/forms.php` masih HTTP 503:
+Formulir sedang disiapkan. Lokasi konfigurasi privat belum terbaca. Tidak ada
+data pendaftar yang dikirim pada pemeriksaan ini. Aktivasi penerima Google dan
+uji kiriman nyata masih diperlukan.

@@ -2,6 +2,8 @@
 // FOOTER Component
 // ═══════════════════════════════════════════
 
+import { socialIcon } from './social-icon.js';
+
 export function Footer() {
   return `
     <footer class="footer">
@@ -51,17 +53,14 @@ export function Footer() {
           <div class="footer-col">
             <div class="footer-heading">Ikuti Kami</div>
             <div class="footer-social">
-              <a href="#" class="footer-social-link" aria-label="Instagram">
-                <i data-lucide="instagram" style="width:18px;height:18px"></i>
+              <a href="https://www.instagram.com/annahl.official?vrfl=MmlweHloM2wzcWgw" class="footer-social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                ${socialIcon('instagram')}
               </a>
-              <a href="#" class="footer-social-link" aria-label="Facebook">
-                <i data-lucide="facebook" style="width:18px;height:18px"></i>
+              <a href="https://www.facebook.com/share/1DjhtbZ3na/" class="footer-social-link" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+                ${socialIcon('facebook')}
               </a>
-              <a href="#" class="footer-social-link" aria-label="YouTube">
-                <i data-lucide="youtube" style="width:18px;height:18px"></i>
-              </a>
-              <a href="#" class="footer-social-link" aria-label="Twitter">
-                <i data-lucide="twitter" style="width:18px;height:18px"></i>
+              <a href="https://youtube.com/@ppuan-nahl4784?si=iWzGJO98qyJwW8HN" class="footer-social-link" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
+                ${socialIcon('youtube')}
               </a>
             </div>
           </div>

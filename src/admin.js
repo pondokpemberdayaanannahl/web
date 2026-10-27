@@ -3,7 +3,8 @@ import { renderBody, safeUrl } from './content-format.js';
 import { draftKey, saveDraft, readDraft, optimizeImage } from './editor-tools.js';
 import { loadPhotoLibrary, filterPhotoLibrary, LIBRARY_PAGE_SIZE } from './photo-library.js';
 import { readAuthFlow, validateNewPassword } from './auth-flow.js';
-import { RECAP_URL } from './google-forms.js';
+import { RECAP_URL, getGoogleFormToken } from './google-forms.js';
+import './styles/admin-content.css';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -30,7 +31,8 @@ let draftTimer, activeDraftKey = '', draftStored = false, imageProcessing = fals
 let historyRows = [], historyTarget = null;
 let inboxPage = 1, inboxCount = 0, inboxRequest = 0;
 let libraryRows = [], filteredLibrary = [], libraryImageIndex = -1, librarySearchTimer;
-const labels = { overview: 'Ringkasan', berita: 'Berita', galeri: 'Galeri', pendaftaran: 'Pendaftaran', program: 'Program', donasi: 'Donasi', kontak: 'Pesan masuk' };
+let websiteManager = null, websiteManagerLoading = null, requestedSitePage = null;
+const labels = { overview: 'Ringkasan', berita: 'Postingan berita', galeri: 'Galeri', halaman: 'Isi website', pendaftaran: 'Pendaftaran', program: 'Program', donasi: 'Donasi', kontak: 'Pesan masuk' };
 const categories = { berita: ['Akademik', 'Keagamaan', 'Sosial', 'Pengumuman'], foto: ['Akademik', 'Ibadah', 'Acara', 'Fasilitas'], video: ['Profil', 'Acara', 'Kegiatan'] };
 
 function toast(message, error = false) {
@@ -56,7 +58,7 @@ function newsRow(row, compact = false) {
   const actions = row.deleted_at
     ? currentRole === 'admin' ? `<button class="row-action" data-restore="${id}" data-type="berita">Pulihkan ke draft</button>` : ''
     : `${canEdit ? `<button class="row-action" data-edit="${id}" data-type="berita" aria-label="Edit ${escape(row.judul)}">Edit</button>` : ''}${!compact ? `<button class="row-action" data-history="${id}" data-type="berita">Riwayat</button>${currentRole === 'admin' ? `<button class="row-action danger" data-delete="${id}" data-type="berita">Arsipkan</button>` : ''}` : ''}`;
-  return `<div class="content-row">${cover(row)}<div class="row-info"><h3>${escape(row.judul)}</h3><div class="row-meta"><span class="category">${escape(row.kategori)}</span><span class="status-label">${status}</span><time>${formatDate(row.updated_at || row.dibuat_pada)}</time>${isDemo ? '<span>Contoh / demo</span>' : ''}</div></div><div class="row-actions">${actions}</div></div>`;
+  return `<article class="post-card${compact ? ' post-card-compact' : ''}"><header class="post-card-header"><span class="post-avatar" aria-hidden="true">N</span><div><strong>Postingan An-Nahl</strong><time>${formatDate(row.updated_at || row.dibuat_pada)}</time></div><span class="status-label">${status}</span></header>${row.gambar_url || row.thumbnail_url ? cover(row, 'post-cover') : ''}<div class="post-card-body"><span class="category">${escape(row.kategori)}</span><h3>${escape(row.judul)}</h3>${row.caption ? `<p>${escape(row.caption)}</p>` : ''}${isDemo ? '<small>Contoh di ruang demo</small>' : ''}</div><footer class="post-card-actions"><button class="row-action" data-view="${id}" data-type="berita">Lihat postingan</button>${actions}</footer></article>`;
 }
 function mediaCard(row) {
   // YouTube thumbnails are loaded only when the video tab is opened.
@@ -140,7 +142,9 @@ function setMedia(type) {
   $('add-media').textContent = type === 'library' ? '＋ Unggah foto' : `＋ Tambah ${type}`;
 }
 function navigate(panel, focus = true) {
+  if (panel === 'program') { requestedSitePage = 'program'; panel = 'halaman'; }
   if (!store || !labels[panel]) return;
+  if (currentPanel === 'halaman' && panel !== 'halaman' && websiteManager?.dirty && !confirm('Ada perubahan halaman yang belum diterbitkan. Pindah menu? Teks tetap tersimpan di perangkat ini.')) return;
   if (currentPanel !== panel) inboxPage = 1;
   currentPanel = panel;
   document.querySelectorAll('#admin-nav [data-panel]').forEach(button => {
@@ -148,7 +152,7 @@ function navigate(panel, focus = true) {
     button.classList.toggle('active', active);
     if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
   });
-  for (const id of ['overview', 'berita', 'galeri', 'upcoming']) $(`panel-${id}`).hidden = id !== (['overview', 'berita', 'galeri'].includes(panel) ? panel : 'upcoming');
+  for (const id of ['overview', 'berita', 'galeri', 'halaman', 'upcoming']) $(`panel-${id}`).hidden = id !== (['overview', 'berita', 'galeri', 'halaman'].includes(panel) ? panel : 'upcoming');
   $('breadcrumb-current').textContent = labels[panel];
   $('submission-surface').hidden = true;
   $('upcoming-card').hidden = false;
@@ -156,6 +160,7 @@ function navigate(panel, focus = true) {
   if (panel === 'overview') loadSummary();
   else if (panel === 'berita') loadNews();
   else if (panel === 'galeri') loadMedia();
+  else if (panel === 'halaman') loadWebsiteManager();
   else {
     $('upcoming-title').textContent = labels[panel];
     if (['pendaftaran', 'kontak', 'donasi'].includes(panel) && currentRole === 'admin') { $('upcoming-card').hidden = true; $('submission-surface').hidden = false; loadInbox(); }
@@ -163,7 +168,25 @@ function navigate(panel, focus = true) {
   }
   if (focus) $('workspace-main').focus({ preventScroll: true });
 }
+async function loadWebsiteManager() {
+  if (currentRole !== 'admin') { $('website-manager').innerHTML = empty('Khusus admin pondok.', 'Penulis dapat menyiapkan postingan melalui menu Berita.'); return; }
+  if (websiteManager) { if (requestedSitePage) { const page = requestedSitePage; requestedSitePage = null; websiteManager.open(page); } return; }
+  if (websiteManagerLoading) return;
+  const source = store;
+  loading('website-manager');
+  websiteManagerLoading = (async () => {
+    try {
+      const [{ mountWebsiteManager }, client] = await Promise.all([import('./site-content-admin.js'), isDemo ? Promise.resolve(null) : getClient()]);
+      if (store !== source) return;
+      websiteManager = mountWebsiteManager({ host: $('website-manager'), client, demo: isDemo, userId: currentUserId, role: currentRole, notify: toast });
+      if (requestedSitePage) { const page = requestedSitePage; requestedSitePage = null; await websiteManager.open(page); }
+    } catch { if (store === source) $('website-manager').innerHTML = empty('Editor halaman belum dapat dibuka.', 'Muat ulang halaman atau periksa koneksi internet.'); }
+    finally { websiteManagerLoading = null; }
+  })();
+  await websiteManagerLoading;
+}
 function openDashboard(user, demo) {
+  websiteManager?.dispose(); websiteManager = null;
   store?.dispose();
   isDemo = demo;
   currentUserId = demo ? 'demo-admin' : user.id;
@@ -189,6 +212,10 @@ function openDashboard(user, demo) {
   $('news-search').value = $('news-filter').value = $('news-status').value = '';
   setMedia('library');
   navigate('overview');
+  try {
+    const page = new URL(location.href || location.origin).searchParams.get('page');
+    if (page && currentRole === 'admin' && ['beranda','tentang','program','pendaftaran','donasi','kontak','berita','galeri','global'].includes(page)) { requestedSitePage = page; navigate('halaman'); }
+  } catch { /* An invalid optional deep link does not block the dashboard. */ }
 }
 async function authorizedUser(client, user) {
   const { data: profile, error } = await client.from('pengurus').select('display_name,role,active').eq('id', user.id).single();
@@ -229,11 +256,13 @@ $('password-toggle').addEventListener('click', () => {
   $('password-toggle').setAttribute('aria-pressed', String(show));
 });
 $('logout-btn').addEventListener('click', async () => {
+  if (websiteManager?.dirty && !confirm('Keluar dengan perubahan halaman yang belum diterbitkan? Salinan teks tetap tersimpan di perangkat ini.')) return;
   $('logout-btn').disabled = true;
   try {
     if (!isDemo) { const { error } = await (await getClient()).auth.signOut(); if (error) throw error; }
     sessionStorage.removeItem('annahl-dummy-user');
     clearTimeout(draftTimer);
+    websiteManager?.dispose(); websiteManager = null; requestedSitePage = null;
     store?.dispose(); store = null;
     ++newsRequest; ++mediaRequest; ++summaryRequest;
     for (const id of ['recent-news', 'daftar-berita', 'media-list']) $(id).replaceChildren();
@@ -447,10 +476,11 @@ $('dashboard-view').addEventListener('click', async event => {
   if (button.dataset.panel) return navigate(button.dataset.panel);
   if (button.dataset.go) { if (button.dataset.kind) setMedia(button.dataset.kind); return navigate(button.dataset.go); }
   if (button.dataset.action === 'new-news') return openEditor('berita');
+  if (['new-photo', 'new-video'].includes(button.dataset.action)) { if (currentRole === 'admin') { setMedia(button.dataset.action === 'new-photo' ? 'foto' : 'video'); navigate('galeri'); openEditor(mediaType); } return; }
   if (button.dataset.localPhoto) { showLibraryImage(button.dataset.localPhoto); return; }
   if (button.dataset.action === 'new-media' || button.id === 'add-media') { if (currentRole === 'admin') openEditor(mediaType === 'library' ? 'foto' : mediaType); return; }
   if (button.dataset.action === 'refresh') return navigate(currentPanel, false);
-  const id = button.dataset.edit || button.dataset.delete || button.dataset.restore || button.dataset.history;
+  const id = button.dataset.edit || button.dataset.delete || button.dataset.restore || button.dataset.history || button.dataset.view;
   if (!id) return;
   if (button.dataset.type !== 'berita' && currentRole !== 'admin') return;
   const source = store;
@@ -459,6 +489,10 @@ $('dashboard-view').addEventListener('click', async event => {
     const row = await source.get(button.dataset.type, id);
     if (source !== store) return;
     if (button.dataset.edit) openEditor(button.dataset.type, row);
+    else if (button.dataset.view) {
+      $('preview-content').innerHTML = `${row.gambar_url ? `<img src="${safeImage(row.gambar_url)}" alt="${escape(row.caption || row.judul)}" />` : ''}<h1 id="preview-title">${escape(row.judul)}</h1><p class="muted">${escape(row.kategori)} · ${formatDate(row.dibuat_pada)}</p>${renderBody(row.isi)}`;
+      $('preview-dialog').showModal();
+    }
     else if (button.dataset.history) {
       historyTarget = row; historyRows = await source.history(id);
       $('preview-content').innerHTML = `<h1 id="preview-title">Riwayat berita</h1>${historyRows.map((item, index) => `<div class="history-row"><strong>${escape(item.snapshot.judul)}</strong><p>${escape(item.actor_name || 'Pengurus')} · ${formatDate(item.dibuat_pada)} · ${escape(item.action)}</p>${currentRole === 'admin' ? `<button type="button" class="button secondary" data-revision="${index}">Gunakan versi ini</button>` : ''}</div>`).join('') || '<p>Belum ada riwayat perubahan.</p>'}`;
@@ -485,7 +519,11 @@ async function loadInbox() {
   if (!isDemo && ['pendaftaran', 'donasi'].includes(kind)) {
     $('inbox-prev').disabled = $('inbox-next').disabled = true;
     $('inbox-page-info').textContent = 'Rekap dikelola melalui Google Sheets';
-    $('submission-list').innerHTML = `<div class="google-recap"><span class="eyebrow">REKAP PONDOK</span><h2>${kind === 'pendaftaran' ? 'Pendaftaran santri' : 'Konfirmasi donasi'}</h2><p>Isian tersimpan di Google Sheets akun pondok. Foto dan dokumen dapat dibuka melalui tautan lampiran di rekap.</p><a class="button" href="${RECAP_URL}" target="_blank" rel="noopener noreferrer">Buka Google Sheets ↗</a><small>Masuk dengan akun pondok yang memiliki akses. ${kind === 'donasi' ? 'Pengurus tetap perlu mencocokkan bukti dengan transfer yang diterima.' : 'Gunakan rekap untuk mencatat tindak lanjut pendaftaran.'}</small></div>`;
+    loading('submission-list');
+    let available = false, reason = '';
+    try { await getGoogleFormToken(); available = true; } catch (error) { reason = error.message; }
+    if (source !== store || request !== inboxRequest) return;
+    $('submission-list').innerHTML = `<div class="google-recap"><span class="eyebrow">REKAP PONDOK</span><h2>${kind === 'pendaftaran' ? 'Pendaftaran santri' : 'Konfirmasi donasi'}</h2><div class="form-readiness ${available ? 'ready' : 'not-ready'}" role="status"><strong>${available ? 'Penerima formulir tersedia' : 'Formulir belum siap menerima kiriman'}</strong><p>${available ? 'Periksa satu kiriman uji di rekap untuk memastikan isian dan lampirannya sudah masuk.' : escape(reason || 'Penghubung penyimpanan belum tersambung. Kiriman baru belum dapat disimpan.')}</p><button class="text-link" data-action="refresh">Periksa lagi</button></div><p>Rekap disediakan di Google Sheets akun pondok. Lampiran kiriman yang berhasil disimpan dapat dibuka melalui tautan pada rekap.</p><a class="button" href="${RECAP_URL}" target="_blank" rel="noopener noreferrer">Buka Google Sheets ↗</a><small>Masuk dengan akun pondok yang memiliki akses. ${kind === 'donasi' ? 'Pengurus tetap perlu mencocokkan bukti dengan transfer yang diterima.' : 'Gunakan rekap untuk mencatat tindak lanjut pendaftaran.'}</small></div>`;
     return;
   }
   loading('submission-list'); $('inbox-prev').disabled = $('inbox-next').disabled = true;

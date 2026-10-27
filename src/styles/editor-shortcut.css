@@ -1,0 +1,6 @@
+.site-loading{min-height:55vh;display:grid;place-items:center;padding:100px 24px;color:var(--green-800);font-family:var(--font-body)}
+.site-editor-shortcut{position:fixed;bottom:20px;left:20px;z-index:950;padding:12px 18px;border:1px solid #cbdcc8;border-radius:50px;background:#153e32;color:white!important;box-shadow:0 5px 24px #153e3230;font:600 13px/1.4 var(--font-body);text-decoration:none!important;transition:transform .15s ease}
+.site-editor-shortcut:hover{transform:translateY(-2px)}
+.site-editor-shortcut:focus-visible{outline:3px solid #b9cf88;outline-offset:3px}
+@media(max-width:480px){.site-editor-shortcut{left:12px;bottom:16px;padding:11px 14px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){.site-editor-shortcut{transition:none}}

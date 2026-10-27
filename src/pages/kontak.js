@@ -1,3 +1,4 @@
+import { socialIcon } from '../components/social-icon.js';
 // ═══════════════════════════════════════════
 // KONTAK — Contact Page
 // ═══════════════════════════════════════════
@@ -75,14 +76,14 @@ export function Kontak() {
             <div style="margin-top:var(--space-xl)" class="reveal reveal-delay-3">
               <strong style="display:block;margin-bottom:var(--space-md)">Media Sosial</strong>
               <div style="display:flex;gap:var(--space-sm)">
-                <a href="#" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--green-50);color:var(--green-700);transition:all 0.3s ease" onmouseover="this.style.background='var(--green-800)';this.style.color='white'" onmouseout="this.style.background='var(--green-50)';this.style.color='var(--green-700)'">
-                  <i data-lucide="instagram" style="width:20px;height:20px"></i>
+                <a href="https://www.instagram.com/annahl.official?vrfl=MmlweHloM2wzcWgw" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--green-50);color:var(--green-700);transition:all 0.3s ease" onmouseover="this.style.background='var(--green-800)';this.style.color='white'" onmouseout="this.style.background='var(--green-50)';this.style.color='var(--green-700)'" target="_blank" rel="noopener noreferrer" aria-label="instagram">
+                  ${socialIcon('instagram')}
                 </a>
-                <a href="#" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--green-50);color:var(--green-700);transition:all 0.3s ease" onmouseover="this.style.background='var(--green-800)';this.style.color='white'" onmouseout="this.style.background='var(--green-50)';this.style.color='var(--green-700)'">
-                  <i data-lucide="facebook" style="width:20px;height:20px"></i>
+                <a href="https://www.facebook.com/share/1DjhtbZ3na/" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--green-50);color:var(--green-700);transition:all 0.3s ease" onmouseover="this.style.background='var(--green-800)';this.style.color='white'" onmouseout="this.style.background='var(--green-50)';this.style.color='var(--green-700)'" target="_blank" rel="noopener noreferrer" aria-label="facebook">
+                  ${socialIcon('facebook')}
                 </a>
-                <a href="#" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--green-50);color:var(--green-700);transition:all 0.3s ease" onmouseover="this.style.background='var(--green-800)';this.style.color='white'" onmouseout="this.style.background='var(--green-50)';this.style.color='var(--green-700)'">
-                  <i data-lucide="youtube" style="width:20px;height:20px"></i>
+                <a href="https://youtube.com/@ppuan-nahl4784?si=iWzGJO98qyJwW8HN" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--green-50);color:var(--green-700);transition:all 0.3s ease" onmouseover="this.style.background='var(--green-800)';this.style.color='white'" onmouseout="this.style.background='var(--green-50)';this.style.color='var(--green-700)'" target="_blank" rel="noopener noreferrer" aria-label="youtube">
+                  ${socialIcon('youtube')}
                 </a>
               </div>
             </div>

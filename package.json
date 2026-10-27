@@ -18,9 +18,11 @@
     "forms:dev": "php -S 127.0.0.1:5174 -t public",
     "forms:prepare": "node scripts/prepare-google-forms.mjs",
     "test:google-boundary": "node scripts/check-google-boundary.mjs",
+    "test:site-db": "node scripts/check-site-content-sql.mjs",
     "test:private-config": "node scripts/check-vite-private.mjs"
   },
   "devDependencies": {
+    "linkedom": "^0.18.14",
     "vite": "^8.0.10"
   },
   "dependencies": {

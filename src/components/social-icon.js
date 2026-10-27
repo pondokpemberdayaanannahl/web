@@ -1,0 +1,9 @@
+// These three small brand symbols are local SVGs, independent of the icon CDN.
+export function socialIcon(name) {
+  const shapes = {
+    instagram: '<rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>',
+    facebook: '<path d="M14 22v-9h3l.5-4H14V6.5c0-1.2.4-2 2.1-2H18V1.2A25 25 0 0 0 15.1 1C12.2 1 10 2.8 10 6v3H7v4h3v9z" fill="currentColor"/>',
+    youtube: '<rect x="2" y="5" width="20" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m10 8.5 6 3.5-6 3.5z" fill="currentColor"/>',
+  };
+  return shapes[name] ? `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">${shapes[name]}</svg>` : '';
+}

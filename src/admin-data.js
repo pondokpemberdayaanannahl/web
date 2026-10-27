@@ -120,7 +120,7 @@ export function createSupabaseStore(client, { userId, role = 'editor' } = {}) {
   };
   return {
     async list(type, { search = '', category = '', status = '', page = 1, limit = PAGE_SIZE } = {}) {
-      const fields = type === 'video' ? 'id,judul,kategori,youtube_id,dibuat_pada' : `id,judul,kategori,gambar_url,thumbnail_url,dibuat_pada${type === 'berita' ? ',status,deleted_at,updated_at,author_id' : ''}`;
+      const fields = type === 'video' ? 'id,judul,kategori,youtube_id,dibuat_pada' : `id,judul,kategori,gambar_url,thumbnail_url,caption,dibuat_pada${type === 'berita' ? ',status,deleted_at,updated_at,author_id' : ''}`;
       let query = client.from(tables[type]).select(fields, { count: 'exact' }).order('dibuat_pada', { ascending: false }).order('id');
       if (type === 'berita') {
         query = status === 'trash' ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null);
