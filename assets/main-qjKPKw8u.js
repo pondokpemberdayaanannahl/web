@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/main-k16Kptuk.js","assets/supabase-DTXc74uv.js","assets/preload-helper-rov5CBGT.js","assets/google-forms-C7uogBrb.js","assets/main-CMLN54tW.css"])))=>i.map(i=>d[i]);
+import{t as e}from"./auth-flow-CTLrPL4G.js";import{t}from"./preload-helper-rov5CBGT.js";var n=e(window.location.href);n.kind||n.error?window.location.replace(`/admin.html${window.location.search}${window.location.hash}`):t(()=>import(`./main-k16Kptuk.js`),__vite__mapDeps([0,1,2,3,4]));
