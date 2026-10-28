@@ -188,3 +188,14 @@ lokal. Lebar 320 piksel diperiksa tanpa gulir horizontal. Tidak ada kiriman
 Google atau perubahan konten Supabase produksi pada pengujian ini. Unduh
 Sheet privat masih mengikuti sesi Google pengguna dan tidak diuji dengan
 mengunduh data pendaftar.
+
+## Memilih foto dari Drive
+
+Editor berita/foto serta Isi website menyediakan Ambil dari Drive. Menu
+Galeri memiliki Foto Drive untuk menelusuri perpustakaan akun pondok.
+Unggahan baru menyimpan foto asli, versi website, dan thumbnail ke Drive.
+Menghapus postingan mempertahankan arsip foto karena dapat dipakai postingan
+lain. Berkas asli proyek tidak dihapus setelah dicadangkan ke Drive.
+
+Pemasangan penghubung foto pada Hostinger memerlukan media-config.php di
+folder privat yang sama dengan forms-config.php. Ikuti DRIVE_MEDIA_SETUP.md.

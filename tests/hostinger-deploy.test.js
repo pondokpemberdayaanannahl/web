@@ -37,7 +37,7 @@ function fixture() {
   for (const name of ['index.html', 'admin.html', 'login.html']) writeFileSync(join(dist, name), html);
   writeFileSync(join(dist, '.htaccess'), 'DirectoryIndex index.html\n');
   writeFileSync(join(dist, 'assets/app-test.js'), 'console.log("built");');
-  for (const name of ['forms.php', 'forms-core.php']) writeFileSync(join(dist, 'api', name), '<?php // fixture');
+  for (const name of ['forms.php', 'forms-core.php','media.php','media-image.php','media-core.php']) writeFileSync(join(dist, 'api', name), '<?php // fixture');
   const sha = git(repository, 'rev-parse', 'HEAD');
   return {
     repository, remote, dist, sha,
@@ -61,7 +61,7 @@ test('Hostinger publication ships only dist, preserves main/index and release hi
     const originalIndex = readFileSync(join(f.repository, '.git/index'));
     f.publish();
     assert.deepEqual(git(f.remote, 'ls-tree', '-r', '--name-only', 'hostinger').split('\n'), [
-      '.htaccess', 'admin.html', 'api/forms-core.php', 'api/forms.php', 'assets/app-test.js', 'index.html', 'login.html',
+      '.htaccess', 'admin.html', 'api/forms-core.php', 'api/forms.php', 'api/media-core.php', 'api/media-image.php', 'api/media.php', 'assets/app-test.js', 'index.html', 'login.html',
     ]);
     const first = git(f.remote, 'rev-parse', 'hostinger');
     assert.equal(git(f.remote, 'rev-parse', 'main'), f.sha);

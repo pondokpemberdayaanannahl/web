@@ -4,6 +4,8 @@ import { pageTemplate } from './site-page-templates.js';
 import { escapeHtml as esc } from './content-format.js';
 import { optimizeImage } from './editor-tools.js';
 import { photos, photoThumbnail } from './data/photos.js';
+import { createDriveMedia } from './drive-media.js';
+import { selectDrivePhoto } from './drive-picker.js';
 import baseCss from './styles/index.css?url';
 import componentsCss from './styles/components.css?url';
 import pagesCss from './styles/pages.css?url';
@@ -69,7 +71,7 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
     const value = working.values[field.id] ?? field.value;
     const label = `${field.label}${field.kind === 'heading' ? ` · ${field.value.slice(0, 45)}` : ''}`;
     const name = `cms-input-${index}`;
-    if (field.kind === 'image') return `<div class="cms-field"><label for="${name}">${esc(label)}</label><img class="cms-image-preview" data-cms-image="${field.id}" src="${esc(pending.get(field.id)?.preview || value)}" alt="Pratinjau foto" /><div class="cms-image-actions"><button type="button" class="button secondary compact" data-cms-pick="${field.id}">Pilih foto pondok</button><label class="button secondary compact cms-upload-label">Unggah foto<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-cms-upload="${field.id}" /></label></div><details><summary>Gunakan tautan foto</summary><input id="${name}" data-cms-field="${field.id}" value="${esc(value)}" maxlength="2048" inputmode="url" /></details></div>`;
+    if (field.kind === 'image') return `<div class="cms-field"><label for="${name}">${esc(label)}</label><img class="cms-image-preview" data-cms-image="${field.id}" src="${esc(pending.get(field.id)?.preview || value)}" alt="Pratinjau foto" /><div class="cms-image-actions"><button type="button" class="button secondary compact" data-cms-drive="${field.id}">Ambil dari Drive</button><button type="button" class="button secondary compact" data-cms-pick="${field.id}">Pilih foto pondok</button><label class="button secondary compact cms-upload-label">Unggah foto<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-cms-upload="${field.id}" /></label></div><details><summary>Gunakan tautan foto</summary><input id="${name}" data-cms-field="${field.id}" value="${esc(value)}" maxlength="2048" inputmode="url" /></details></div>`;
     if (field.kind === 'text' && value.length > 100) return `<div class="cms-field"><label for="${name}">${esc(label)}</label><textarea id="${name}" data-cms-field="${field.id}" rows="4" maxlength="8000" dir="auto">${esc(value)}</textarea></div>`;
     return `<div class="cms-field"><label for="${name}">${esc(label)}</label><input id="${name}" data-cms-field="${field.id}" type="${field.kind === 'number' ? 'number' : 'text'}" ${field.kind === 'number' ? 'min="0" max="9999999"' : ''} ${['link','map'].includes(field.kind) ? 'inputmode="url"' : ''} dir="auto" value="${esc(value)}" maxlength="${['image','link','map'].includes(field.kind) ? 2048 : 8000}" /></div>`;
   }
@@ -100,11 +102,8 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
       for (const [id, photo] of pending) {
         if (!photo.url) {
           if (demo) throw new Error('Pada demo, pilih foto pondok dari galeri. Unggahan baru tersedia pada akun asli.');
-          const extension = { 'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif' }[photo.file.type];
-          const path = `website-${crypto.randomUUID()}.${extension}`;
-          const { error } = await client.storage.from('galeri-foto').upload(path, photo.file);
-          if (error) throw new Error('Foto belum berhasil diunggah. Pilihan foto dan teks tetap tersedia.');
-          photo.url = client.storage.from('galeri-foto').getPublicUrl(path).data.publicUrl;
+          const asset = await createDriveMedia(client).upload({file:photo.file,original:photo.original,thumbnail:photo.thumbnail,onProgress:message=>{ $('#cms-error').textContent=message; }});
+          photo.url = asset.full;
         }
         content.values[id] = photo.url;
       }
@@ -132,6 +131,15 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
     const data = button.dataset;
     if (data.cmsPage) return open(data.cmsPage);
     if (data.cmsBlock) return editBlock(data.cmsBlock);
+    if (data.cmsDrive) {
+      const photo = await selectDrivePhoto({client,demo});
+      if (!photo || disposed) return;
+      const old=pending.get(data.cmsDrive);if(old)URL.revokeObjectURL(old.preview);pending.delete(data.cmsDrive);
+      working.values[data.cmsDrive]=photo.full;
+      $(`[data-cms-field="${data.cmsDrive}"]`).value=photo.full;
+      $(`[data-cms-image="${data.cmsDrive}"]`).src=photo.full;
+      remember();return;
+    }
     if (data.cmsRemove || data.cmsRestore) {
       const id = data.cmsRemove || data.cmsRestore;
       const block = catalog.blocks.find(item => item.id === id && item.hideable);
@@ -196,7 +204,7 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
     try {
       const image = await optimizeImage(file); if (disposed) return;
       const old = pending.get(id); if (old) URL.revokeObjectURL(old.preview);
-      const photo = { file: image.file, preview: URL.createObjectURL(image.file) }; pending.set(id, photo);
+      const photo = { file: image.file, original:file, thumbnail:image.thumbnail, preview: URL.createObjectURL(image.file) }; pending.set(id, photo);
       $(`[data-cms-image="${id}"]`).src = photo.preview; remember(); notify('Foto siap. Simpan draft atau terbitkan untuk mengunggahnya.');
     } catch (error) { notify(error.message, true); }
     finally { busy = false; }

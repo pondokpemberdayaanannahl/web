@@ -23,7 +23,7 @@ if (process.argv.includes('--env')) {
   async function inspect(folder) {
     for (const entry of await readdir(folder, { withFileTypes: true })) {
       if (entry.isSymbolicLink()) fail('Build publik tidak boleh memuat symlink.');
-      if (/^(?:\.env(?:\..*)?|\.git|annahl-private|\.backend-backups|node_modules|src|forms-config\.php|script-properties\.json)$/.test(entry.name)) {
+      if (/^(?:\.env(?:\..*)?|\.git|annahl-private|\.backend-backups|node_modules|src|forms-config\.php|media-config\.php|signing-key\.json|local-ca\.pem|script-properties\.json)$/.test(entry.name)) {
         fail(`Berkas sumber/privat tidak boleh masuk rilis: ${entry.name}`);
       }
       const path = resolve(folder, entry.name);
@@ -32,7 +32,7 @@ if (process.argv.includes('--env')) {
     }
   }
   await inspect(root);
-  for (const name of ['index.html', 'admin.html', 'login.html', '.htaccess', 'api/forms.php', 'api/forms-core.php']) {
+  for (const name of ['index.html', 'admin.html', 'login.html', '.htaccess', 'api/forms.php', 'api/forms-core.php', 'api/media.php', 'api/media-image.php', 'api/media-core.php']) {
     if (!(await stat(resolve(root, name))).isFile()) fail(`Build belum lengkap: ${name}`);
   }
   for (const name of ['index.html', 'admin.html', 'login.html']) {

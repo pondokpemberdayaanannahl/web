@@ -1,3 +1,4 @@
+import { createDriveMedia } from './drive-media.js';
 export const PAGE_SIZE = 8;
 const tables = { berita: 'berita', foto: 'galeri_foto', video: 'galeri_video' };
 const imageTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
@@ -52,7 +53,7 @@ export function createDemoStore(storage = sessionStorage) {
       if (!row) throw new Error('Konten sudah tidak tersedia.');
       return { ...row };
     },
-    async put(type, values, file, existing, { thumbnail } = {}) {
+    async put(type, values, file, existing, { thumbnail, drivePhoto } = {}) {
       validateImage(file);
       const next = { ...existing, ...values, id: existing?.id || crypto.randomUUID(), dibuat_pada: existing?.dibuat_pada || new Date().toISOString(), updated_at: new Date().toISOString() };
       if (type === 'berita') next.status ||= 'published';
@@ -61,6 +62,7 @@ export function createDemoStore(storage = sessionStorage) {
         if (file) { next.gambar_url = URL.createObjectURL(file); blobs.add(next.gambar_url); }
         if (thumbnail) { next.thumbnail_url = URL.createObjectURL(thumbnail); blobs.add(next.thumbnail_url); }
         else if (file) next.thumbnail_url = null;
+        if (drivePhoto) { next.gambar_url = drivePhoto.full; next.thumbnail_url = drivePhoto.thumbnail; }
       }
       const list = rows(type);
       const index = list.findIndex(row => row.id === next.id);
@@ -112,12 +114,9 @@ export function createDemoStore(storage = sessionStorage) {
   };
 }
 
-export function createSupabaseStore(client, { userId, role = 'editor' } = {}) {
-  const bucket = type => type === 'berita' ? 'berita-gambar' : 'galeri-foto';
+export function createSupabaseStore(client, { userId, role = 'editor', media = null } = {}) {
+  let library = media;
   const check = result => { if (result.error) throw new Error(result.error.message); return result; };
-  const storagePath = (url, name) => {
-    try { return new URL(url).pathname.split(`/storage/v1/object/public/${name}/`)[1]; } catch { return null; }
-  };
   return {
     async list(type, { search = '', category = '', status = '', page = 1, limit = PAGE_SIZE } = {}) {
       const fields = type === 'video' ? 'id,judul,kategori,youtube_id,dibuat_pada' : `id,judul,kategori,gambar_url,thumbnail_url,caption,dibuat_pada${type === 'berita' ? ',status,deleted_at,updated_at,author_id' : ''}`;
@@ -139,44 +138,28 @@ export function createSupabaseStore(client, { userId, role = 'editor' } = {}) {
       return Object.fromEntries(entries);
     },
     async get(type, id) { return check(await client.from(tables[type]).select('*').eq('id', id).single()).data; },
-    async put(type, values, file, existing, { thumbnail } = {}) {
+    async put(type, values, file, existing, { thumbnail, original, drivePhoto, onProgress } = {}) {
       validateImage(file);
       validateImage(thumbnail);
       if (type !== 'berita' && role !== 'admin') throw new Error('Hanya admin yang dapat mengelola galeri.');
-      const uploaded = [];
       const payload = { ...values };
       if (type === 'berita') {
         if (role !== 'admin' && (payload.status === 'published' || existing?.status === 'published')) throw new Error('Seorang admin harus menerbitkan berita ini.');
         if (!existing) payload.author_id = userId;
         payload.status ||= existing?.status || 'draft';
       }
-      const upload = async image => {
-        const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }[image.type];
-        const path = `${crypto.randomUUID()}.${extension}`;
-        check(await client.storage.from(bucket(type)).upload(path, image));
-        uploaded.push(path);
-        return client.storage.from(bucket(type)).getPublicUrl(path).data.publicUrl;
-      };
-      try {
       if (type !== 'video') {
         payload.gambar_url = existing?.gambar_url || null;
         payload.thumbnail_url = existing?.thumbnail_url || null;
-        if (file) { payload.gambar_url = await upload(file); payload.thumbnail_url = thumbnail ? await upload(thumbnail) : null; }
+        const photo = drivePhoto || (file ? await (library ||= createDriveMedia(client)).upload({file,original:original || file,thumbnail:thumbnail || file,onProgress}) : null);
+        if (photo) { payload.gambar_url = photo.full; payload.thumbnail_url = photo.thumbnail; }
       }
         let query = existing ? client.from(tables[type]).update(payload).eq('id', existing.id) : client.from(tables[type]).insert(payload);
         if (existing?.updated_at && type === 'berita') query = query.eq('updated_at', existing.updated_at);
         const result = await query.select('id').single();
         if (result.error?.code === 'PGRST116' && existing) throw new Error('Berita telah berubah atau akses diperbarui. Teks Anda tetap ada di editor; buka versi terbaru sebelum menimpa.');
         check(result);
-      } catch (error) {
-        if (uploaded.length) await client.storage.from(bucket(type)).remove(uploaded);
-        throw error;
-      }
-      // Keep previous covers for the news revision history.
-      if (file && existing && type === 'foto') {
-        const old = [existing.gambar_url, existing.thumbnail_url].map(url => storagePath(url, bucket(type))).filter(Boolean);
-        if (old.length) await client.storage.from(bucket(type)).remove(old);
-      }
+      // Library originals survive post changes/deletion: other posts may reuse them.
     },
     async remove(type, row) {
       if (role !== 'admin') throw new Error('Hanya admin yang dapat menghapus konten.');
@@ -186,10 +169,6 @@ export function createSupabaseStore(client, { userId, role = 'editor' } = {}) {
         return;
       }
       check(await client.from(tables[type]).delete().eq('id', row.id).select('id').single());
-      if (type !== 'video') {
-        const paths = [row.gambar_url, row.thumbnail_url].map(url => storagePath(url, bucket(type))).filter(Boolean);
-        if (paths.length) await client.storage.from(bucket(type)).remove(paths);
-      }
     },
     async restore(row) {
       if (role !== 'admin') throw new Error('Hanya admin dapat memulihkan berita.');

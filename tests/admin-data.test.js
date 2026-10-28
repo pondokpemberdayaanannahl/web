@@ -85,13 +85,12 @@ test('live lists request paginated metadata without article bodies', async () =>
   assert.deepEqual(calls.find(call => call[0] === 'ilike'), ['ilike', 'judul', '%100\\%%']);
 });
 
-test('failed live insert cleans up the newly uploaded photo', async () => {
-  const removed = [];
+test('failed news insert keeps the uploaded photo available for retry in Drive', async () => {
+  let uploads=0;
   const client = {
-    storage: { from() { return { upload: async () => ({}), getPublicUrl: path => ({ data: { publicUrl: `https://storage.example/${path}` } }), remove: async paths => { removed.push(...paths); return {}; } }; } },
     from() { return { insert() { return this; }, select() { return this; }, single: async () => ({ error: { message: 'Not authorized' } }) }; },
   };
-  await assert.rejects(createSupabaseStore(client).put('berita', news(), new File(['image'], 'pic.png', { type: 'image/png' })), /Not authorized/);
-  assert.equal(removed.length, 1);
-  assert.match(removed[0], /\.png$/);
+  const media={upload:async()=>{uploads++;return{full:'/api/media-image.php?full',thumbnail:'/api/media-image.php?thumb'};}};
+  await assert.rejects(createSupabaseStore(client,{media}).put('berita', news(), new File(['image'], 'pic.png', { type: 'image/png' })), /Not authorized/);
+  assert.equal(uploads,1);
 });

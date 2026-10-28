@@ -6,23 +6,28 @@ $artifactPath = Join-Path $workspacePath '.backend-backups/site-content-qa'
 New-Item -ItemType Directory -Path $artifactPath -Force | Out-Null
 $files = @(
     'index.html','admin.html','login.html','vite.config.js','package.json','package-lock.json',
-    'src/admin.js','src/admin-data.js','src/admin-session.js','src/login.js','src/auth-flow.js','src/bootstrap.js','src/main.js','src/router.js','src/donation-payment.js',
+    'src/admin.js','src/admin-data.js','src/drive-media.js','src/drive-picker.js','src/migrate-drive-media.js','src/admin-session.js','src/login.js','src/auth-flow.js','src/bootstrap.js','src/main.js','src/router.js','src/donation-payment.js',
     'src/components/navbar.js','src/components/footer.js','src/components/social-icon.js','src/components/category-cards.js','src/pages/kontak.js','src/pages/donasi.js','src/pages/berita.js','src/pages/galeri.js',
     'src/site-content.js','src/site-content-store.js','src/site-content-admin.js',
     'src/site-page-templates.js','src/public-editor-shortcut.js',
     'src/styles/admin.css','src/styles/admin-content.css','src/styles/editor-shortcut.css','src/styles/pages.css',
-    'public/brand/an-nahl.png','public/.htaccess',
+    'public/brand/an-nahl.png','public/.htaccess','public/api/media.php','public/api/media-core.php','public/api/media-image.php','integrations/hostinger/media-config.example.php','integrations/google-sheets/Code.gs','integrations/google-sheets/Media.gs','integrations/google-sheets/appsscript.json',
     'supabase/migrations/202610270003_site_content.sql',
-    'scripts/check-site-content-sql.mjs','scripts/check-backend.mjs','scripts/check-hostinger-build.mjs','scripts/package-content-update.ps1',
+    'scripts/check-site-content-sql.mjs','scripts/prepare-drive-media.mjs','scripts/prepare-local-tls.ps1','scripts/import-drive-photos.mjs','scripts/drive-request.mjs','scripts/check-backend.mjs','scripts/check-hostinger-build.mjs','scripts/package-content-update.ps1',
     'tests/site-content.test.js','tests/site-content-ui.test.js',
-    'tests/router-content.test.js','tests/public-pages.test.js','tests/admin-ui.test.js','tests/login.test.js','tests/auth-flow.test.js','tests/donation-payment.test.js','tests/hostinger-deploy.test.js',
-    'PENGELOLAAN_WEBSITE.md','BACKEND_SETUP.md','GOOGLE_SHEETS_SETUP.md','HOSTINGER_GITHUB_SETUP.md'
+    'tests/router-content.test.js','tests/public-pages.test.js','tests/admin-ui.test.js','tests/admin-data.test.js','tests/drive-media.test.js','tests/media-build.test.js','tests/drive-receiver.test.js','tests/drive-request.test.js','tests/media-php.php','tests/login.test.js','tests/auth-flow.test.js','tests/donation-payment.test.js','tests/hostinger-deploy.test.js',
+    'PENGELOLAAN_WEBSITE.md','BACKEND_SETUP.md','GOOGLE_SHEETS_SETUP.md','HOSTINGER_GITHUB_SETUP.md','DRIVE_MEDIA_SETUP.md'
 )
 $secrets = @()
 $properties = Join-Path $workspacePath '.backend-backups/sheets-sync/script-properties.json'
 if (Test-Path -LiteralPath $properties) {
     $secret = (Get-Content -LiteralPath $properties -Raw | ConvertFrom-Json).ANNAHL_SHEETS_SECRET
     if ($secret -match '^[a-f0-9]{64}$') { $secrets += $secret }
+}
+$photoKeyPath = Join-Path $workspacePath '.backend-backups/drive-media/signing-key.json'
+if (Test-Path -LiteralPath $photoKeyPath) {
+    $photoKey = (Get-Content -LiteralPath $photoKeyPath -Raw | ConvertFrom-Json).key
+    if ($photoKey -match '^[a-f0-9]{64}$') { $secrets += $photoKey }
 }
 $checksums = @()
 foreach ($name in $files) {

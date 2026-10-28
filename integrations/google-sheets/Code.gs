@@ -35,7 +35,7 @@ function formsLiteral_(value) {
   return /^[\s\u0000-\u001f]*[=+@-]/.test(text) ? "'" + text : text;
 }
 function formsPrivate_(id) {
-  const file = Drive.Files.get(id, {fields:'id,mimeType,ownedByMe,owners(emailAddress),trashed'});
+  const file = Drive.Files.get(id, {fields:'id,mimeType,ownedByMe,owners(emailAddress),trashed,appProperties'});
   if (!file.ownedByMe || file.trashed || !file.owners || file.owners.length !== 1 || file.owners[0].emailAddress.toLowerCase() !== ANNAHL_OWNER_EMAIL) throw formsError_('storage_owner');
   const access = Drive.Permissions.list(id, {fields:'permissions(type,role,emailAddress),nextPageToken'});
   if (access.nextPageToken || !access.permissions || !access.permissions.length || access.permissions.some(function(item) {
@@ -179,8 +179,10 @@ function doPost(event) {
   let lock;
   try {
     const text = event && event.postData && event.postData.contents;
-    if (typeof text !== 'string' || text.length > 7500000) throw formsError_('invalid');
+    if (typeof text !== 'string' || text.length > 29000000) throw formsError_('invalid');
     const envelope = JSON.parse(text), config = formsConfig_();
+    if (envelope.scope === 'media') return mediaEnvelope_(envelope,config);
+    if (text.length > 7500000) throw formsError_('invalid');
     if (typeof envelope.data !== 'string' || !/^[a-f0-9]{64}$/.test(envelope.signature || '')) throw formsError_('denied');
     const expected = formsHex_(Utilities.computeHmacSha256Signature('annahl.forms.v1:'+envelope.data,config.secret));
     let different = 0;

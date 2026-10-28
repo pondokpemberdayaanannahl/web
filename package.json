@@ -19,7 +19,10 @@
     "forms:prepare": "node scripts/prepare-google-forms.mjs",
     "test:google-boundary": "node scripts/check-google-boundary.mjs",
     "test:site-db": "node scripts/check-site-content-sql.mjs",
-    "test:private-config": "node scripts/check-vite-private.mjs"
+    "test:private-config": "node scripts/check-vite-private.mjs",
+    "media:prepare": "node scripts/prepare-drive-media.mjs",
+    "media:import": "node scripts/import-drive-photos.mjs",
+    "test:media-php": "php tests/media-php.php"
   },
   "devDependencies": {
     "linkedom": "^0.18.14",

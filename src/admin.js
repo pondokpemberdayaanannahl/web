@@ -6,6 +6,7 @@ import { readAuthFlow } from './auth-flow.js';
 import { demoEnabled, demoUser, backendConfigured, getClient, authorizedUser, loginPath } from './admin-session.js';
 import { RECAP_URL, getGoogleFormToken } from './google-forms.js';
 import './styles/admin-content.css';
+import { selectDrivePhoto } from './drive-picker.js';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -21,6 +22,7 @@ let editorType = 'berita', editedRow = null, dirty = false, saving = false, prev
 let searchTimer, toastTimer;
 let currentUser = '', currentUserId = '', currentRole = 'editor';
 let draftTimer, activeDraftKey = '', draftStored = false, imageProcessing = false, imageSequence = 0, processedImage = null;
+let driveSelection = null;
 let historyRows = [], historyTarget = null;
 let inboxPage = 1, inboxCount = 0, inboxRequest = 0;
 let libraryRows = [], filteredLibrary = [], libraryImageIndex = -1, librarySearchTimer;
@@ -195,6 +197,8 @@ function openDashboard(user, demo) {
   $('accounts-open').hidden = currentRole !== 'admin';
   $('dashboard-view').dataset.role = currentRole;
   $('add-media').hidden = currentRole !== 'admin';
+  $('drive-library-open').hidden = currentRole !== 'admin';
+  $('import-legacy-photos').hidden = currentRole !== 'admin';
   $('demo-notice').hidden = !demo;
   $('today').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
   $('session-status').hidden = true;
@@ -237,7 +241,7 @@ function updateCounters() {
 function openEditor(type = 'berita', row = null) {
   editorType = type; editedRow = row; dirty = false;
   $('editor-form').reset(); resetPreview();
-  processedImage = null; imageProcessing = false; ++imageSequence;
+  processedImage = null; driveSelection = null; imageProcessing = false; ++imageSequence;
   $('save-btn').disabled = $('draft-btn').disabled = false;
   activeDraftKey = type === 'berita' ? draftKey(currentUser, isDemo, row?.id) : '';
   draftStored = false; $('autosave-status').textContent = '';
@@ -296,6 +300,8 @@ function persistDraft() {
 }
 $('editor-form').addEventListener('input', () => { dirty = true; draftStored = false; updateCounters(); clearTimeout(draftTimer); draftTimer = setTimeout(persistDraft, 650); });
 $('gambar').addEventListener('change', async () => {
+  driveSelection = null;
+  $('gambar').required = editorType === 'foto' && !editedRow;
   dirty = true; resetPreview(); $('editor-message').textContent = '';
   const file = $('gambar').files[0];
   const sequence = ++imageSequence;
@@ -311,6 +317,39 @@ $('gambar').addEventListener('change', async () => {
     $('editor-message').textContent = result.note;
   } catch (error) { if (sequence === imageSequence) { $('editor-message').textContent = error.message; $('gambar').value = ''; } }
   finally { if (sequence === imageSequence) { imageProcessing = false; $('save-btn').disabled = $('draft-btn').disabled = false; } }
+});
+function useDrivePhoto(photo) {
+  resetPreview(); processedImage = null; driveSelection = photo; dirty = true;
+  $('gambar').value = ''; $('gambar').required = false;
+  $('image-preview').src = photo.full; $('image-preview').hidden = false;
+  $('editor-message').textContent = isDemo ? 'Foto lokal dipilih untuk demo.' : `Foto Drive dipilih: ${photo.filename}`;
+}
+$('drive-pick').addEventListener('click', async () => {
+  if (saving || imageProcessing) return;
+  const sequence = imageSequence;
+  const photo = await selectDrivePhoto({client:isDemo ? null : await getClient(),demo:isDemo});
+  if (!photo || sequence !== imageSequence || !$('editor-dialog').open) return;
+  useDrivePhoto(photo);
+});
+$('drive-library-open').addEventListener('click', async () => {
+  if (currentRole !== 'admin') return;
+  const photo=await selectDrivePhoto({client:isDemo ? null : await getClient(),demo:isDemo});
+  if (!photo || !store) return;
+  setMedia('foto'); navigate('galeri'); openEditor('foto'); useDrivePhoto(photo);
+  $('judul').value=photo.filename.replace(/\.[^.]+$/,''); updateCounters();
+});
+$('import-legacy-photos').addEventListener('click',async()=>{
+  if(currentRole!=='admin' || !store)return;
+  if(isDemo){toast('Mode demo tidak menyalin foto ke Google.');return;}
+  if(!confirm('Salin foto berita dan galeri lama dari Supabase ke Drive pondok, lalu perbarui tautan postingannya? Foto lama tetap dipertahankan untuk riwayat. Tunggu hingga proses selesai.'))return;
+  const source=store,button=$('import-legacy-photos');button.disabled=true;
+  try{
+    const {migrateLegacyPhotos}=await import('./migrate-drive-media.js');
+    const result=await migrateLegacyPhotos(source,await getClient(),message=>{button.textContent=message;});
+    toast(result.total ? `${result.copied} foto lama sudah tersalin ke Drive.` : 'Tidak ada foto Supabase yang perlu disalin.');
+    if(source===store){loadSummary();loadMedia();}
+  }catch(error){toast(error.message,true);}
+  finally{button.disabled=false;button.textContent='Salin foto lama';}
 });
 $('preview-btn').addEventListener('click', () => {
   const image = safeImage(previewUrl || editedRow?.gambar_url);
@@ -398,7 +437,7 @@ async function submitContent(event, status = 'published') {
   const controls = [...$('editor-form').elements].map(control => [control, control.disabled]);
   controls.forEach(([control]) => { control.disabled = true; });
   try {
-    await source.put(editorType, values, processedImage?.file || $('gambar').files[0], editedRow, { thumbnail: processedImage?.thumbnail });
+    await source.put(editorType, values, processedImage?.file || $('gambar').files[0], editedRow, { thumbnail: processedImage?.thumbnail, original:$('gambar').files[0], drivePhoto:driveSelection, onProgress:message=>{ $('editor-message').textContent=message; } });
     clearTimeout(draftTimer);
     if (activeDraftKey) { try { localStorage.removeItem(activeDraftKey); } catch { /* Saved server content remains authoritative. */ } }
     dirty = false; $('editor-dialog').close();

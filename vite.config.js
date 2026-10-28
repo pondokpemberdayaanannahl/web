@@ -15,9 +15,9 @@ const redirectPrivateEntry = (request, response, next) => {
 export default defineConfig({
   server: {
     fs: { deny:['.env','.env.*','*.{crt,pem}','**/.git/**','**/annahl-private/**','**/.backend-backups/**'] },
-    proxy: { '/api/forms.php': { target:'http://127.0.0.1:5174',changeOrigin:false } },
+    proxy: { '/api/': { target:'http://127.0.0.1:5174',changeOrigin:false } },
   },
-  preview: { proxy: { '/api/forms.php': { target:'http://127.0.0.1:5174',changeOrigin:false } } },
+  preview: { proxy: { '/api/': { target:'http://127.0.0.1:5174',changeOrigin:false } } },
   plugins: [{
     name: 'private-entry-paths',
     configureServer(server) { server.middlewares.use(redirectPrivateEntry); },

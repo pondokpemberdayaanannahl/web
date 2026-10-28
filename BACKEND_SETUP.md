@@ -113,3 +113,11 @@ npm run build
 ```
 
 Python dapat ditentukan melalui environment `PHOTO_PYTHON`. Decoder HEIC hanya dipakai saat membuat aset dan tidak dikirim ke browser. Manifest `src/data/photo-library.json` dimuat ketika tab Foto folder dibuka, bukan saat login. Simpan manifest dan aset `public/media` ke Git bersama perubahan foto; direktori alat/venv diabaikan Git. Pembersihan aset lama tidak dilakukan otomatis.
+
+## Foto Drive (28 Oktober 2026)
+
+Unggahan berita, galeri, dan Isi website kini memakai perpustakaan Drive
+akun pondok. Database berita dan metadata galeri tetap memakai Supabase.
+Bucket Storage lama dipertahankan untuk riwayat; adapter foto baru tidak
+mengunggah ke bucket tersebut. Foto lama dapat disalin melalui menu admin
+Salin foto lama. Detail aktivasi dan batas pengujian ada di DRIVE_MEDIA_SETUP.md.
