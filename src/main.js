@@ -6,7 +6,6 @@
 import './styles/index.css';
 import './styles/components.css';
 import './styles/pages.css';
-import './styles/editor-shortcut.css';
 
 import { Router } from './router.js';
 import { Navbar, initNavbar } from './components/navbar.js';
@@ -15,7 +14,6 @@ import { WhatsAppButton } from './components/whatsapp.js';
 import { supabase } from './supabase.js';
 import { renderSiteContent } from './site-content.js';
 import { readPublishedSiteContent } from './site-content-store.js';
-import { initEditorShortcut } from './public-editor-shortcut.js';
 
 // ── App Shell ──
 const app = document.getElementById('app');
@@ -47,7 +45,7 @@ const routes = [
 ];
 const router = new Router(routes);
 router.init();
-initEditorShortcut(supabase);
+
 }
 mountSite();
 

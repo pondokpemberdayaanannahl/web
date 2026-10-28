@@ -18,10 +18,13 @@ Akun pondok telah berhasil login di domain produksi menurut konfirmasi pengguna.
 Frontend hasil build dipasang oleh pengguna melalui repository `pondokpemberdayaanannahl/web`,
 cabang hasil build `hostinger`. Menu Isi website, kartu postingan, editor bagian,
 draft/terbit, riwayat, dan pintasan edit publik disiapkan lokal pada pembaruan
-berikutnya. Migrasi `202610270003_site_content.sql` belum diterapkan ke Supabase.
+berikutnya. Migrasi `202610270003_site_content.sql` sudah diterapkan ke proyek
+an-nahl pada 27 Oktober 2026 setelah persetujuan pengguna. Pemeriksaan API
+isi halaman berhasil HTTP 200 dan riwayat tetap privat (HTTP 401).
 Lihat [PENGELOLAAN_WEBSITE.md](./PENGELOLAAN_WEBSITE.md) untuk pemasangan dan batasnya.
-Penerima pendaftaran/donasi di domain diperiksa dan masih membalas 503 karena
-konfigurasi privat belum terbaca; jangan menyatakan penghubung Google aktif.
+Penerima pendaftaran/donasi di domain dan lokal kini membalas HTTP 200 dengan
+token tersedia setelah pengaturan privat Hostinger dipasang. Kunci sesuai
+dengan penerima Google; penyimpanan kiriman lengkap dan lampiran belum diuji.
 
 ## Urutan aktivasi
 
@@ -63,8 +66,8 @@ konfigurasi privat belum terbaca; jangan menyatakan penghubung Google aktif.
 - Galeri publik membaca Supabase dengan pagination. Foto statis hanya digunakan ketika backend belum dikonfigurasi; video contoh yang tidak terkait pondok sudah dihapus.
 - Galeri admin memiliki tab **Foto folder** untuk seluruh 149 foto lokal, **Foto unggahan** untuk Supabase, dan **Video**. Tab lokal menyediakan pencarian nama/kegiatan, filter folder, pengurutan, 24 foto per halaman, dan pratinjau dengan navigasi keyboard. Seluruh 24 HEIC memiliki pratinjau JPEG; satu MP4 tidak dihitung sebagai foto. Melihat katalog tidak otomatis menerbitkan isinya ke galeri publik.
 - Pesan kontak memakai `form_submissions` dengan izin publik insert saja. Pendaftaran dan konfirmasi donasi dalam kode baru memakai penghubung PHP Hostinger untuk langsung menyimpan di Google Sheets dan Drive akun pondok, tanpa fallback Supabase. Pesan sukses menunggu tanda terima ID yang sesuai. Konfirmasi donasi bukan verifikasi pembayaran dan tidak memproses transfer.
-- Sheet rekap sudah privat. Kode Google/PHP dan lampiran sudah disiapkan serta diuji lokal; penerapan Google dan Hostinger **belum aktif**. Izin akun hosting dan izin Google untuk penyimpanan baru masih diperlukan. Migrasi `202610260002_google_forms_boundary.sql` disiapkan (belum diterapkan) untuk membatasi insert Supabase menjadi kontak saja tanpa menghapus data. Rancangan sinkronisasi lama dipindahkan ke `integrations/google-sheets/legacy/` dan tidak dijalankan. Lihat [GOOGLE_SHEETS_SETUP.md](./GOOGLE_SHEETS_SETUP.md).
-- Migrasi editorial pertama tidak mencakup CMS program. Pembaruan `202610270003_site_content.sql` menambahkan Isi website untuk informasi program dan halaman lain setelah diterapkan.
+- Sheet rekap sudah privat. Penerima Google dan konfigurasi privat Hostinger sudah dipasang; kesiapan endpoint dan kecocokan kunci telah diperiksa tanpa menulis data. Uji penyimpanan kiriman lengkap beserta lampiran masih diperlukan. Migrasi `202610260002_google_forms_boundary.sql` disiapkan (belum diterapkan) untuk membatasi insert Supabase menjadi kontak saja tanpa menghapus data. Rancangan sinkronisasi lama dipindahkan ke `integrations/google-sheets/legacy/` dan tidak dijalankan. Lihat [GOOGLE_SHEETS_SETUP.md](./GOOGLE_SHEETS_SETUP.md).
+- Migrasi `202610270003_site_content.sql` sudah aktif dan menambahkan Isi website untuk informasi program serta halaman lain. Perubahan konten hanya dapat disimpan admin aktif.
 
 ## Verifikasi staging sebelum rilis
 

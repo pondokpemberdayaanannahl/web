@@ -4,6 +4,13 @@ import { readFileSync } from 'node:fs';
 import { photos, galleryImages } from './src/data/photos.js';
 
 const collectPhotos = value => typeof value === 'string' ? [value] : Object.values(value).flatMap(collectPhotos);
+const redirectPrivateEntry = (request, response, next) => {
+  const url = new URL(request.url, 'http://localhost');
+  const target = { '/admin': '/admin.html', '/admin/': '/admin.html', '/login': '/login.html', '/login/': '/login.html' }[url.pathname];
+  if (!target) return next();
+  response.writeHead(302, { Location: `${target}${url.search}` });
+  response.end();
+};
 
 export default defineConfig({
   server: {
@@ -12,6 +19,10 @@ export default defineConfig({
   },
   preview: { proxy: { '/api/forms.php': { target:'http://127.0.0.1:5174',changeOrigin:false } } },
   plugins: [{
+    name: 'private-entry-paths',
+    configureServer(server) { server.middlewares.use(redirectPrivateEntry); },
+    configurePreviewServer(server) { server.middlewares.use(redirectPrivateEntry); },
+  }, {
     name: 'referenced-pesantren-photos',
     apply: 'build',
     buildStart() {
@@ -28,6 +39,7 @@ export default defineConfig({
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         admin: fileURLToPath(new URL('./admin.html', import.meta.url)),
+        login: fileURLToPath(new URL('./login.html', import.meta.url)),
       },
     },
   },

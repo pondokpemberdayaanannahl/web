@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { parseHTML } from 'linkedom';
-import { SITE_PAGES } from '../src/site-content.js';
 
 const wait=()=>new Promise(resolve=>setTimeout(resolve,8));
 test('lazy page navigation ignores old responses and offers retry after a failed page download',async()=>{
@@ -28,20 +27,3 @@ test('lazy page navigation ignores old responses and offers retry after a failed
   assert.match(document.getElementById('page-content').textContent,/Tentang pondok/);
 });
 
-test('public edit shortcut appears only for an active admin and disappears on logout',async()=>{
-  const { document,window }=parseHTML('<html><body></body></html>');
-  let session=null,profile=null,reads=0;
-  const client={auth:{getSession:async()=>({data:{session}}),onAuthStateChange(){}},from(){reads++;return{select(){return this},eq(){return this},maybeSingle:async()=>({data:profile,error:null})}}};
-  const code=readFileSync(new URL('../src/public-editor-shortcut.js',import.meta.url),'utf8').replace(/^import .*;\r?$/gm,'').replace('export async function','async function');
-  const context={document,window,SITE_PAGES,location:{hash:'#/program'},setTimeout};
-  vm.runInNewContext(code,context);
-  await context.initEditorShortcut(client);
-  assert.equal(reads,0);assert.equal(document.getElementById('site-editor-shortcut'),null);
-  session={user:{id:'account'}};profile={active:true,role:'editor'};
-  window.dispatchEvent(new window.Event('pageshow'));await wait();
-  assert.equal(document.getElementById('site-editor-shortcut'),null);
-  profile={active:true,role:'admin'};window.dispatchEvent(new window.Event('pageshow'));await wait();
-  assert.equal(document.getElementById('site-editor-shortcut').getAttribute('href'),'/admin.html?page=program');
-  session=null;window.dispatchEvent(new window.Event('pageshow'));await wait();
-  assert.equal(document.getElementById('site-editor-shortcut'),null);
-});

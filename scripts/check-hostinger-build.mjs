@@ -32,10 +32,10 @@ if (process.argv.includes('--env')) {
     }
   }
   await inspect(root);
-  for (const name of ['index.html', 'admin.html', 'api/forms.php', 'api/forms-core.php']) {
+  for (const name of ['index.html', 'admin.html', 'login.html', '.htaccess', 'api/forms.php', 'api/forms-core.php']) {
     if (!(await stat(resolve(root, name))).isFile()) fail(`Build belum lengkap: ${name}`);
   }
-  for (const name of ['index.html', 'admin.html']) {
+  for (const name of ['index.html', 'admin.html', 'login.html']) {
     const html = await readFile(resolve(root, name), 'utf8');
     const scripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/g)].map(match => match[1]);
     if (!scripts.some(path => path.startsWith('/assets/'))) fail(`${name} masih belum memakai JavaScript hasil build.`);

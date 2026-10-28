@@ -21,11 +21,15 @@ Alur pada `.github/workflows/hostinger.yml`:
 3. Jika semua berhasil, hanya isi `dist` diterbitkan ke cabang `hostinger`.
 4. Hostinger mengambil cabang `hostinger` ke `public_html`.
 
-Cabang hasil build akan berisi `index.html`, `admin.html`, `assets/`,
+Cabang hasil build akan berisi `index.html`, `login.html`, `admin.html`, `.htaccess`, `assets/`,
 `media/`, dan `api/`, termasuk penghubung PHP. Konfigurasi Google privat
 tetap di luar `public_html` dan tidak masuk Git. Jika build gagal, hasil
 rilis sebelumnya tetap tersedia. Tidak perlu FTP password untuk rancangan
 ini; penulisan cabang memakai token bawaan repository GitHub.
+
+Untuk pengurus, ketik `/admin` atau `/login` langsung pada domain. Tidak ada
+tombol Login atau pintasan pada logo website publik. Halaman login dan panel
+pengurus memiliki berkas terpisah; admin tanpa sesi diarahkan ke login.
 
 Pengguna menyetujui penyiapan workflow pada 27 Oktober 2026. File workflow
 sudah disiapkan lokal dengan izin `contents: write` untuk memperbarui cabang

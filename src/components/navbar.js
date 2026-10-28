@@ -6,9 +6,8 @@ export function Navbar() {
   return `
     <nav class="navbar transparent" id="navbar">
       <div class="navbar-inner">
-        <a href="#/" class="navbar-logo">
-          <img src="/favicon.svg" alt="Logo An-Nahl" class="navbar-logo-img" />
-          <span class="navbar-logo-text"></span>
+        <a href="#/" class="navbar-logo" aria-label="An-Nahl — Beranda">
+          <span class="navbar-logo-mark" aria-hidden="true"><img src="/brand/an-nahl.png" alt="" class="navbar-logo-img" width="678" height="366" decoding="async" /></span>
         </a>
 
         <div class="navbar-menu">
@@ -20,7 +19,6 @@ export function Navbar() {
           <a href="#/galeri" class="navbar-link">Galeri</a>
           <a href="#/donasi" class="navbar-link">Donasi</a>
           <a href="#/kontak" class="navbar-link">Kontak</a>
-          <a href="/admin.html" class="navbar-link">Login</a>
         </div>
 
         <div class="navbar-cta">
@@ -45,7 +43,6 @@ export function Navbar() {
       <a href="#/galeri" class="navbar-link">Galeri</a>
       <a href="#/donasi" class="navbar-link">Donasi</a>
       <a href="#/kontak" class="navbar-link">Kontak</a>
-      <a href="/admin.html" class="navbar-link">Login</a>
       <a href="#/pendaftaran" class="btn btn-primary" style="margin-top: 16px">Daftar Sekarang</a>
     </div>
   `;

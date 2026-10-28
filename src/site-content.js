@@ -48,7 +48,7 @@ export function createContentCatalog(html, doc = document) {
   sections.forEach((section, index) => {
     const heading = section.querySelector('h2,h1,.footer-brand-name,.navbar-brand-name,.section-label');
     const title = heading?.textContent.trim() || (section.tagName === 'NAV' ? 'Menu utama' : section.classList.contains('whatsapp-float') ? 'Tombol WhatsApp' : 'Bagian website');
-    const block = { id: `b-${hash(`${index}:${title}`)}`, title, fields: [], cover: '', element: section, hideable: section.tagName === 'SECTION' && !section.classList.contains('hero') && !section.querySelector('form') };
+    const block = { id: `b-${hash(`${index}:${title}`)}`, title, fields: [], cover: '', element: section, hideable: section.tagName === 'SECTION' && !section.classList.contains('hero') && !section.classList.contains('payment-choices') && !section.querySelector('form') };
     const path = element => { const parts = []; for (let node = element; node && node !== section; node = node.parentElement) parts.unshift([...node.parentElement.children].indexOf(node)); return parts.join('-') || '0'; };
     const add = (element, kind, value, label, apply, textIndex = '') => {
       const field = { id: `${block.id}:${path(element)}:${kind}:${textIndex}:${hash(value)}`.replace(/--/g, '-'), kind, value, label, apply };
@@ -70,7 +70,7 @@ export function createContentCatalog(html, doc = document) {
       }
       if (element.tagName === 'IMG') {
         const src = element.getAttribute('src') || ''; if (!block.cover) block.cover = src;
-        add(element, 'image', src, 'Foto', value => { element.setAttribute('src', value); element.removeAttribute('srcset'); });
+        add(element, 'image', src, element.id === 'donation-qris' ? 'Gambar QRIS resmi' : 'Foto', value => { element.setAttribute('src', value); element.removeAttribute('srcset'); });
         add(element, 'text', element.getAttribute('alt') || '', 'Keterangan foto', value => element.setAttribute('alt', value));
       }
       const background = element.style.backgroundImage?.match(/^url\(["']?(.*?)["']?\)$/)?.[1];

@@ -2,9 +2,22 @@
 
 ## Yang disiapkan pada pembaruan ini
 
+- Warna utama Ruang Pengurus mengikuti contoh pengguna: **#166534**.
+  Sidebar, login, tombol, editor, dan galeri memakai palet hijau yang senada.
+- Login tidak ditampilkan di navigasi, footer, atau logo. Logo menuju Beranda.
+  Ketik `/login.html` atau `/admin.html` langsung pada domain website. Hostinger
+  juga menerima `/admin` dan `/login` melalui `.htaccess`. Halaman login dan
+  panel menggunakan berkas HTML serta JavaScript terpisah. Akses memerlukan
+  akun pengurus aktif; akun dummy hanya tersedia dalam pengembangan.
+- Logo terbaru dari `an-nahl.png` dipasang pada navigasi, footer, login,
+  aktivasi akun, sidebar, kartu postingan, dan ikon browser. Berkas asli
+  dipertahankan utuh pada `public/brand/an-nahl.png`; tampil proporsional
+  dengan latar transparan tanpa kotak tambahan.
 - Ringkasan pengurus memiliki kotak buat postingan dan tindakan cepat berita,
   foto, video, serta edit website. Daftar berita menjadi kartu berisi sampul,
-  judul, kategori, tanggal, status, dan tindakan lihat/edit/arsip.
+  judul, kategori, tanggal, status, dan tindakan Lihat/Edit/Hapus. Hapus berita memindahkannya ke Arsip agar dapat
+  dipulihkan. Foto unggahan dan video memiliki Edit/Hapus; Foto folder adalah
+  koleksi aset sumber dan tidak dihapus lewat browser.
 - Menu **Isi website** mencakup beranda, tentang pondok, program, informasi
   pendaftaran, informasi donasi, kontak/lokasi, pengantar berita/galeri, serta
   menu/footer/WhatsApp. Setiap bagian tampil sebagai kartu.
@@ -16,8 +29,9 @@
   dioptimalkan sebelum dikirim. Foto lama dipertahankan untuk riwayat halaman.
 - Ada draft, salinan teks lokal, pratinjau desktop/ponsel, penerbitan,
   pemeriksaan perubahan bersamaan, serta pemulihan riwayat sebagai draft.
-- Pengurus admin yang membuka website publik akan melihat **Edit halaman ini**.
-  Penulis biasa tetap mengelola draft berita sesuai hak akses sebelumnya.
+- Panel memeriksa sesi sebelum menampilkan konten. Pengunjung diarahkan ke
+  login, dan keluar akun mengembalikan pengguna ke halaman login. Website
+  publik tidak menyediakan tombol pintas menuju panel.
 - Tautan Instagram, Facebook, dan YouTube yang diberikan pengguna sudah
   dipasang di footer dan halaman Kontak. Ikon Twitter tanpa tujuan dihapus.
 - Halaman publik dimuat sesuai kebutuhan. Editor dan katalog foto tidak ikut
@@ -26,12 +40,15 @@
 
 ## Status
 
-Kode dan migrasi sudah disiapkan di proyek lokal. Tidak ada push ke repository
-produksi atau penerapan migrasi Supabase yang dilakukan oleh agen untuk
-pembaruan ini. Setelah memasang pembaruan, jalankan migrasi di bawah agar
-menu Isi website bisa menyimpan perubahan. Berita/galeri yang sudah ada tidak
-dipindahkan atau dihapus. Tanpa migrasi, website tetap memakai isi awal dan
-pengelola halaman akan menjelaskan bahwa layanan belum diaktifkan.
+Migrasi `202610270003_site_content.sql` sudah diterapkan pada proyek Supabase
+**an-nahl** pada 27 Oktober 2026 setelah persetujuan pengguna. Dua tabel yang
+sebelumnya belum ada kini tersedia; pemeriksaan API isi website berhasil
+HTTP 200 dan riwayat tetap tidak dapat dibaca publik (HTTP 401). Migrasi tidak
+menerbitkan konten halaman atau mengubah berita/galeri yang sudah ada.
+
+Pembaruan navigasi, kategori, popup pembayaran, login terpisah, warna, dan logo ada di proyek lokal serta paket sumber. Tidak ada
+push ke repository produksi yang dilakukan oleh agen. Salin paket ke repository
+`web` dan push melalui alur pengguna untuk menerbitkan perubahan tampilan.
 
 Pemeriksaan browser lokal dilakukan dengan izin pengguna dan akun demo: desktop
 1280 piksel, ponsel 390 dan 320 piksel. Alur ubah judul, pilih foto pondok, simpan
@@ -43,8 +60,8 @@ Google nyata atau penyimpanan CMS pada Supabase produksi yang diuji.
 ## Pemasangan sekali
 
 1. Backup website dan database yang ada.
-2. Buka proyek Supabase **an-nahl**, lalu SQL Editor. Jalankan isi
-   `supabase/migrations/202610270003_site_content.sql`. Migrasi ini membutuhkan
+2. Pada proyek **an-nahl**, migrasi isi website sudah aktif. Untuk proyek baru,
+   jalankan `supabase/migrations/202610270003_site_content.sql`. Migrasi ini membutuhkan
    migrasi editorial pertama yang sudah terpasang. Tidak perlu menjalankan
    ulang migrasi pertama atau mengaktifkan migrasi Google untuk langkah ini.
 3. Salin pembaruan proyek ke repository `pondokpemberdayaanannahl/web` seperti
@@ -84,14 +101,15 @@ gunakan Isi website agar tidak perlu push kode.
 
 ## Pendaftaran yang belum masuk
 
-Pada pemeriksaan langsung 27 Oktober 2026, endpoint domain
-`/api/forms.php` membalas HTTP **503** dengan pesan **Formulir sedang
-disiapkan. Silakan hubungi pengurus melalui WhatsApp.** Pemeriksaan hanya
-mengambil status; tidak mengirim data pendaftar.
+Pada pemeriksaan awal 27 Oktober 2026, endpoint domain `/api/forms.php`
+masih membalas HTTP 503 karena konfigurasi privat belum terbaca. Setelah
+pengaturan dipasang di Hostinger, endpoint lokal dan domain membalas HTTP
+**200** dengan token tersedia. Kunci penghubung sesuai dengan penerima Google.
 
-Ini menunjukkan konfigurasi privat penerima belum tersedia/lengkap. File
-website yang diambil dari GitHub memang tidak membawa konfigurasi tersebut.
-Menambah tabel Supabase atau push ulang frontend tidak mengaktifkan penghubung.
+File website dari GitHub memang tidak membawa konfigurasi privat tersebut.
+Pertahankan `annahl-private/forms-config.php` di luar `public_html` ketika
+memperbarui website. Pengujian koneksi tidak menulis data pendaftar atau
+lampiran; penyimpanan kiriman lengkap ke Google masih perlu diuji.
 
 Ada tabel lama `form_submissions` pada migrasi Supabase, tetapi alur baru
 pendaftaran dan konfirmasi donasi memakai Google Sheets serta Drive akun
@@ -114,7 +132,8 @@ Untuk mengaktifkannya diperlukan:
    pengiriman Google sesungguhnya berhasil.
 
 Panduan rinci ada di [GOOGLE_SHEETS_SETUP.md](./GOOGLE_SHEETS_SETUP.md).
-Aktivasi akun Google/Hostinger belum dilakukan dalam pembaruan ini.
+Penerima Google dan konfigurasi Hostinger sudah aktif. Uji penyimpanan kiriman
+lengkap beserta lampiran belum dilakukan.
 
 ## Pemeriksaan pengembangan
 
@@ -136,3 +155,36 @@ admin aktif di server. Pengunjung hanya membaca versi terbit. Penulis biasa
 tidak bisa membaca draft halaman atau memanggil penerbitan CMS. Teks tidak
 dianggap HTML; tautan/foto divalidasi dan pratinjau dibatasi melalui iframe.
 Lihat [Row Level Security Supabase](https://supabase.com/docs/guides/database/postgres/row-level-security).
+
+## Pembaruan 28 Oktober 2026
+
+- Kontak menampilkan Telepon dengan tautan `tel:` dan WhatsApp dengan tombol
+  Chat via WhatsApp pada baris tersendiri.
+- Kategori berita dan galeri memakai empat kartu bergambar dengan thumbnail
+  pondok yang sudah dioptimalkan. Pilihan kategori tetap berlaku jika diklik
+  sebelum berita selesai dimuat.
+- Pilih Donasi sekarang pada program untuk membuka popup transfer bank,
+  e-wallet, atau QRIS. Program dan metode terisi pada formulir konfirmasi.
+  Petunjuk rekening hanya muncul di popup, dan tersedia tombol salin nomor.
+- Gambar QRIS resmi belum disediakan. Unggah melalui Isi website → Informasi
+  donasi → bagian Metode Pembayaran → Gambar QRIS resmi, lalu terbitkan.
+  Sistem menampilkan keterangan belum tersedia selama foto belum terpasang.
+- Unduh laporan dihapus dari halaman publik. Admin membuka Rekap donasi →
+  Unduh laporan rekap (.xlsx). File ini adalah rekap kerja dari Google Sheets
+  yang berisi tab pendaftaran dan konfirmasi donasi, bukan laporan keuangan
+  yang sudah diaudit. Google tetap memeriksa hak akses akun pemilik Sheet.
+- Isian pendaftaran/donasi diedit atau dihapus melalui Google Sheets agar
+  tetap berada di penyimpanan akun pondok.
+- Bagian informasi pada Isi website memiliki Edit dan Hapus/Pulihkan. Hapus
+  berlaku setelah Terbitkan perubahan; sampul, formulir, dan petunjuk pembayaran
+  inti tetap dipertahankan untuk menjaga fungsi halaman.
+- Build menyediakan index.html, login.html, admin.html, dan .htaccess. Tautan
+  undangan lama ke admin.html diteruskan ke login beserta data aktivasinya.
+  Konfigurasi Supabase yang sudah dipakai tetap dapat digunakan.
+
+Pemeriksaan terbaru: popup, pilihan program/metode, kategori bergambar, kanal
+telepon/WhatsApp, login demo, pemisahan halaman, dan logout diuji di browser
+lokal. Lebar 320 piksel diperiksa tanpa gulir horizontal. Tidak ada kiriman
+Google atau perubahan konten Supabase produksi pada pengujian ini. Unduh
+Sheet privat masih mengikuti sesi Google pengguna dan tidak diuji dengan
+mengunduh data pendaftar.

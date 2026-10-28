@@ -6,12 +6,13 @@ Supabase tetap melayani berita, galeri editorial, akun pengurus, dan kontak. Pen
 
 ## Status penerapan
 
-- Pada 27 Oktober 2026, pengguna memilih **cukup menyiapkan paket**. Tidak ada izin untuk melanjutkan login/deployment Hostinger, perubahan izin Google, aktivasi endpoint, atau pengujian unggahan nyata. Langkah aktivasi di bawah disediakan untuk pemasangan manual kemudian.
+- Pada 27 Oktober 2026, pengguna menyelesaikan izin Google, menjalankan penyiapan dan pemeriksaan folder privat, lalu menerbitkan penerima sebagai Web app. Pengaturan privat kemudian dipasang di Hostinger atas permintaan pengguna.
 - Sheet dan dua tab sudah disiapkan; akses umumnya **Restricted / Private only to me**. Sheet1 asli dipertahankan.
 - Kode penerima Google, penghubung PHP, formulir lampiran, dan konfigurasi privat sudah disiapkan lokal. Build serta uji PHP/HTTP lokal lulus. Google pada uji HTTP masih berupa server tiruan.
-- Draft `Code.gs` baru juga sudah disimpan di editor Google dan dibandingkan dengan sumber lokal. Manifest baru masih perlu diterapkan dan diotorisasi; draft bukan deployment publik.
-- **Penerima baru belum di-deploy, folder Drive belum dibuat, izin penyimpanan Google belum diberikan, dan rilis belum dipasang di Hostinger. Unggahan Google yang sesungguhnya belum diuji.** Pemeriksaan Google yang sebelumnya lulus adalah milik rancangan sinkronisasi lama.
-- Akses browser ke login Hostinger ditolak peninjauan otomatis karena akses akunnya belum diizinkan secara khusus. Diperlukan izin untuk membuka login dan memasang rilis. Jangan melewati penolakan lewat metode akses lain.
+- Penerima Google sudah diterbitkan. Pemeriksaan yang dijalankan pengguna menyatakan dua tab siap dan folder Drive hanya dapat diakses pemilik.
+- **Pengaturan lokal dan Hostinger sudah aktif: kedua endpoint formulir membalas HTTP 200 dengan token tersedia.** File Hostinger berada di `annahl-private/forms-config.php`, sejajar dengan `public_html`; alamat publik file tersebut membalas HTTP 404.
+- Kecocokan kunci penghubung diperiksa menggunakan jenis permintaan yang sengaja tidak didukung dan ditolak sebelum ada penulisan Sheet atau unggahan Drive. Tanda tangan salah menghasilkan `denied`, sedangkan tanda tangan sah mencapai validasi dan menghasilkan `invalid`.
+- **Penyimpanan kiriman lengkap dan lampiran ke Google belum diuji.** Pemeriksaan kesiapan dan tanda tangan tidak membuktikan keberhasilan penulisan baris atau unggahan sesungguhnya.
 - Rancangan lama berada di `integrations/google-sheets/legacy/`, bukan daftar migrasi aktif. Migrasi sinkronisasi lama tidak pernah diterapkan dan trigger berkala tidak pernah dipasang.
 
 ## Lampiran dan pengiriman
@@ -104,7 +105,8 @@ Referensi: [Google web apps](https://developers.google.com/apps-script/guides/we
 
 ## Pemeriksaan domain — 27 Oktober 2026
 
-Frontend sudah dipasang pengguna, tetapi penerima `/api/forms.php` masih HTTP 503:
-Formulir sedang disiapkan. Lokasi konfigurasi privat belum terbaca. Tidak ada
-data pendaftar yang dikirim pada pemeriksaan ini. Aktivasi penerima Google dan
-uji kiriman nyata masih diperlukan.
+Konfigurasi privat sudah dipasang di luar `public_html`. Penerima
+`/api/forms.php` pada domain dan lokal membalas HTTP 200 dengan token tersedia.
+Penerima Google dapat diakses dan kunci penghubung sesuai. File privat tidak
+dapat diakses dari alamat publik (HTTP 404). Pemeriksaan tidak menulis data
+pendaftar, donasi, atau lampiran. Uji penyimpanan kiriman lengkap masih diperlukan.

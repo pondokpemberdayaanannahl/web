@@ -34,7 +34,7 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
       const heading = block.fields.find(field => field.kind === 'heading');
       const text = block.fields.find(field => field.kind === 'text' && field.value.length > 45);
       const changed = block.fields.filter(field => working.values[field.id] !== undefined).length;
-      return `<article class="cms-section-card${working.hidden.includes(block.id) ? ' is-hidden' : ''}">${cover && contentUrl(cover, 'image') ? `<img src="${esc(cover)}" alt="" loading="lazy" />` : '<div class="cms-section-art" aria-hidden="true">✳</div>'}<div class="cms-section-copy"><div class="cms-card-meta"><span>${working.hidden.includes(block.id) ? 'Disembunyikan' : 'Ditampilkan'}</span>${changed ? `<span>${changed} isian diubah</span>` : ''}</div><h2>${esc(heading ? working.values[heading.id] ?? heading.value : block.title)}</h2><p>${esc(text ? working.values[text.id] ?? text.value : `${block.fields.length} isian dapat diperbarui`)}</p><button class="button secondary compact" data-cms-block="${block.id}">Edit bagian <span aria-hidden="true">↗</span></button></div></article>`;
+      return `<article class="cms-section-card${working.hidden.includes(block.id) ? ' is-hidden' : ''}">${cover && contentUrl(cover, 'image') ? `<img src="${esc(cover)}" alt="" loading="lazy" />` : '<div class="cms-section-art" aria-hidden="true">✳</div>'}<div class="cms-section-copy"><div class="cms-card-meta"><span>${working.hidden.includes(block.id) ? 'Disembunyikan' : 'Ditampilkan'}</span>${changed ? `<span>${changed} isian diubah</span>` : ''}</div><h2>${esc(heading ? working.values[heading.id] ?? heading.value : block.title)}</h2><p>${esc(text ? working.values[text.id] ?? text.value : `${block.fields.length} isian dapat diperbarui`)}</p><button class="button secondary compact" data-cms-block="${block.id}">Edit bagian <span aria-hidden="true">↗</span></button>${block.hideable ? `<button class="row-action ${working.hidden.includes(block.id) ? '' : 'danger'}" data-cms-${working.hidden.includes(block.id) ? 'restore' : 'remove'}="${block.id}">${working.hidden.includes(block.id) ? 'Pulihkan bagian' : 'Hapus bagian'}</button>` : ''}</div></article>`;
     }).join('');
   }
   function draw() {
@@ -132,6 +132,15 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
     const data = button.dataset;
     if (data.cmsPage) return open(data.cmsPage);
     if (data.cmsBlock) return editBlock(data.cmsBlock);
+    if (data.cmsRemove || data.cmsRestore) {
+      const id = data.cmsRemove || data.cmsRestore;
+      const block = catalog.blocks.find(item => item.id === id && item.hideable);
+      if (!block) return;
+      if (data.cmsRemove && !confirm(`Hapus bagian “${block.title}” dari website? Bagian ini dapat dipulihkan. Perubahan berlaku setelah diterbitkan.`)) return;
+      working.hidden = working.hidden.filter(value => value !== id);
+      if (data.cmsRemove) working.hidden.push(id);
+      remember(); cards(); return;
+    }
     if (data.cmsWidth) { $('#cms-preview-frame').classList.toggle('phone', data.cmsWidth === 'phone'); return; }
     if (data.cmsPick) {
       pickerField = data.cmsPick; libraryPage = 0;

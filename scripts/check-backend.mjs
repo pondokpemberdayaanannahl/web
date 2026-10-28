@@ -20,10 +20,12 @@ if (!url || !key || key === 'local-preview-only' || /127\.0\.0\.1|PROYEK/.test(u
   const checks = [
     ['Skema berita', 'berita?select=id,status,deleted_at,thumbnail_url,caption,updated_at&limit=0', 'schema'],
     ['Skema galeri', 'galeri_foto?select=id,thumbnail_url,caption&limit=0', 'schema'],
+    ['Skema isi website', 'site_content?select=page_id,state,content,revision,updated_at&limit=0', 'schema'],
     ['Draft tidak terbaca publik', 'berita?select=id&status=eq.draft&limit=1', 'empty'],
     ['Arsip tidak terbaca publik', 'berita?select=id&deleted_at=not.is.null&limit=1', 'empty'],
     ['Profil pengurus private', 'pengurus?select=id&limit=1', 'private'],
     ['Riwayat berita private', 'berita_history?select=id&limit=1', 'private'],
+    ['Riwayat halaman private', 'site_content_history?select=id&limit=1', 'private'],
     ['Kotak masuk private', 'form_submissions?select=id&limit=1', 'private'],
   ];
   let failed = false;

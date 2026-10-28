@@ -1,10 +1,11 @@
+import { categoryCards } from '../components/category-cards.js';
 import { galleryImages, photos, photoThumbnail } from '../data/photos.js';
 import { escapeHtml, safeUrl } from '../content-format.js';
 
 export function Galeri() {
   return `
     <section class="hero" style="min-height:50vh"><div class="hero-bg" style="background-image:url('${photos.hero.galeri}')"></div><div class="hero-overlay"></div><div class="hero-content"><span class="section-label" style="color:var(--green-300)">GALERI</span><h1>Galeri Foto & Video</h1><p class="hero-subtitle">Dokumentasi kegiatan dan suasana Pesantren An-Nahl.</p></div></section>
-    <section class="section"><div class="container"><div class="section-header"><span class="section-label">FOTO KEGIATAN</span><h2 class="section-title">Momen yang Terabadikan</h2></div><div class="gallery-filters" role="group" aria-label="Kategori foto">${['Semua','Akademik','Ibadah','Acara','Fasilitas'].map((category,index) => `<button class="badge gallery-filter" data-filter="${category}" aria-pressed="${index === 0}">${category}</button>`).join('')}</div><p id="gallery-status" role="status"></p><div class="gallery-grid" id="photo-grid"></div><button id="gallery-more" class="btn btn-secondary" hidden>Muat foto lainnya</button></div></section>
+    <section class="section"><div class="container"><div class="section-header"><span class="section-label">FOTO KEGIATAN</span><h2 class="section-title">Momen yang Terabadikan</h2></div>${categoryCards('gallery')}<p id="gallery-status" role="status"></p><div class="gallery-grid" id="photo-grid"></div><button id="gallery-more" class="btn btn-secondary" hidden>Muat foto lainnya</button></div></section>
     <section class="section" style="background:var(--green-50)"><div class="container"><div class="section-header"><span class="section-label">VIDEO</span><h2 class="section-title">Video Kegiatan Pesantren</h2></div><p id="video-status" role="status"></p><div class="grid-3" id="video-grid"></div><button id="video-more" class="btn btn-secondary" hidden>Muat video lainnya</button></div></section>
     <dialog id="lightbox" class="lightbox" aria-label="Pratinjau foto"><button class="lightbox-close" aria-label="Tutup foto">&times;</button><img id="lightbox-img" alt="" /><div id="lightbox-caption" class="lightbox-caption"></div></dialog>
   `;

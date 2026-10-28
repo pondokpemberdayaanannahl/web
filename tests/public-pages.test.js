@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import * as images from '../src/data/photos.js';
 import * as format from '../src/content-format.js';
+import { categoryCards } from '../src/components/category-cards.js';
 import { socialIcon } from '../src/components/social-icon.js';
 
 test('every public form collector is bound to real uniquely identified fields', () => {
@@ -14,7 +15,7 @@ test('every public form collector is bound to real uniquely identified fields', 
   ]) {
     const source = fs.readFileSync(new URL(`../src/pages/${file}.js`, import.meta.url), 'utf8');
     const nodes = new Map(); let collected;
-    const context = { ...images, socialIcon, window: {}, document: { getElementById(id) { assert.ok(nodes.has(id), `Missing ${id} in ${file}`); return nodes.get(id); } }, bindSubmission(form, actualKind, collect) { assert.equal(actualKind, kind); collected = collect(); } };
+    const context = { ...images, socialIcon, initDonationPayment() {}, window: {}, document: { getElementById(id) { assert.ok(nodes.has(id), `Missing ${id} in ${file}`); return nodes.get(id); } }, bindSubmission(form, actualKind, collect) { assert.equal(actualKind, kind); collected = collect(); } };
     vm.runInNewContext(source.replace(/^import .*;\r?$/gm, '').replaceAll('export function', 'function'), context);
     const markup = context[component]();
     for (const [, id] of markup.matchAll(/\bid="([^"]+)"/g)) { assert.ok(!nodes.has(id)); nodes.set(id, { value: id === 'donor-amount' ? 'Rp 500.000' : 'Contoh uji' }); }
@@ -37,7 +38,7 @@ function gallery(client) {
   nodes.set('galeri-styles', makeNode());
   const close = makeNode();
   const filters = ['Semua', 'Ibadah'].map(filter => ({ ...makeNode(), dataset: { filter } }));
-  const context = { ...images, ...format, window: {}, getSupabase: async () => ({ supabase: client }), document: { body: { style: {} }, getElementById: id => nodes.get(id) || null, querySelectorAll: () => filters } };
+  const context = { ...images, ...format, categoryCards, window: {}, getSupabase: async () => ({ supabase: client }), document: { body: { style: {} }, getElementById: id => nodes.get(id) || null, querySelectorAll: () => filters } };
   vm.runInNewContext(source.replace(/^import .*;\r?$/gm, '').replace('export function Galeri', 'function Galeri').replace("await import('../supabase.js')", 'await getSupabase()'), context);
   const markup = context.Galeri();
   for (const [, id] of markup.matchAll(/\bid="([^"]+)"/g)) nodes.set(id, makeNode());

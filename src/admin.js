@@ -2,7 +2,8 @@ import { PAGE_SIZE, createDemoStore, createSupabaseStore, validateImage, youtube
 import { renderBody, safeUrl } from './content-format.js';
 import { draftKey, saveDraft, readDraft, optimizeImage } from './editor-tools.js';
 import { loadPhotoLibrary, filterPhotoLibrary, LIBRARY_PAGE_SIZE } from './photo-library.js';
-import { readAuthFlow, validateNewPassword } from './auth-flow.js';
+import { readAuthFlow } from './auth-flow.js';
+import { demoEnabled, demoUser, backendConfigured, getClient, authorizedUser, loginPath } from './admin-session.js';
 import { RECAP_URL, getGoogleFormToken } from './google-forms.js';
 import './styles/admin-content.css';
 
@@ -13,14 +14,6 @@ const safeImage = value => {
   try { const url = new URL(value, location.origin); return ['https:', 'http:', 'blob:'].includes(url.protocol) ? escape(url.href) : ''; } catch { return ''; }
 };
 const formatDate = value => new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
-const demoEnabled = import.meta.env.DEV && import.meta.env.VITE_DUMMY_LOGIN_ENABLED === 'true';
-const demoUser = import.meta.env.VITE_DUMMY_USERNAME;
-const demoPassword = import.meta.env.VITE_DUMMY_PASSWORD;
-const backendConfigured = import.meta.env.VITE_SUPABASE_ANON_KEY && import.meta.env.VITE_SUPABASE_ANON_KEY !== 'local-preview-only';
-const incomingAuth = readAuthFlow(location.href);
-let passwordSetupClient = null, passwordSetupUser = null;
-let clientPromise;
-const getClient = () => clientPromise ||= import('./supabase.js').then(module => module.supabase);
 let store, isDemo = false, currentPanel = 'overview', mediaType = 'foto';
 let newsPage = 1, mediaPage = 1, newsCount = 0, mediaCount = 0;
 let newsRequest = 0, mediaRequest = 0, summaryRequest = 0;
@@ -57,8 +50,8 @@ function newsRow(row, compact = false) {
   const status = row.deleted_at ? 'Diarsipkan' : row.status === 'draft' ? 'Draft' : 'Terbit';
   const actions = row.deleted_at
     ? currentRole === 'admin' ? `<button class="row-action" data-restore="${id}" data-type="berita">Pulihkan ke draft</button>` : ''
-    : `${canEdit ? `<button class="row-action" data-edit="${id}" data-type="berita" aria-label="Edit ${escape(row.judul)}">Edit</button>` : ''}${!compact ? `<button class="row-action" data-history="${id}" data-type="berita">Riwayat</button>${currentRole === 'admin' ? `<button class="row-action danger" data-delete="${id}" data-type="berita">Arsipkan</button>` : ''}` : ''}`;
-  return `<article class="post-card${compact ? ' post-card-compact' : ''}"><header class="post-card-header"><span class="post-avatar" aria-hidden="true">N</span><div><strong>Postingan An-Nahl</strong><time>${formatDate(row.updated_at || row.dibuat_pada)}</time></div><span class="status-label">${status}</span></header>${row.gambar_url || row.thumbnail_url ? cover(row, 'post-cover') : ''}<div class="post-card-body"><span class="category">${escape(row.kategori)}</span><h3>${escape(row.judul)}</h3>${row.caption ? `<p>${escape(row.caption)}</p>` : ''}${isDemo ? '<small>Contoh di ruang demo</small>' : ''}</div><footer class="post-card-actions"><button class="row-action" data-view="${id}" data-type="berita">Lihat postingan</button>${actions}</footer></article>`;
+    : `${canEdit ? `<button class="row-action" data-edit="${id}" data-type="berita" aria-label="Edit ${escape(row.judul)}">Edit</button>` : ''}<button class="row-action" data-history="${id}" data-type="berita">Riwayat</button>${currentRole === 'admin' ? `<button class="row-action danger" data-delete="${id}" data-type="berita">Hapus</button>` : ''}`;
+  return `<article class="post-card${compact ? ' post-card-compact' : ''}"><header class="post-card-header"><span class="post-avatar" aria-hidden="true"><img src="/brand/an-nahl.png" alt="" width="678" height="366" decoding="async" /></span><div><strong>Postingan An-Nahl</strong><time>${formatDate(row.updated_at || row.dibuat_pada)}</time></div><span class="status-label">${status}</span></header>${row.gambar_url || row.thumbnail_url ? cover(row, 'post-cover') : ''}<div class="post-card-body"><span class="category">${escape(row.kategori)}</span><h3>${escape(row.judul)}</h3>${row.caption ? `<p>${escape(row.caption)}</p>` : ''}${isDemo ? '<small>Contoh di ruang demo</small>' : ''}</div><footer class="post-card-actions"><button class="row-action" data-view="${id}" data-type="berita">Lihat postingan</button>${actions}</footer></article>`;
 }
 function mediaCard(row) {
   // YouTube thumbnails are loaded only when the video tab is opened.
@@ -204,9 +197,7 @@ function openDashboard(user, demo) {
   $('add-media').hidden = currentRole !== 'admin';
   $('demo-notice').hidden = !demo;
   $('today').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
-  $('password').value = '';
-  $('login-view').hidden = true;
-  $('password-setup-view').hidden = true;
+  $('session-status').hidden = true;
   $('dashboard-view').hidden = false;
   newsPage = mediaPage = 1;
   $('news-search').value = $('news-filter').value = $('news-status').value = '';
@@ -217,44 +208,6 @@ function openDashboard(user, demo) {
     if (page && currentRole === 'admin' && ['beranda','tentang','program','pendaftaran','donasi','kontak','berita','galeri','global'].includes(page)) { requestedSitePage = page; navigate('halaman'); }
   } catch { /* An invalid optional deep link does not block the dashboard. */ }
 }
-async function authorizedUser(client, user) {
-  const { data: profile, error } = await client.from('pengurus').select('display_name,role,active').eq('id', user.id).single();
-  if (error || !profile?.active || !['admin', 'editor'].includes(profile.role)) {
-    await client.auth.signOut();
-    throw new Error('Akses pengurus belum aktif. Hubungi admin pondok.');
-  }
-  return { ...user, client, profile };
-}
-$('login-form').addEventListener('submit', async event => {
-  event.preventDefault();
-  const button = $('login-btn');
-  button.disabled = true;
-  button.textContent = 'Memeriksa akun…';
-  $('login-error').textContent = '';
-  try {
-    const username = $('email').value.trim(), password = $('password').value;
-    if (demoEnabled && demoUser && demoPassword && username === demoUser && password === demoPassword) {
-      sessionStorage.setItem('annahl-dummy-user', demoUser);
-      openDashboard({}, true);
-    } else if (!backendConfigured || (demoEnabled && username === demoUser)) {
-      throw new Error('Akun atau password belum sesuai. Silakan coba lagi.');
-    } else {
-      const client = await getClient();
-      const { data, error } = await client.auth.signInWithPassword({ email: username, password });
-      if (error) throw new Error(error.status === 400 ? 'Email atau password salah.' : 'Tidak dapat terhubung. Silakan coba lagi.');
-      sessionStorage.removeItem('annahl-dummy-user');
-      openDashboard(await authorizedUser(client, data.user), false);
-    }
-  } catch (error) { $('login-error').textContent = error.message; }
-  finally { button.disabled = false; button.textContent = 'Masuk ke ruang pengurus →'; }
-});
-$('password-toggle').addEventListener('click', () => {
-  const show = $('password').type === 'password';
-  $('password').type = show ? 'text' : 'password';
-  $('password-toggle').textContent = show ? 'Sembunyi' : 'Lihat';
-  $('password-toggle').setAttribute('aria-label', show ? 'Sembunyikan password' : 'Tampilkan password');
-  $('password-toggle').setAttribute('aria-pressed', String(show));
-});
 $('logout-btn').addEventListener('click', async () => {
   if (websiteManager?.dirty && !confirm('Keluar dengan perubahan halaman yang belum diterbitkan? Salinan teks tetap tersimpan di perangkat ini.')) return;
   $('logout-btn').disabled = true;
@@ -267,10 +220,7 @@ $('logout-btn').addEventListener('click', async () => {
     ++newsRequest; ++mediaRequest; ++summaryRequest;
     for (const id of ['recent-news', 'daftar-berita', 'media-list']) $(id).replaceChildren();
     $('dashboard-view').hidden = true;
-    $('login-view').hidden = false;
-    $('login-error').textContent = '';
-    $('email').focus();
-    document.title = 'Login — Ruang Pengurus An-Nahl';
+    location.replace('/login.html');
   } catch { toast('Belum berhasil keluar. Coba lagi.', true); }
   finally { $('logout-btn').disabled = false; }
 });
@@ -501,7 +451,7 @@ $('dashboard-view').addEventListener('click', async event => {
     else if (button.dataset.restore) {
       await source.restore(row); toast('Berita dipulihkan sebagai draft.'); loadSummary(); loadNews();
     }
-    else if (confirm(button.dataset.type === 'berita' ? `Arsipkan “${row.judul}”? Berita dapat dipulihkan dari tab Arsip.` : `Hapus “${row.judul}”? Tindakan ini tidak bisa dibatalkan.`)) {
+    else if (confirm(button.dataset.type === 'berita' ? `Hapus “${row.judul}” dari website? Berita dipindahkan ke Arsip dan dapat dipulihkan.` : `Hapus “${row.judul}”? Tindakan ini tidak bisa dibatalkan.`)) {
       await source.remove(button.dataset.type, row);
       toast('Konten berhasil dihapus.');
       loadSummary(); if (currentPanel === 'berita') loadNews(); if (currentPanel === 'galeri') loadMedia();
@@ -523,7 +473,7 @@ async function loadInbox() {
     let available = false, reason = '';
     try { await getGoogleFormToken(); available = true; } catch (error) { reason = error.message; }
     if (source !== store || request !== inboxRequest) return;
-    $('submission-list').innerHTML = `<div class="google-recap"><span class="eyebrow">REKAP PONDOK</span><h2>${kind === 'pendaftaran' ? 'Pendaftaran santri' : 'Konfirmasi donasi'}</h2><div class="form-readiness ${available ? 'ready' : 'not-ready'}" role="status"><strong>${available ? 'Penerima formulir tersedia' : 'Formulir belum siap menerima kiriman'}</strong><p>${available ? 'Periksa satu kiriman uji di rekap untuk memastikan isian dan lampirannya sudah masuk.' : escape(reason || 'Penghubung penyimpanan belum tersambung. Kiriman baru belum dapat disimpan.')}</p><button class="text-link" data-action="refresh">Periksa lagi</button></div><p>Rekap disediakan di Google Sheets akun pondok. Lampiran kiriman yang berhasil disimpan dapat dibuka melalui tautan pada rekap.</p><a class="button" href="${RECAP_URL}" target="_blank" rel="noopener noreferrer">Buka Google Sheets ↗</a><small>Masuk dengan akun pondok yang memiliki akses. ${kind === 'donasi' ? 'Pengurus tetap perlu mencocokkan bukti dengan transfer yang diterima.' : 'Gunakan rekap untuk mencatat tindak lanjut pendaftaran.'}</small></div>`;
+    $('submission-list').innerHTML = `<div class="google-recap"><span class="eyebrow">REKAP PONDOK</span><h2>${kind === 'pendaftaran' ? 'Pendaftaran santri' : 'Konfirmasi donasi'}</h2><div class="form-readiness ${available ? 'ready' : 'not-ready'}" role="status"><strong>${available ? 'Penerima formulir tersedia' : 'Formulir belum siap menerima kiriman'}</strong><p>${available ? 'Periksa satu kiriman uji di rekap untuk memastikan isian dan lampirannya sudah masuk.' : escape(reason || 'Penghubung penyimpanan belum tersambung. Kiriman baru belum dapat disimpan.')}</p><button class="text-link" data-action="refresh">Periksa lagi</button></div><p>Rekap disediakan di Google Sheets akun pondok. Lampiran kiriman yang berhasil disimpan dapat dibuka melalui tautan pada rekap.</p><a class="button" href="${RECAP_URL}" target="_blank" rel="noopener noreferrer">Edit / hapus rekap di Google Sheets ↗</a>${kind === 'donasi' ? `<a class="button secondary recap-download" href="${RECAP_URL.replace(/\/edit$/, '/export?format=xlsx')}" target="_blank" rel="noopener noreferrer">Unduh laporan rekap (.xlsx) ↓</a>` : ''}<small>${kind === 'donasi' ? 'File Excel berisi rekap pendaftaran dan donasi. Akses unduh tetap memerlukan izin akun Google pondok. ' : ''}Masuk dengan akun pondok yang memiliki akses. ${kind === 'donasi' ? 'Pengurus tetap perlu mencocokkan bukti dengan transfer yang diterima.' : 'Gunakan rekap untuk mencatat tindak lanjut pendaftaran.'}</small></div>`;
     return;
   }
   loading('submission-list'); $('inbox-prev').disabled = $('inbox-next').disabled = true;
@@ -586,60 +536,22 @@ $('library-folder').addEventListener('change', refreshLibrary);
 $('library-sort').addEventListener('change', refreshLibrary);
 $('library-reset').addEventListener('click', () => { $('library-search').value = $('library-folder').value = ''; $('library-sort').value = 'folder'; refreshLibrary(); });
 window.addEventListener('beforeunload', event => { if (dirty) { persistDraft(); event.preventDefault(); event.returnValue = ''; } });
+
 async function restoreSession() {
+  const flow = readAuthFlow(location.href);
+  if (flow.kind || flow.error) { location.replace(loginPath({ preserveAuth: true })); return; }
   try {
-    if (incomingAuth.error) { $('login-error').textContent = 'Tautan aktivasi tidak valid atau sudah kedaluwarsa. Minta undangan baru kepada admin proyek.'; return; }
-    if (!incomingAuth.kind && demoEnabled && demoUser && sessionStorage.getItem('annahl-dummy-user') === demoUser) { openDashboard({}, true); return; }
-    if (!backendConfigured) return;
+    if (demoEnabled && demoUser && sessionStorage.getItem('annahl-dummy-user') === demoUser) { openDashboard({}, true); return; }
+    if (!backendConfigured) { location.replace(loginPath()); return; }
     const client = await getClient();
     const { data, error } = await client.auth.getSession();
     if (error) throw error;
-    if (data.session) {
-      if (incomingAuth.kind || sessionStorage.getItem('annahl-password-setup') === data.session.user.id) showPasswordSetup(client, data.session.user);
-      else openDashboard(await authorizedUser(client, data.session.user), false);
-    } else if (incomingAuth.kind) $('login-error').textContent = 'Tautan aktivasi tidak dapat dipakai. Buka tautan terbaru dari email undangan.';
-  } catch { $('login-error').textContent = 'Sesi belum dapat dipulihkan. Silakan masuk kembali.'; }
+    if (!data.session) { location.replace(loginPath()); return; }
+    if (sessionStorage.getItem('annahl-password-setup') === data.session.user.id) { location.replace(loginPath()); return; }
+    openDashboard(await authorizedUser(client, data.session.user), false);
+    client.auth.onAuthStateChange(event => {
+      if (event === 'SIGNED_OUT') { $('dashboard-view').hidden = true; store?.dispose(); store = null; location.replace(loginPath()); }
+    });
+  } catch { location.replace(loginPath({ message: 'session' })); }
 }
-function showPasswordSetup(client, user) {
-  passwordSetupClient = client; passwordSetupUser = user;
-  sessionStorage.setItem('annahl-password-setup', user.id);
-  sessionStorage.removeItem('annahl-dummy-user');
-  $('login-view').hidden = $('dashboard-view').hidden = true;
-  $('password-setup-view').hidden = false;
-  $('setup-account-email').textContent = user.email;
-  $('setup-password').focus();
-  document.title = 'Aktivasi akun — Ruang Pengurus An-Nahl';
-}
-$('password-setup-form').addEventListener('submit', async event => {
-  event.preventDefault();
-  if (!passwordSetupClient || $('setup-save').disabled) return;
-  const password = $('setup-password').value;
-  const message = validateNewPassword(password, $('setup-password-confirm').value);
-  $('setup-error').textContent = message;
-  if (message) return;
-  $('setup-save').disabled = $('setup-cancel').disabled = true;
-  $('setup-save').textContent = 'Mengaktifkan akun…';
-  try {
-    const { error } = await passwordSetupClient.auth.updateUser({ password });
-    if (error) throw new Error('Password belum dapat disimpan. Coba password lain atau minta tautan aktivasi baru.');
-    sessionStorage.removeItem('annahl-password-setup');
-    $('password-setup-form').reset();
-    openDashboard(await authorizedUser(passwordSetupClient, passwordSetupUser), false);
-    toast('Akun aktif. Selamat datang di ruang pengurus.');
-    passwordSetupClient = null; passwordSetupUser = null;
-  } catch (error) { $('setup-error').textContent = error.message; }
-  finally { $('setup-save').disabled = $('setup-cancel').disabled = false; $('setup-save').textContent = 'Aktifkan akun'; }
-});
-$('setup-cancel').addEventListener('click', async () => {
-  if (!passwordSetupClient) return;
-  $('setup-cancel').disabled = true;
-  try {
-    const { error } = await passwordSetupClient.auth.signOut();
-    if (error) throw error;
-    passwordSetupClient = null; passwordSetupUser = null;
-    $('password-setup-form').reset();
-    $('password-setup-view').hidden = true; $('login-view').hidden = false;
-  } catch { $('setup-error').textContent = 'Belum berhasil keluar. Silakan coba lagi.'; }
-  finally { $('setup-cancel').disabled = false; }
-});
 restoreSession();

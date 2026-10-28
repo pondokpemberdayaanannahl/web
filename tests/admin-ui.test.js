@@ -10,6 +10,7 @@ import * as authFlow from '../src/auth-flow.js';
 import { RECAP_URL } from '../src/google-forms.js';
 
 const html = fs.readFileSync(new URL('../admin.html', import.meta.url), 'utf8');
+const sessionCode = fs.readFileSync(new URL('../src/admin-session.js', import.meta.url), 'utf8').replace(/export /g, '').replaceAll('import.meta.env','env');
 const source = fs.readFileSync(new URL('../src/admin.js', import.meta.url), 'utf8');
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const libraryData = JSON.parse(fs.readFileSync(new URL('../src/data/photo-library.json', import.meta.url), 'utf8')).photos;
@@ -35,11 +36,12 @@ function fixture(dev = true, restored = false) {
     ...data, ...format, ...editor, ...library, ...authFlow, RECAP_URL, loadPhotoLibrary: async () => libraryData, createDemoStore: () => data.createDemoStore(session),
     env: { DEV: dev, VITE_DUMMY_LOGIN_ENABLED: 'true', VITE_DUMMY_USERNAME: 'admin', VITE_DUMMY_PASSWORD: '123', VITE_SUPABASE_ANON_KEY: 'local-preview-only' },
     document: { getElementById: $, querySelectorAll: () => nav },
-    sessionStorage: session, localStorage: session, location: { origin: 'http://localhost:5173' }, window: { addEventListener() {} },
+    sessionStorage: session, localStorage: session, location: { origin: 'http://localhost:5173', href: 'http://localhost:5173/admin.html', search: '', hash: '', replace(value) { context.redirected = value; } }, window: { addEventListener() {} },
     setTimeout: (callback, ms) => { const timer = setTimeout(callback, ms); timer.unref(); return timer; }, clearTimeout, URL, console, confirm: () => true,
   };
+  vm.runInNewContext(sessionCode, context);
   vm.runInNewContext(source.replace(/^import .*;\r?$/gm, '').replaceAll('import.meta.env', 'env'), context);
-  return { $, saved, async fire(id, type, event = {}) { for (const callback of $(id).listeners[type] || []) await callback({ preventDefault() {}, ...event }); await tick(); },
+  return { $, saved, context, async fire(id, type, event = {}) { for (const callback of $(id).listeners[type] || []) await callback({ preventDefault() {}, ...event }); await tick(); },
     async click(button) { for (const callback of $('dashboard-view').listeners.click) await callback({ target: { closest: () => button } }); await tick(); },
   };
 }
@@ -49,17 +51,13 @@ test('all controller selectors refer to actual HTML IDs', () => {
   for (const [, id] of source.matchAll(/\$\('([^']+)'\)/g)) assert.ok(ids.has(id), `Missing ${id}`);
 });
 
-test('dummy login, create, preview escaping, filter, edit, delete, and logout', async () => {
-  const ui = fixture();
-  ui.$('email').value = 'admin'; ui.$('password').value = 'wrong';
-  await ui.fire('login-form', 'submit');
-  assert.match(ui.$('login-error').textContent, /belum sesuai/);
-  ui.$('password').value = '123';
-  await ui.fire('login-form', 'submit');
+test('authenticated demo creates, previews, filters, edits, deletes, and logs out', async () => {
+  const ui = fixture(true, true); await tick();
   assert.equal(ui.$('dashboard-view').hidden, false);
   assert.equal(ui.$('demo-notice').hidden, false);
   assert.equal(ui.$('stat-news').textContent, 3);
-  assert.ok(!ui.$('recent-news').innerHTML.includes('<img'), 'Missing covers must not request /null or /undefined');
+  assert.doesNotMatch(ui.$('recent-news').innerHTML, /<img\b[^>]*\bsrc=["']\/?(?:null|undefined)(?:["'?])/i, 'Missing covers must not request /null or /undefined');
+  assert.doesNotMatch(ui.$('recent-news').innerHTML, /class="post-cover"/, 'A post without a cover may still display the pondok logo');
   await ui.click({ dataset: { action: 'new-news' } });
   assert.equal(ui.$('editor-dialog').open, true);
   ui.$('judul').value = '<script>Judul aman</script>'; ui.$('isi').value = '<img onerror=alert(1)> Cerita baru'; ui.$('kategori').value = 'Akademik';
@@ -103,13 +101,12 @@ test('restores local session, switches gallery tabs, and shows honest upcoming s
   assert.match(ui.$('submission-list').innerHTML, /tidak menerima kiriman/);
 });
 
-test('production mode rejects dummy credentials even with stored demo session', async () => {
-  const ui = fixture(false, true);
-  ui.$('email').value = 'admin'; ui.$('password').value = '123';
-  await ui.fire('login-form', 'submit');
-  assert.match(ui.$('login-error').textContent, /belum sesuai/);
-  assert.equal(ui.$('login-view').hidden, false);
-  assert.equal(ui.$('login-btn').disabled, false);
+test('admin guard redirects visitors and rejects production demo sessions', async () => {
+  for (const ui of [fixture(), fixture(false, true)]) {
+    await tick();
+    assert.equal(ui.context.redirected, '/login.html');
+    assert.equal(ui.$('dashboard-view').innerHTML, '');
+  }
 });
 
 test('autosave recovers editor text and server draft/archive/restore workflow stays unpublished', async () => {

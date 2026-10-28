@@ -8,6 +8,7 @@ import { createSiteContentStore, readPublishedSiteContent } from '../src/site-co
 import * as images from '../src/data/photos.js';
 import * as formatting from '../src/content-format.js';
 import { socialIcon } from '../src/components/social-icon.js';
+import { categoryCards } from '../src/components/category-cards.js';
 
 const document = () => parseHTML('<html><head></head><body></body></html>').document;
 const source = '<section class="hero"><div style="background-image:url(\'/media/cover.jpg\')"></div><h1>Judul utama</h1></section><section><h2>Tentang pondok</h2><p>Kalimat <strong>bermakna</strong> untuk keluarga.</p><img src="/media/about.jpg" alt="Kegiatan santri"><a href="https://example.org">Hubungi</a><div data-counter="500" data-suffix="+">0</div></section><section><h2>Pendaftaran</h2><form><label for="nama">Nama</label><input id="nama" required><button>Kirim</button></form></section>';
@@ -16,7 +17,7 @@ test('content catalog covers the real public pages while excluding form controls
   const names = { beranda:'Beranda',tentang:'Tentang',program:'Program',pendaftaran:'Pendaftaran',donasi:'Donasi',kontak:'Kontak',berita:'Berita',galeri:'Galeri' };
   for (const [id, name] of Object.entries(names)) {
     const doc = document();
-    const context = { ...images, ...formatting, socialIcon, document: doc, window: {}, supabase: null, bindSubmission() {} };
+    const context = { ...images, ...formatting, socialIcon, categoryCards, document: doc, window: {}, supabase: null, bindSubmission() {} };
     const code = readFileSync(new URL(`../src/pages/${id}.js`, import.meta.url), 'utf8').replace(/^import .*;\r?$/gm, '').replaceAll('export ', '');
     vm.runInNewContext(code, context);
     const html = context[name]();

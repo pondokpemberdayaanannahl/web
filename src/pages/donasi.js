@@ -1,3 +1,4 @@
+import { initDonationPayment } from '../donation-payment.js';
 // ═══════════════════════════════════════════
 // DONASI — Donation Page
 // ═══════════════════════════════════════════
@@ -47,57 +48,33 @@ export function Donasi() {
                   <div style="height:100%;width:${p.progress}%;background:linear-gradient(90deg,var(--green-600),var(--green-400));border-radius:100px;transition:width 1.5s ease"></div>
                 </div>
               </div>
+              <button class="btn btn-primary donation-program-button" type="button" data-donate-program="${p.title}">Donasi sekarang <span aria-hidden="true">→</span></button>
             </div>
           `).join('')}
         </div>
       </div>
     </section>
 
-    <!-- Metode Pembayaran -->
-    <section class="section" style="background: var(--green-50)">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-label reveal">CARA BERDONASI</span>
-          <h2 class="section-title reveal reveal-delay-1">Metode Pembayaran</h2>
+    <!-- Payment details remain editable through Isi website → Donasi. -->
+    <section class="section payment-choices" style="background:var(--green-50)">
+      <div class="container"><div class="section-header"><span class="section-label">CARA BERDONASI</span><h2 class="section-title">Metode Pembayaran</h2><p class="section-subtitle">Pilih program di atas, lalu buka petunjuk pembayaran yang sesuai.</p></div>
+        <div class="payment-choice-grid">
+          <button type="button" class="payment-choice" data-open-payment="bank"><i data-lucide="landmark"></i><span><strong>Transfer bank</strong><small>Lihat rekening tujuan</small></span><span aria-hidden="true">↗</span></button>
+          <button type="button" class="payment-choice" data-open-payment="wallet"><i data-lucide="smartphone"></i><span><strong>E-Wallet</strong><small>GoPay, OVO, dan DANA</small></span><span aria-hidden="true">↗</span></button>
+          <button type="button" class="payment-choice" data-open-payment="qris"><i data-lucide="qr-code"></i><span><strong>QRIS</strong><small>Buka kode pembayaran</small></span><span aria-hidden="true">↗</span></button>
         </div>
-        <div class="grid-3">
-          <div class="card reveal" style="text-align:center">
-            <div class="card-icon" style="margin:0 auto var(--space-lg)">
-              <i data-lucide="landmark" style="width:28px;height:28px"></i>
-            </div>
-            <h3 class="card-title">Transfer Bank</h3>
-            <div style="margin-top:var(--space-md);font-size:15px;color:var(--neutral-700)">
-              <p><strong>Bank Syariah Indonesia (BSI)</strong></p>
-              <p style="font-size:20px;font-weight:700;color:var(--green-800);margin:8px 0;letter-spacing:1px">7182 8374 92</p>
-              <p>a.n. Yayasan An-Nahl</p>
-            </div>
-          </div>
-          <div class="card reveal reveal-delay-1" style="text-align:center">
-            <div class="card-icon" style="margin:0 auto var(--space-lg)">
-              <i data-lucide="smartphone" style="width:28px;height:28px"></i>
-            </div>
-            <h3 class="card-title">E-Wallet</h3>
-            <div style="margin-top:var(--space-md);font-size:15px;color:var(--neutral-700)">
-              <p><strong>GoPay / OVO / DANA</strong></p>
-              <p style="font-size:20px;font-weight:700;color:var(--green-800);margin:8px 0;letter-spacing:1px">0812-3456-7890</p>
-              <p>a.n. Yayasan An-Nahl</p>
-            </div>
-          </div>
-          <div class="card reveal reveal-delay-2" style="text-align:center">
-            <div class="card-icon" style="margin:0 auto var(--space-lg)">
-              <i data-lucide="qr-code" style="width:28px;height:28px"></i>
-            </div>
-            <h3 class="card-title">QRIS</h3>
-            <div style="margin-top:var(--space-md);font-size:15px;color:var(--neutral-700)">
-              <p>Scan QR code di bawah ini menggunakan aplikasi e-wallet atau m-banking Anda.</p>
-              <div style="width:140px;height:140px;background:var(--neutral-100);border-radius:var(--radius-md);margin:16px auto;display:flex;align-items:center;justify-content:center;color:var(--neutral-500)">
-                <i data-lucide="qr-code" style="width:60px;height:60px"></i>
-              </div>
-            </div>
-          </div>
+        <div hidden id="payment-source">
+          <div data-payment-panel="bank" hidden><h3>Transfer Bank</h3><p>Bank Syariah Indonesia (BSI)</p><p class="payment-number" id="payment-bank-number">7182 8374 92</p><p>a.n. Yayasan An-Nahl</p><button type="button" class="btn btn-secondary" data-copy-payment="payment-bank-number">Salin rekening</button></div>
+          <div data-payment-panel="wallet" hidden><h3>E-Wallet</h3><p>GoPay / OVO / DANA</p><p class="payment-number" id="payment-wallet-number">0812-3456-7890</p><p>a.n. Yayasan An-Nahl</p><button type="button" class="btn btn-secondary" data-copy-payment="payment-wallet-number">Salin nomor</button><p class="payment-note">Pilih nama e-wallet yang Anda gunakan pada formulir konfirmasi.</p></div>
+          <div data-payment-panel="qris" hidden><h3>Bayar dengan QRIS</h3><p>Pindai kode QRIS resmi pondok melalui aplikasi bank atau e-wallet Anda.</p><img id="donation-qris" class="payment-qris" alt="QRIS resmi donasi An-Nahl" hidden /><p id="qris-unavailable" class="payment-unavailable">Kode QRIS belum tersedia. Silakan gunakan transfer bank atau e-wallet.</p></div>
         </div>
       </div>
     </section>
+    <dialog id="payment-dialog" class="payment-dialog" aria-labelledby="payment-title">
+      <div class="payment-dialog-header"><div><span class="section-label">BERBAGI KEBAIKAN</span><h2 id="payment-title">Cara berdonasi</h2></div><button type="button" id="payment-close" class="payment-close" aria-label="Tutup pembayaran">×</button></div>
+      <div class="payment-dialog-body"><p class="payment-program-label">Program pilihan</p><p id="payment-program" class="payment-program"></p><div class="payment-tabs" role="group" aria-label="Metode pembayaran"><button type="button" data-payment-method="bank" aria-pressed="true">Transfer bank</button><button type="button" data-payment-method="wallet" aria-pressed="false">E-Wallet</button><button type="button" data-payment-method="qris" aria-pressed="false">QRIS</button></div><div id="payment-panels"></div><p id="payment-copy-status" class="payment-note" role="status"></p></div>
+      <div class="payment-dialog-footer"><p>Sudah melakukan pembayaran? Kirim bukti untuk diperiksa pengurus.</p><button type="button" class="btn btn-primary" id="payment-confirm">Lanjut konfirmasi donasi →</button></div>
+    </dialog>
 
     <!-- Form Konfirmasi -->
     <section class="section" style="background: var(--neutral-50)">
@@ -164,25 +141,10 @@ export function Donasi() {
       </div>
     </section>
 
-    <!-- Transparansi -->
-    <section class="cta-donasi">
-      <div class="container">
-        <div class="cta-donasi-content">
-          <span class="section-label reveal" style="color:var(--green-300)">TRANSPARANSI</span>
-          <h2 class="reveal reveal-delay-1">Laporan Donasi Terbuka</h2>
-          <p class="reveal reveal-delay-2">Kami berkomitmen untuk transparan dalam pengelolaan donasi. Laporan penggunaan dana dipublikasikan secara berkala dan dapat diakses oleh seluruh donatur.</p>
-          <div class="reveal reveal-delay-3">
-            <a href="#" class="btn btn-white">
-              <i data-lucide="file-text" style="width:18px;height:18px"></i>
-              Unduh Laporan 2025
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
   `;
 }
 
 window.initDonasi = function() {
+  initDonationPayment();
   bindSubmission(document.getElementById('donation-form'), 'donasi', () => ({ nama: document.getElementById('donor-name').value.trim(), jumlah: document.getElementById('donor-amount').value.replace(/\D/g, ''), metode: document.getElementById('donor-method').value, program: document.getElementById('donor-program').value, pesan: document.getElementById('donor-message').value.trim() }), 'Konfirmasi diterima untuk diperiksa pengurus. Pesan ini belum merupakan verifikasi pembayaran.');
 };

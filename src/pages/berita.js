@@ -1,3 +1,4 @@
+import { categoryCards } from '../components/category-cards.js';
 // ═══════════════════════════════════════════
 // BERITA — News / Blog Page (SEO-Ready)
 // ═══════════════════════════════════════════
@@ -87,11 +88,9 @@ export function Berita() {
     <section class="section" style="background: var(--neutral-50)">
       <div class="container">
         <!-- Filter -->
-        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;justify-content:center;margin-bottom:var(--space-2xl)" class="reveal">
-          ${['Semua', 'Akademik', 'Keagamaan', 'Sosial', 'Pengumuman'].map((cat, i) => `
-            <button class="badge news-filter" data-filter="${cat}" style="cursor:pointer;border:none;font-size:14px;padding:8px 20px;${i === 0 ? 'background:var(--green-800);color:var(--white)' : ''}">${cat}</button>
-          `).join('')}
-        </div>
+        ${categoryCards('news')}
+
+        <p id="news-status" class="category-status" role="status"></p>
 
         <div class="grid-3" id="news-grid">
           <p style="grid-column:1/-1;text-align:center;color:var(--neutral-500)">Memuat berita...</p>
@@ -266,25 +265,29 @@ window.closeArticle = function() {
 // News filter
 // Ambil berita dari database + aktifkan filter kategori
 window.initNewsFilter = async function() {
+  const grid = document.getElementById('news-grid');
+  if (!grid) return;
+  let selected = 'Semua';
+  const applyFilter = () => {
+    let visible = 0;
+    grid.querySelectorAll('.news-card[data-category]').forEach(card => {
+      const show = selected === 'Semua' || card.dataset.category === selected;
+      card.dataset.hidden = String(!show);
+      if (show) visible++;
+    });
+    const status = document.getElementById('news-status');
+    if (status) status.textContent = !visible && articles.length ? `Belum ada berita kategori ${selected}.` : '';
+  };
+  const filters = document.querySelectorAll('.news-filter');
+  filters.forEach(btn => btn.addEventListener('click', () => {
+    filters.forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+    selected = btn.dataset.filter;
+    applyFilter();
+  }));
   if (!supabase) {
-    const grid = document.getElementById('news-grid');
     if (grid) grid.innerHTML = '<p>Berita pesantren akan tersedia setelah layanan terhubung.</p>';
     return;
   }
-  // Filter kategori (kartu dicari saat tombol diklik, jadi aman walau kartu datang belakangan)
-  const filters = document.querySelectorAll('.news-filter');
-  filters.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filters.forEach(b => { b.style.background = ''; b.style.color = ''; });
-      btn.style.background = 'var(--green-800)';
-      btn.style.color = 'var(--white)';
-
-      const filter = btn.dataset.filter;
-      document.querySelectorAll('.news-card[data-category]').forEach(card => {
-        card.dataset.hidden = (filter !== 'Semua' && card.dataset.category !== filter) ? 'true' : 'false';
-      });
-    });
-  });
 
   // Ambil data dari Supabase
   const { data, error } = await supabase
@@ -295,8 +298,7 @@ window.initNewsFilter = async function() {
     .order('dibuat_pada', { ascending: false });
 
   // Kalau pengunjung sudah pindah halaman, hentikan
-  const grid = document.getElementById('news-grid');
-  if (!grid) return;
+  if (document.getElementById('news-grid') !== grid) return;
 
   if (error) {
     console.error(error);
@@ -312,5 +314,6 @@ window.initNewsFilter = async function() {
   }
 
   grid.innerHTML = articles.map(kartuBerita).join('');
+  applyFilter();
   if (window.lucide) window.lucide.createIcons();
 };

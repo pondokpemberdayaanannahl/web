@@ -11,7 +11,7 @@ export function Footer() {
         <div class="footer-grid">
           <!-- Brand -->
           <div class="footer-col">
-            <div class="footer-brand-name">An-Nahl</div>
+            <a href="#/" class="footer-brand-logo" aria-label="An-Nahl — Beranda"><img src="/brand/an-nahl.png" alt="Logo Pesantren Pemberdayaan Ummat An-Nahl" width="678" height="366" loading="lazy" decoding="async" /></a>
             <p class="footer-brand-desc">
               Pondok Pesantren Pemberdayaan Ummat An-Nahl. Mendidik generasi Qur'ani yang berilmu, berakhlak mulia, dan siap memberdayakan ummat.
             </p>

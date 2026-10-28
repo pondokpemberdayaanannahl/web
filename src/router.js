@@ -38,6 +38,7 @@ export class Router {
     this.observers = [];
     if (window.closeArticle) window.closeArticle();
     if (window.closeLightbox) window.closeLightbox();
+    document.getElementById('payment-dialog')?.close();
     // Cancel a pending transition when visitors navigate quickly.
     app.style.opacity = '0';
     app.style.transform = 'translateY(10px)';

@@ -59,3 +59,19 @@ test('footer and contact use the supplied social accounts with safe new-tab link
   }
   assert.ok(!footer.includes('aria-label="Twitter"'));
 });
+
+test('admin can remove and restore informational sections without deleting forms or hero',async()=>{
+  const ui=fixture();
+  try {
+    await ui.manager.open('beranda');
+    assert.equal(ui.host.querySelectorAll('[data-cms-remove]').length,1);
+    await ui.click('[data-cms-remove]');
+    assert.equal(ui.manager.dirty,true);
+    await ui.click('[data-cms-action="publish"]');
+    const stored=createSiteContentStore(null,{role:'admin',storage:ui.storage});
+    assert.equal((await stored.load('beranda')).published.content.hidden.length,1);
+    await ui.click('[data-cms-restore]');
+    await ui.click('[data-cms-action="publish"]');
+    assert.equal((await stored.load('beranda')).published.content.hidden.length,0);
+  } finally { ui.manager.dispose(); }
+});

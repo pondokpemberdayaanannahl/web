@@ -1,20 +1,22 @@
 $ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $workspacePath = (Get-Location).ProviderPath
 $artifactPath = Join-Path $workspacePath '.backend-backups/site-content-qa'
 New-Item -ItemType Directory -Path $artifactPath -Force | Out-Null
 $files = @(
-    'admin.html','package.json','package-lock.json',
-    'src/admin.js','src/admin-data.js','src/main.js','src/router.js',
-    'src/components/footer.js','src/components/social-icon.js','src/pages/kontak.js',
+    'index.html','admin.html','login.html','vite.config.js','package.json','package-lock.json',
+    'src/admin.js','src/admin-data.js','src/admin-session.js','src/login.js','src/auth-flow.js','src/bootstrap.js','src/main.js','src/router.js','src/donation-payment.js',
+    'src/components/navbar.js','src/components/footer.js','src/components/social-icon.js','src/components/category-cards.js','src/pages/kontak.js','src/pages/donasi.js','src/pages/berita.js','src/pages/galeri.js',
     'src/site-content.js','src/site-content-store.js','src/site-content-admin.js',
     'src/site-page-templates.js','src/public-editor-shortcut.js',
-    'src/styles/admin-content.css','src/styles/editor-shortcut.css',
+    'src/styles/admin.css','src/styles/admin-content.css','src/styles/editor-shortcut.css','src/styles/pages.css',
+    'public/brand/an-nahl.png','public/.htaccess',
     'supabase/migrations/202610270003_site_content.sql',
-    'scripts/check-site-content-sql.mjs','scripts/package-content-update.ps1',
+    'scripts/check-site-content-sql.mjs','scripts/check-backend.mjs','scripts/check-hostinger-build.mjs','scripts/package-content-update.ps1',
     'tests/site-content.test.js','tests/site-content-ui.test.js',
-    'tests/router-content.test.js','tests/public-pages.test.js',
-    'PENGELOLAAN_WEBSITE.md','BACKEND_SETUP.md','GOOGLE_SHEETS_SETUP.md'
+    'tests/router-content.test.js','tests/public-pages.test.js','tests/admin-ui.test.js','tests/login.test.js','tests/auth-flow.test.js','tests/donation-payment.test.js','tests/hostinger-deploy.test.js',
+    'PENGELOLAAN_WEBSITE.md','BACKEND_SETUP.md','GOOGLE_SHEETS_SETUP.md','HOSTINGER_GITHUB_SETUP.md'
 )
 $secrets = @()
 $properties = Join-Path $workspacePath '.backend-backups/sheets-sync/script-properties.json'
@@ -25,8 +27,10 @@ if (Test-Path -LiteralPath $properties) {
 $checksums = @()
 foreach ($name in $files) {
     $path = Join-Path $workspacePath $name
-    $text = Get-Content -LiteralPath $path -Raw
-    foreach ($secret in $secrets) { if ($text.Contains($secret)) { throw 'Kunci privat tidak boleh masuk paket pembaruan.' } }
+    if ([IO.Path]::GetExtension($path) -ne '.png') {
+        $text = Get-Content -LiteralPath $path -Raw
+        foreach ($secret in $secrets) { if ($text.Contains($secret)) { throw 'Kunci privat tidak boleh masuk paket pembaruan.' } }
+    }
     $checksums += (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $name
 }
 $zipPath = Join-Path $artifactPath 'update-pengurus-website.zip'

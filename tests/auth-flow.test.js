@@ -26,11 +26,11 @@ test('new password validation supports long passphrases and rejects mismatches',
   assert.equal(validateNewPassword('a long passphrase', 'a long passphrase'), '');
 });
 
-test('root entry sends untouched invite sessions to admin before loading public SDK', () => {
+test('root entry sends untouched invite sessions to login before loading public SDK', () => {
   const source = fs.readFileSync(new URL('../src/bootstrap.js', import.meta.url), 'utf8').replace(/^import .*;\r?$/gm, '').replace("import('./main.js')", 'startPublic()');
   let redirected = '', started = false;
   const location = { href: 'http://127.0.0.1:5173/#access_token=fake&refresh_token=fake&type=invite', hash: '#access_token=fake&refresh_token=fake&type=invite', search: '', replace(value) { redirected = value; } };
   vm.runInNewContext(source, { readAuthFlow, window: { location }, startPublic() { started = true; } });
-  assert.equal(redirected, '/admin.html#access_token=fake&refresh_token=fake&type=invite');
+  assert.equal(redirected, '/login.html#access_token=fake&refresh_token=fake&type=invite');
   assert.equal(started, false);
 });
