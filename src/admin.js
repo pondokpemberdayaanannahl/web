@@ -42,8 +42,10 @@ function empty(title, description, action = '') {
 }
 function loading(id) { $(id).innerHTML = empty('Memuat konten…', 'Sebentar, cerita sedang disiapkan.'); }
 function failure(id) { $(id).innerHTML = empty('Konten belum dapat dimuat.', 'Periksa koneksi lalu coba lagi.', '<button class="button secondary compact" data-action="refresh">Coba lagi</button>'); }
-function cover(row, className = 'row-cover') {
-  const src = safeImage(row.thumbnail_url || row.gambar_url);
+function cover(row, className = 'row-cover', fullSize = false) {
+  const full = safeImage(row.gambar_url), thumbnail = safeImage(row.thumbnail_url);
+  // Large feed photos use the HD rendition; only small tiles prefer thumbnails.
+  const src = fullSize ? full || thumbnail : thumbnail || full;
   return src ? `<img src="${src}" alt="" class="${className}" loading="lazy" decoding="async" />` : `<span class="${className} cover-placeholder" aria-hidden="true">N</span>`;
 }
 function newsRow(row, compact = false) {
@@ -53,7 +55,7 @@ function newsRow(row, compact = false) {
   const actions = row.deleted_at
     ? currentRole === 'admin' ? `<button class="row-action" data-restore="${id}" data-type="berita">Pulihkan ke draft</button>` : ''
     : `${canEdit ? `<button class="row-action" data-edit="${id}" data-type="berita" aria-label="Edit ${escape(row.judul)}">Edit</button>` : ''}<button class="row-action" data-history="${id}" data-type="berita">Riwayat</button>${currentRole === 'admin' ? `<button class="row-action danger" data-delete="${id}" data-type="berita">Hapus</button>` : ''}`;
-  return `<article class="post-card${compact ? ' post-card-compact' : ''}"><header class="post-card-header"><span class="post-avatar" aria-hidden="true"><img src="/brand/an-nahl.png" alt="" width="678" height="366" decoding="async" /></span><div><strong>Postingan An-Nahl</strong><time>${formatDate(row.updated_at || row.dibuat_pada)}</time></div><span class="status-label">${status}</span></header>${row.gambar_url || row.thumbnail_url ? cover(row, 'post-cover') : ''}<div class="post-card-body"><span class="category">${escape(row.kategori)}</span><h3>${escape(row.judul)}</h3>${row.caption ? `<p>${escape(row.caption)}</p>` : ''}${isDemo ? '<small>Contoh di ruang demo</small>' : ''}</div><footer class="post-card-actions"><button class="row-action" data-view="${id}" data-type="berita">Lihat postingan</button>${actions}</footer></article>`;
+  return `<article class="post-card${compact ? ' post-card-compact' : ''}"><header class="post-card-header"><span class="post-avatar" aria-hidden="true"><img src="/brand/an-nahl.png" alt="" width="678" height="366" decoding="async" /></span><div><strong>Postingan An-Nahl</strong><time>${formatDate(row.updated_at || row.dibuat_pada)}</time></div><span class="status-label">${status}</span></header>${row.gambar_url || row.thumbnail_url ? cover(row, 'post-cover', true) : ''}<div class="post-card-body"><span class="category">${escape(row.kategori)}</span><h3>${escape(row.judul)}</h3>${row.caption ? `<p>${escape(row.caption)}</p>` : ''}${isDemo ? '<small>Contoh di ruang demo</small>' : ''}</div><footer class="post-card-actions"><button class="row-action" data-view="${id}" data-type="berita">Lihat postingan</button>${actions}</footer></article>`;
 }
 function mediaCard(row) {
   // YouTube thumbnails are loaded only when the video tab is opened.

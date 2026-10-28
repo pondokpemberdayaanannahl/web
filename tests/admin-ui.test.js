@@ -51,6 +51,19 @@ test('all controller selectors refer to actual HTML IDs', () => {
   for (const [, id] of source.matchAll(/\$\('([^']+)'\)/g)) assert.ok(ids.has(id), `Missing ${id}`);
 });
 
+test('large post covers use HD images while small media tiles use thumbnails', async () => {
+  const ui = fixture(true, true); await tick();
+  const row = { id: 'photo-quality', judul: 'Foto kegiatan', kategori: 'Akademik', status: 'published', dibuat_pada: '2026-10-28', gambar_url: '/media/photo-1600.jpg', thumbnail_url: '/media/photo-480.jpg' };
+  for (const compact of [false, true]) {
+    const markup = ui.context.newsRow(row, compact);
+    assert.match(markup, /src="http:\/\/localhost:5173\/media\/photo-1600.jpg"[^>]+class="post-cover"/);
+    assert.doesNotMatch(markup, /photo-480.jpg/);
+  }
+  assert.match(ui.context.mediaCard(row), /src="http:\/\/localhost:5173\/media\/photo-480.jpg"/);
+  assert.match(ui.context.newsRow({ ...row, gambar_url: null }), /photo-480.jpg/);
+  assert.match(ui.context.mediaCard({ ...row, thumbnail_url: null }), /photo-1600.jpg/);
+});
+
 test('authenticated demo creates, previews, filters, edits, deletes, and logs out', async () => {
   const ui = fixture(true, true); await tick();
   assert.equal(ui.$('dashboard-view').hidden, false);
