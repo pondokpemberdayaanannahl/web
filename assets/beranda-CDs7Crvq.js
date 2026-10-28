@@ -1,4 +1,4 @@
-import{supabase as e}from"./supabase-HBzNintJ.js";import{r as t}from"./photos-BW6EAMCN.js";import{escapeHtml as n,formatTanggal as r,ringkasan as i}from"./berita-BKFf6ZMK.js";function a(){return`
+import{supabase as e}from"./supabase-HBzNintJ.js";import{r as t}from"./photos-BW6EAMCN.js";import{escapeHtml as n,formatTanggal as r,ringkasan as i}from"./berita-Dmn36vJE.js";function a(){return`
     <!-- HERO -->
     <section class="hero hero-left" id="hero">
       <div class="hero-bg" style="background-image: url('${t.hero.beranda}')"></div>

@@ -1,0 +1,7 @@
+Options -MultiViews
+DirectoryIndex index.html
+RewriteEngine On
+
+# Convenient private entry points. Authentication still controls admin access.
+RewriteRule ^admin/?$ /admin.html [R=302,L]
+RewriteRule ^login/?$ /login.html [R=302,L]
