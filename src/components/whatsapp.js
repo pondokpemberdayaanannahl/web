@@ -2,8 +2,10 @@
 // WHATSAPP FLOATING BUTTON Component
 // ═══════════════════════════════════════════
 
+import { pondokContact } from '../data/pondok.js';
+
 export function WhatsAppButton() {
-  const phoneNumber = '6285772821484'; // Format internasional tanpa +
+  const phoneNumber = pondokContact.whatsapp; // Format internasional tanpa +
   const message = encodeURIComponent('Assalamu\'alaikum, saya ingin bertanya tentang Pesantren An-Nahl.');
   const waLink = `https://wa.me/${phoneNumber}?text=${message}`;
 

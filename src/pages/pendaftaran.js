@@ -4,6 +4,7 @@
 
 import { photos } from '../data/photos.js';
 import { bindSubmission } from '../form-submission.js';
+import { programPesantren, pondokContact } from '../data/pondok.js';
 
 export function initPendaftaran() {
   bindSubmission(document.getElementById('registration-form'), 'pendaftaran', () => ({
@@ -58,7 +59,7 @@ export function Pendaftaran() {
     <!-- Persyaratan -->
     <section class="section" style="background: var(--green-50)">
       <div class="container">
-        <div class="grid-2">
+        <div class="grid-2 registration-details">
           <div>
             <span class="section-label reveal">PERSYARATAN</span>
             <h2 class="reveal reveal-delay-1" style="margin-bottom: var(--space-lg)">Syarat Pendaftaran</h2>
@@ -74,8 +75,8 @@ export function Pendaftaran() {
             </div>
           </div>
           <div class="reveal">
-            <div class="card" style="background: var(--white)">
-              <div style="text-align:center; padding: var(--space-lg)">
+            <div class="card registration-fees" style="background: var(--white)">
+              <div class="registration-fees-body" style="text-align:center; padding: var(--space-lg)">
                 <span class="section-label">BIAYA PENDIDIKAN</span>
                 <h3 style="font-family:var(--font-heading);font-size:28px;margin: var(--space-md) 0">Tahun Ajaran 2026/2027</h3>
                 <div style="margin: var(--space-xl) 0">
@@ -97,6 +98,12 @@ export function Pendaftaran() {
                   </div>
                 </div>
                 <p style="font-size:13px;color:var(--neutral-500)">* Tersedia program beasiswa untuk santri berprestasi dan dhuafa</p>
+                <div class="registration-bank" aria-labelledby="registration-bank-title">
+                  <h4 id="registration-bank-title">Rekening biaya pendaftaran</h4>
+                  <dl><div><dt>Bank</dt><dd>Bank Pondok (contoh)</dd></div><div><dt>Nomor rekening</dt><dd class="registration-account">0000 0000 0000</dd></div><div><dt>Atas nama</dt><dd>Pondok Pesantren An-Nahl</dd></div></dl>
+                  <p class="registration-bank-note">Rekening dummy untuk contoh tampilan. Jangan melakukan transfer ke nomor ini. Hubungi pengurus untuk informasi pembayaran yang berlaku.</p>
+                  <a href="https://wa.me/${pondokContact.whatsapp}" class="card-link" target="_blank" rel="noopener noreferrer">Hubungi pengurus: ${pondokContact.phone}</a>
+                </div>
               </div>
             </div>
           </div>
@@ -148,9 +155,7 @@ export function Pendaftaran() {
               <label class="form-label">Program yang Diminati *</label>
               <select id="reg-program" class="form-select" required>
                 <option value="">Pilih program</option>
-                <option>Tahfidz Al-Qur'an</option>
-                <option>Pendidikan Formal + Tahfidz</option>
-                <option>Pemberdayaan Ummat</option>
+                ${programPesantren.map(program => `<option>${program.title}</option>`).join('')}
               </select>
             </div>
 
@@ -211,7 +216,7 @@ export function Pendaftaran() {
         <div style="max-width: 700px; margin: 0 auto; display:flex;flex-direction:column;gap:var(--space-md)">
           ${[
             ['Apakah pesantren menerima santri putra dan putri?', 'Ya, Pesantren An-Nahl menerima santri putra dan putri dengan asrama terpisah dan pengajar sesuai gender.'],
-            ['Berapa lama durasi pendidikan?', 'Program Tahfidz murni 3 tahun, Program Formal + Tahfidz 6 tahun (setara SMP-SMA).'],
+            ['Apa saja program pesantren?', 'Program Tahfidz Quran, Pendidikan Madrasah Muhadloroh, Pendidikan Formal (SMP/SMA), dan Tarbiyah Akhlak Islamiyah. Hubungi pengurus untuk informasi jenjang dan durasi pendidikan.'],
             ['Apakah tersedia beasiswa?', 'Ya, tersedia beasiswa penuh dan parsial untuk santri berprestasi dan dari keluarga kurang mampu. Hubungi kami untuk informasi lebih lanjut.'],
             ['Bolehkah orang tua berkunjung?', 'Orang tua dapat berkunjung setiap hari Ahad dan hari libur. Jadwal kunjungan akan diinformasikan lebih lanjut.'],
             ['Apakah santri boleh membawa HP?', 'Penggunaan gadget diatur oleh pesantren. Santri tidak diperkenankan membawa HP pribadi selama kegiatan belajar.'],

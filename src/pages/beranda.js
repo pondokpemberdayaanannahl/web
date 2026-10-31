@@ -3,8 +3,10 @@
 // ═══════════════════════════════════════════
 
 import { photos } from '../data/photos.js';
+import { programPesantren, programUnggulan } from '../data/pondok.js';
 import { supabase } from '../supabase.js';
 import { escapeHtml, formatTanggal, ringkasan } from './berita.js';
+import { initHomeStories } from '../home-stories.js';
 
 export function Beranda() {
   return `
@@ -65,50 +67,45 @@ export function Beranda() {
       </div>
     </section>
 
+    <!-- CERITA KAMI: newest published articles, photos and videos -->
+    <section class="section home-stories" id="stories" data-content-key="home-stories">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title reveal">Cerita kami</h2>
+          <p class="section-subtitle reveal reveal-delay-1">Kabar, foto, dan video terbaru dari keseharian pondok.</p>
+        </div>
+        <p id="home-stories-status" class="category-status" role="status">Memuat cerita…</p>
+        <div class="stories-grid" id="home-stories-grid"></div>
+        <div class="stories-more"><a href="#/berita" class="btn btn-secondary">Lihat semua berita →</a><a href="#/galeri" class="btn btn-secondary">Jelajahi galeri →</a></div>
+      </div>
+      <dialog id="story-dialog" class="story-dialog" aria-labelledby="story-dialog-title">
+        <div class="story-dialog-heading"><h2 id="story-dialog-title"></h2><button type="button" data-story-close aria-label="Tutup cerita">×</button></div>
+        <div id="story-dialog-body"></div>
+      </dialog>
+    </section>
+
     <!-- PROGRAM UNGGULAN -->
     <section class="section" id="programs" style="background: var(--green-50)">
       <div class="container">
         <div class="section-header">
           <span class="section-label reveal">PROGRAM KAMI</span>
-          <h2 class="section-title reveal reveal-delay-1">Kurikulum Terpadu untuk Generasi Unggul</h2>
-          <p class="section-subtitle reveal reveal-delay-2">Empat pilar pendidikan yang membentuk santri berilmu, berakhlak, dan berdaya.</p>
+          <h2 class="section-title reveal reveal-delay-1">Program Pesantren</h2>
+          <p class="section-subtitle reveal reveal-delay-2">Empat program pendidikan yang mendampingi proses belajar dan pembinaan santri.</p>
         </div>
-        <div class="grid-4">
-          <div class="card reveal">
-            <div class="card-icon">
-              <i data-lucide="book-open" style="width:28px;height:28px"></i>
-            </div>
-            <h3 class="card-title">Tahfidz Al-Qur'an</h3>
-            <p class="card-text">Program hafalan 30 juz dengan metode talaqqi dan muraja'ah intensif, dibimbing oleh hafidz bersertifikat.</p>
-            <a href="#/program" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a>
-          </div>
-          <div class="card reveal reveal-delay-1">
-            <div class="card-icon">
-              <i data-lucide="graduation-cap" style="width:28px;height:28px"></i>
-            </div>
-            <h3 class="card-title">Pendidikan Formal</h3>
-            <p class="card-text">Kurikulum nasional terakreditasi dipadukan pelajaran keislaman untuk jenjang akademik lebih tinggi.</p>
-            <a href="#/program" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a>
-          </div>
-          <div class="card reveal reveal-delay-2">
-            <div class="card-icon">
-              <i data-lucide="users" style="width:28px;height:28px"></i>
-            </div>
-            <h3 class="card-title">Pemberdayaan Ummat</h3>
-            <p class="card-text">Melatih santri aktif berdakwah dan berkontribusi sosial di masyarakat sekitar pesantren.</p>
-            <a href="#/program" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a>
-          </div>
-          <div class="card reveal reveal-delay-3">
-            <div class="card-icon">
-              <i data-lucide="wrench" style="width:28px;height:28px"></i>
-            </div>
-            <h3 class="card-title">Keterampilan Hidup</h3>
-            <p class="card-text">Pelatihan kewirausahaan, pertanian, dan teknologi agar santri mandiri secara ekonomi.</p>
-            <a href="#/program" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a>
-          </div>
+        <div class="grid-4 pondok-program-grid">
+          ${programPesantren.map((program,i) => `<article class="card reveal reveal-delay-${i}"><div class="card-icon"><i data-lucide="${program.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${program.title}</h3><p class="card-text">${program.description}</p><a href="#/program" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a></article>`).join('')}
         </div>
         <div style="text-align:center; margin-top: var(--space-2xl)" class="reveal">
           <a href="#/program" class="btn btn-secondary">Lihat Semua Program →</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="featured-programs" data-content-key="home-featured-programs" style="background:var(--neutral-50)">
+      <div class="container">
+        <div class="section-header"><span class="section-label reveal">PROGRAM UNGGULAN</span><h2 class="section-title reveal reveal-delay-1">Ilmu, Bahasa, dan Keterampilan</h2></div>
+        <div class="grid-4 pondok-program-grid">
+          ${programUnggulan.map((program,i) => `<article class="card reveal reveal-delay-${i}"><div class="card-icon"><i data-lucide="${program.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${program.title}</h3><p class="card-text">${program.description}</p></article>`).join('')}
         </div>
       </div>
     </section>
@@ -172,6 +169,9 @@ export function Beranda() {
 
 // Ambil 3 berita terbaru dari database untuk Beranda
 window.initBerandaNews = async function() {
+  await Promise.all([initHomeStories(supabase), loadHomeNews()]);
+};
+async function loadHomeNews() {
   if (!supabase) {
     const grid = document.getElementById('beranda-news-grid');
     if (grid) grid.innerHTML = '<p>Berita pesantren akan tersedia setelah layanan terhubung.</p>';
@@ -216,4 +216,4 @@ window.initBerandaNews = async function() {
   `).join('');
 
   if (window.lucide) window.lucide.createIcons();
-};
+}

@@ -135,7 +135,9 @@ function annahl_submission(array $input): array {
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $payload['tanggalLahir']);
         if (!$date || $date->format('Y-m-d') !== $payload['tanggalLahir'] || $payload['tanggalLahir'] > (new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta')))->format('Y-m-d')) annahl_fail(422, 'Periksa tanggal lahir.');
         if (!preg_match('/^\+?[\d\s()-]{8,24}$/D', $payload['noWA']) || ($payload['email'] !== '' && !filter_var($payload['email'], FILTER_VALIDATE_EMAIL))) annahl_fail(422, 'Periksa nomor WhatsApp dan email.');
-        if (!in_array($payload['jenisKelamin'], ['Laki-laki','Perempuan'], true) || !in_array($payload['program'], ["Tahfidz Al-Qur'an",'Pendidikan Formal + Tahfidz','Pemberdayaan Ummat'], true)) annahl_fail(422, 'Pilih jenis kelamin dan program yang tersedia.');
+        // Keep previous choices accepted for forms already open during a release.
+        $programs = ['Program Tahfidz Quran','Pendidikan Madrasah Muhadloroh','Pendidikan Formal (SMP/SMA)','Tarbiyah Akhlak Islamiyah',"Tahfidz Al-Qur'an",'Pendidikan Formal + Tahfidz','Pemberdayaan Ummat'];
+        if (!in_array($payload['jenisKelamin'], ['Laki-laki','Perempuan'], true) || !in_array($payload['program'], $programs, true)) annahl_fail(422, 'Pilih jenis kelamin dan program yang tersedia.');
     } else {
         $payload['jumlah'] = annahl_text($fields, 'jumlah', 1, 12);
         $payload['metode'] = annahl_text($fields, 'metode', 1, 100);

@@ -12,7 +12,7 @@ export const SITE_PAGES = [
   { id: 'global', title: 'Menu, footer & WhatsApp', path: '/', description: 'Identitas, kontak di kaki halaman, tautan sosial, dan tombol WhatsApp.' },
 ];
 export const blankSiteContent = () => ({ version: 1, values: {}, hidden: [] });
-const excluded = 'script,style,form,dialog,button,input,textarea,select,option,[aria-hidden="true"],.sr-only,#news-grid,#beranda-news-grid,#photo-grid,#video-grid,#video-status,#gallery-status,#news-status,.news-filters,.gallery-filters,#lightbox,#article-modal';
+const excluded = 'script,style,form,dialog,button,input,textarea,select,option,[aria-hidden="true"],.sr-only,#news-grid,#beranda-news-grid,#home-stories-grid,#home-stories-status,#photo-grid,#video-grid,#video-status,#gallery-status,#news-status,.news-filters,.gallery-filters,#lightbox,#article-modal';
 const hash = text => { let result = 2166136261; for (const c of text) result = Math.imul(result ^ c.charCodeAt(0), 16777619); return (result >>> 0).toString(36); };
 
 export function contentUrl(value, kind = 'link') {
@@ -44,11 +44,14 @@ export function createContentCatalog(html, doc = document) {
   const template = doc.createElement('template'); template.innerHTML = html;
   const root = template.content;
   const sections = [...root.children].filter(node => !['STYLE', 'SCRIPT'].includes(node.tagName));
+  // New keyed sections do not shift the IDs of already-published legacy fields.
+  const legacySections = sections.filter(section => !section.hasAttribute('data-content-key'));
   const blocks = [], fields = [];
-  sections.forEach((section, index) => {
+  sections.forEach(section => {
     const heading = section.querySelector('h2,h1,.footer-brand-name,.navbar-brand-name,.section-label');
     const title = heading?.textContent.trim() || (section.tagName === 'NAV' ? 'Menu utama' : section.classList.contains('whatsapp-float') ? 'Tombol WhatsApp' : 'Bagian website');
-    const block = { id: `b-${hash(`${index}:${title}`)}`, title, fields: [], cover: '', element: section, hideable: section.tagName === 'SECTION' && !section.classList.contains('hero') && !section.classList.contains('payment-choices') && !section.querySelector('form') };
+    const key = section.getAttribute('data-content-key');
+    const block = { id: `b-${hash(key ? `section:${key}` : `${legacySections.indexOf(section)}:${title}`)}`, title, fields: [], fixedImages: [], cover: '', element: section, hideable: section.tagName === 'SECTION' && !section.classList.contains('hero') && !section.classList.contains('payment-choices') && !section.querySelector('form') };
     const path = element => { const parts = []; for (let node = element; node && node !== section; node = node.parentElement) parts.unshift([...node.parentElement.children].indexOf(node)); return parts.join('-') || '0'; };
     const add = (element, kind, value, label, apply, textIndex = '') => {
       const field = { id: `${block.id}:${path(element)}:${kind}:${textIndex}:${hash(value)}`.replace(/--/g, '-'), kind, value, label, apply };
@@ -70,7 +73,8 @@ export function createContentCatalog(html, doc = document) {
       }
       if (element.tagName === 'IMG') {
         const src = element.getAttribute('src') || ''; if (!block.cover) block.cover = src;
-        add(element, 'image', src, element.id === 'donation-qris' ? 'Gambar QRIS resmi' : 'Foto', value => { element.setAttribute('src', value); element.removeAttribute('srcset'); });
+        if (element.hasAttribute('data-fixed-photo')) block.fixedImages.push({ src, alt: element.getAttribute('alt') || 'Foto profil' });
+        else add(element, 'image', src, element.id === 'donation-qris' ? 'Gambar QRIS resmi' : 'Foto', value => { element.setAttribute('src', value); element.removeAttribute('srcset'); });
         add(element, 'text', element.getAttribute('alt') || '', 'Keterangan foto', value => element.setAttribute('alt', value));
       }
       const background = element.style.backgroundImage?.match(/^url\(["']?(.*?)["']?\)$/)?.[1];
@@ -102,12 +106,18 @@ export function normalizeSiteDocument(content, catalog) {
   return { version: 1, values, hidden: [...new Set(content.hidden)].filter(id => catalog.blocks.some(block => block.id === id && block.hideable)) };
 }
 
-export function renderSiteContent(html, content, doc = document) {
+export function renderSiteContent(html, content, doc = document, previewImages = {}) {
   if (!content) return html;
   try {
     const catalog = createContentCatalog(html, doc);
     const safe = normalizeSiteDocument(content, catalog);
     for (const field of catalog.fields) if (safe.values[field.id] !== undefined) field.apply(safe.values[field.id]);
+    // Transient raster previews come only from the admin's validated file picker.
+    // They never enter normalized documents or the published database content.
+    for (const field of catalog.fields) {
+      const preview = previewImages[field.id];
+      if (field.kind === 'image' && typeof preview === 'string' && /^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(preview)) field.apply(preview);
+    }
     // Hidden sections are removed before forms, observers, or page scripts start.
     for (const id of safe.hidden) {
       const block = catalog.blocks.find(block => block.id === id);

@@ -7,6 +7,7 @@ import { SITE_PAGES, blankSiteContent, createContentCatalog, renderSiteContent, 
 import { createSiteContentStore, readPublishedSiteContent } from '../src/site-content-store.js';
 import * as images from '../src/data/photos.js';
 import * as formatting from '../src/content-format.js';
+import * as pondok from '../src/data/pondok.js';
 import { socialIcon } from '../src/components/social-icon.js';
 import { categoryCards } from '../src/components/category-cards.js';
 
@@ -17,7 +18,7 @@ test('content catalog covers the real public pages while excluding form controls
   const names = { beranda:'Beranda',tentang:'Tentang',program:'Program',pendaftaran:'Pendaftaran',donasi:'Donasi',kontak:'Kontak',berita:'Berita',galeri:'Galeri' };
   for (const [id, name] of Object.entries(names)) {
     const doc = document();
-    const context = { ...images, ...formatting, socialIcon, categoryCards, document: doc, window: {}, supabase: null, bindSubmission() {} };
+    const context = { ...images, ...formatting, ...pondok, socialIcon, categoryCards, document: doc, window: {}, supabase: null, bindSubmission() {} };
     const code = readFileSync(new URL(`../src/pages/${id}.js`, import.meta.url), 'utf8').replace(/^import .*;\r?$/gm, '').replaceAll('export ', '');
     vm.runInNewContext(code, context);
     const html = context[name]();
@@ -30,6 +31,38 @@ test('content catalog covers the real public pages while excluding form controls
     assert.deepEqual(createContentCatalog(html, doc).fields.map(field => field.id), catalog.fields.map(field => field.id));
     assert.equal(renderSiteContent(html, null, doc), html, 'Missing CMS data must retain the exact original markup');
   }
+});
+
+test('new keyed sections preserve all legacy content IDs and do not expose dynamic story placeholders as fields',()=>{
+  const doc=document();
+  const original='<section><h1>Beranda</h1></section><section><h2>Tentang</h2></section><section><h2>Program</h2><p>Isi program pondok.</p></section>';
+  const added=original.replace('<section><h2>Program', '<section data-content-key="home-stories"><h2>Cerita kami</h2><p id="home-stories-status">Memuat cerita…</p><div id="home-stories-grid"><p>Konten dinamis</p></div></section><section><h2>Program');
+  const before=createContentCatalog(original,doc),after=createContentCatalog(added,doc);
+  for(const field of before.fields)assert.ok(after.fields.some(row=>row.id===field.id&&row.value===field.value));
+  assert.ok(!after.fields.some(field=>['Memuat cerita…','Konten dinamis'].includes(field.value)));
+});
+
+test('local image previews display before saving but inline images cannot become published content',()=>{
+  const doc=document(),catalog=createContentCatalog(source,doc),content=blankSiteContent();
+  const image=catalog.fields.find(field=>field.kind==='image');
+  const url='data:image/png;base64,aW1hZ2U=';
+  assert.match(renderSiteContent(source,content,doc,{[image.id]:url}),/data:image\/png;base64,aW1hZ2U=/);
+  assert.equal(Object.keys(content.values).length,0);
+  content.values[image.id]=url;assert.throws(()=>normalizeSiteDocument(content,catalog),/valid/);
+});
+
+test('fixed founder photo ignores previous CMS image overrides while retaining editable profile text',()=>{
+  const doc=document();
+  const original='<section><h2>Profil Pimpinan</h2><img src="/media/founder.jpg" alt="Founder"><h3>Nama Founder</h3><p>Profil pondok.</p></section>';
+  const fixed=original.replace('<img ','<img data-fixed-photo="founder" ');
+  const before=createContentCatalog(original,doc),after=createContentCatalog(fixed,doc);
+  const oldImage=before.fields.find(field=>field.kind==='image');
+  const name=before.fields.find(field=>field.value==='Nama Founder');
+  const content=blankSiteContent();content.values[oldImage.id]='https://example.org/drive-photo.jpg';content.values[name.id]='Nama yang diperbarui';
+  assert.equal(after.fields.some(field=>field.kind==='image'),false);
+  assert.equal(after.blocks[0].fixedImages[0].src,'/media/founder.jpg');
+  const rendered=renderSiteContent(fixed,content,doc);
+  assert.match(rendered,/src="\/media\/founder.jpg"/);assert.doesNotMatch(rendered,/drive-photo/);assert.match(rendered,/Nama yang diperbarui/);
 });
 
 test('text edits remain literal, supported images/links/numbers update, and hidden sections cannot remove forms', () => {

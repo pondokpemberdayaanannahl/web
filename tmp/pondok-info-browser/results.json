@@ -1,0 +1,35 @@
+[
+  {
+    "width": 1440,
+    "mainPrograms": 4,
+    "featuredPrograms": 4,
+    "extracurricular": 14,
+    "registrationChoices": 4,
+    "contactAndWhatsApp": true,
+    "mapHttpStatus": 301,
+    "noOverflow": true,
+    "pageErrors": []
+  },
+  {
+    "width": 390,
+    "mainPrograms": 4,
+    "featuredPrograms": 4,
+    "extracurricular": 14,
+    "registrationChoices": 4,
+    "contactAndWhatsApp": true,
+    "mapHttpStatus": 301,
+    "noOverflow": true,
+    "pageErrors": []
+  },
+  {
+    "width": 320,
+    "mainPrograms": 4,
+    "featuredPrograms": 4,
+    "extracurricular": 14,
+    "registrationChoices": 4,
+    "contactAndWhatsApp": true,
+    "mapHttpStatus": 301,
+    "noOverflow": true,
+    "pageErrors": []
+  }
+]

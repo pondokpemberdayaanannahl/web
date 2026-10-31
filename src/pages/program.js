@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════
 
 import { photos } from '../data/photos.js';
+import { programPesantren, programUnggulan, ekstrakurikuler } from '../data/pondok.js';
 
 export function Program() {
   return `
@@ -13,140 +14,45 @@ export function Program() {
       <div class="hero-pattern"></div>
       <div class="hero-content">
         <span class="section-label" style="color: var(--green-300)">PROGRAM</span>
-        <h1 style="font-size: 44px">Program Pendidikan Unggulan</h1>
+        <h1 style="font-size: 44px">Program Pesantren</h1>
         <p class="hero-subtitle">Kurikulum terpadu yang memadukan pendidikan agama, akademik, dan keterampilan hidup.</p>
       </div>
     </section>
 
-    <!-- Program Tahfidz -->
-    <section class="section" style="background: var(--neutral-50)">
+    <!-- Program Pesantren -->
+    <section class="section" id="program-pesantren" style="background:var(--neutral-50)">
       <div class="container">
-        <div class="about-content">
-          <div class="about-text">
-            <span class="section-label reveal">PROGRAM UTAMA</span>
-            <h2 class="reveal reveal-delay-1">Tahfidz Al-Qur'an</h2>
-            <p class="reveal reveal-delay-2">
-              Program unggulan pesantren An-Nahl yang membimbing santri untuk menghafal Al-Qur'an 30 juz dengan metode talaqqi langsung dari ustadz hafidz bersanad. Setiap santri mendapat bimbingan personal sesuai kemampuan dan kecepatan hafalannya.
-            </p>
-            <div class="checklist reveal reveal-delay-3" style="margin-top: var(--space-lg)">
-              <div class="checklist-item">
-                <i data-lucide="circle-check" class="checklist-icon"></i>
-                <span>Target hafalan 30 juz dalam 3 tahun</span>
-              </div>
-              <div class="checklist-item">
-                <i data-lucide="circle-check" class="checklist-icon"></i>
-                <span>Metode talaqqi dan muraja'ah intensif</span>
-              </div>
-              <div class="checklist-item">
-                <i data-lucide="circle-check" class="checklist-icon"></i>
-                <span>Pengajar hafidz bersertifikat dan bersanad</span>
-              </div>
-              <div class="checklist-item">
-                <i data-lucide="circle-check" class="checklist-icon"></i>
-                <span>Wisuda tahfidz tahunan dengan sanad keilmuan</span>
-              </div>
-            </div>
-          </div>
-          <div class="about-image reveal">
-            <img src="${photos.program.tahfidz}" alt="Program Tahfidz" loading="lazy" />
-          </div>
+        <div class="section-header"><span class="section-label reveal">PROGRAM PESANTREN</span><h2 class="section-title reveal reveal-delay-1">Empat Program Pesantren</h2><p class="section-subtitle reveal reveal-delay-2">Pendidikan Al-Qur’an, madrasah, sekolah formal, dan pembinaan akhlak.</p></div>
+        <div class="grid-2 pondok-program-grid">
+          ${programPesantren.map((program,i) => `<article class="card reveal reveal-delay-${i}"><div class="card-icon"><i data-lucide="${program.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${program.title}</h3><p class="card-text">${program.description}</p></article>`).join('')}
         </div>
       </div>
     </section>
 
-    <!-- Program Formal -->
-    <section class="section" style="background: var(--green-50)">
+    <!-- Program Unggulan -->
+    <section class="section" id="program-unggulan" style="background:var(--green-50)">
       <div class="container">
-        <div class="about-content">
-          <div class="about-image reveal" style="order:-1">
-            <img src="${photos.program.formal}" alt="Pendidikan Formal" loading="lazy" />
-          </div>
-          <div class="about-text">
-            <span class="section-label reveal">PENDIDIKAN FORMAL</span>
-            <h2 class="reveal reveal-delay-1">Kurikulum Nasional Terakreditasi</h2>
-            <p class="reveal reveal-delay-2">
-              Santri menempuh pendidikan formal setara SMP dan SMA dengan kurikulum nasional yang diperkaya dengan mata pelajaran keislaman. Lulusan kami siap melanjutkan ke perguruan tinggi negeri maupun timur tengah.
-            </p>
-            <div class="checklist reveal reveal-delay-3" style="margin-top: var(--space-lg)">
-              <div class="checklist-item">
-                <i data-lucide="circle-check" class="checklist-icon"></i>
-                <span>Setara SMP & SMA terakreditasi A</span>
-              </div>
-              <div class="checklist-item">
-                <i data-lucide="circle-check" class="checklist-icon"></i>
-                <span>Bimbingan masuk PTN dan beasiswa luar negeri</span>
-              </div>
-              <div class="checklist-item">
-                <i data-lucide="circle-check" class="checklist-icon"></i>
-                <span>Laboratorium sains dan perpustakaan lengkap</span>
-              </div>
-            </div>
-          </div>
+        <div class="section-header"><span class="section-label reveal">PROGRAM UNGGULAN</span><h2 class="section-title reveal reveal-delay-1">Ilmu, Bahasa, dan Keterampilan</h2><p class="section-subtitle reveal reveal-delay-2">Empat program unggulan yang melengkapi pendidikan santri.</p></div>
+        <div class="grid-4 pondok-program-grid">
+          ${programUnggulan.map((program,i) => `<article class="card reveal reveal-delay-${i}"><div class="card-icon"><i data-lucide="${program.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${program.title}</h3><p class="card-text">${program.description}</p></article>`).join('')}
         </div>
       </div>
     </section>
 
-    <!-- Program Pemberdayaan -->
-    <section class="section" style="background: var(--neutral-50)">
-      <div class="container">
-        <div class="about-content">
-          <div class="about-text">
-            <span class="section-label reveal">PEMBERDAYAAN UMMAT</span>
-            <h2 class="reveal reveal-delay-1">Dakwah & Kontribusi Sosial</h2>
-            <p class="reveal reveal-delay-2">
-              Sesuai nama "An-Nahl" (lebah) yang selalu memberi manfaat, program ini melatih santri untuk aktif berdakwah, mengajar di masyarakat, dan menjalankan program sosial.
-            </p>
-            <div class="checklist reveal reveal-delay-3" style="margin-top: var(--space-lg)">
-              <div class="checklist-item">
-                <i data-lucide="circle-check" class="checklist-icon"></i>
-                <span>Pengajaran Al-Qur'an di desa-desa binaan</span>
-              </div>
-              <div class="checklist-item">
-                <i data-lucide="circle-check" class="checklist-icon"></i>
-                <span>Bakti sosial dan santunan rutin</span>
-              </div>
-              <div class="checklist-item">
-                <i data-lucide="circle-check" class="checklist-icon"></i>
-                <span>Pelatihan public speaking dan kepemimpinan</span>
-              </div>
-            </div>
-          </div>
-          <div class="about-image reveal">
-            <img src="${photos.program.pemberdayaan}" alt="Pemberdayaan Ummat" loading="lazy" />
-          </div>
-        </div>
-      </div>
+    <!-- Pembinaan Santri -->
+    <section class="section" style="background:var(--neutral-50)">
+      <div class="container"><div class="about-content">
+        <div class="about-text"><span class="section-label reveal">PEMBINAAN SANTRI</span><h2 class="reveal reveal-delay-1">Tarbiyah Akhlak Islamiyah</h2><p class="reveal reveal-delay-2">Pembinaan akhlak menjadi bagian dari pendidikan pesantren, bersama tahfidz, madrasah muhadloroh, dan pendidikan formal SMP/SMA.</p><p class="reveal reveal-delay-3">Santri juga dapat mengembangkan minat dan keterampilan melalui kegiatan ekstrakurikuler pesantren.</p></div>
+        <div class="about-image reveal"><img src="${photos.program.pemberdayaan}" alt="Kegiatan santri An-Nahl" loading="lazy" /></div>
+      </div></div>
     </section>
 
-    <!-- Keterampilan & Ekskul -->
-    <section class="section" style="background: var(--green-50)">
+    <!-- Ekstrakurikuler -->
+    <section class="section" id="ekstrakurikuler" style="background:var(--green-50)">
       <div class="container">
-        <div class="section-header">
-          <span class="section-label reveal">KETERAMPILAN & EKSTRAKURIKULER</span>
-          <h2 class="section-title reveal reveal-delay-1">Bekal untuk Masa Depan</h2>
-          <p class="section-subtitle reveal reveal-delay-2">Berbagai keterampilan yang mempersiapkan santri menjadi pribadi mandiri.</p>
-        </div>
-        <div class="grid-4">
-          <div class="card reveal" style="text-align:center">
-            <div class="card-icon" style="margin:0 auto var(--space-lg)"><i data-lucide="laptop" style="width:28px;height:28px"></i></div>
-            <h3 class="card-title">Teknologi</h3>
-            <p class="card-text">Pelatihan komputer, coding dasar, dan literasi digital.</p>
-          </div>
-          <div class="card reveal reveal-delay-1" style="text-align:center">
-            <div class="card-icon" style="margin:0 auto var(--space-lg)"><i data-lucide="sprout" style="width:28px;height:28px"></i></div>
-            <h3 class="card-title">Pertanian</h3>
-            <p class="card-text">Budidaya tanaman organik dan peternakan mandiri.</p>
-          </div>
-          <div class="card reveal reveal-delay-2" style="text-align:center">
-            <div class="card-icon" style="margin:0 auto var(--space-lg)"><i data-lucide="store" style="width:28px;height:28px"></i></div>
-            <h3 class="card-title">Kewirausahaan</h3>
-            <p class="card-text">Praktik bisnis, manajemen koperasi, dan pemasaran.</p>
-          </div>
-          <div class="card reveal reveal-delay-3" style="text-align:center">
-            <div class="card-icon" style="margin:0 auto var(--space-lg)"><i data-lucide="swords" style="width:28px;height:28px"></i></div>
-            <h3 class="card-title">Olahraga</h3>
-            <p class="card-text">Pencak silat, panahan, renang, dan futsal.</p>
-          </div>
+        <div class="section-header"><span class="section-label reveal">EKSTRAKURIKULER</span><h2 class="section-title reveal reveal-delay-1">Ruang untuk Minat dan Bakat</h2><p class="section-subtitle reveal reveal-delay-2">Pilihan kegiatan untuk mengembangkan kemampuan, kreativitas, dan kemandirian santri.</p></div>
+        <div class="grid-3 pondok-extracurricular-grid">
+          ${ekstrakurikuler.map((activity,i) => `<article class="card extracurricular-card reveal reveal-delay-${i%4}"><div class="card-icon"><i data-lucide="${activity.icon}" style="width:24px;height:24px"></i></div><h3 class="card-title">${activity.title}</h3></article>`).join('')}
         </div>
       </div>
     </section>

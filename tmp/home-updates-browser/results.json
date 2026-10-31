@@ -1,0 +1,35 @@
+[
+  {
+    "width": 1440,
+    "fourMixedStories": true,
+    "storyOrder": true,
+    "newsPhotoVideoDetails": true,
+    "registrationDummy": true,
+    "previewUnsavedText": true,
+    "previewLocalPhoto": true,
+    "editorPreserved": true,
+    "pageErrors": []
+  },
+  {
+    "width": 390,
+    "fourMixedStories": true,
+    "storyOrder": true,
+    "newsPhotoVideoDetails": true,
+    "registrationDummy": true,
+    "previewUnsavedText": true,
+    "previewLocalPhoto": true,
+    "editorPreserved": true,
+    "pageErrors": []
+  },
+  {
+    "width": 320,
+    "fourMixedStories": true,
+    "storyOrder": true,
+    "newsPhotoVideoDetails": true,
+    "registrationDummy": true,
+    "previewUnsavedText": true,
+    "previewLocalPhoto": true,
+    "editorPreserved": true,
+    "pageErrors": []
+  }
+]

@@ -648,3 +648,50 @@ body:has(.payment-dialog[open]) { overflow:hidden; }
 @media(max-width:768px) { .category-card-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } .payment-choice-grid { grid-template-columns:1fr; } .payment-choice { padding:18px 20px; } }
 @media(max-width:480px) { .category-card { aspect-ratio:1.4/1; } .category-card>span:first-of-type { font-size:14px; left:10px; bottom:10px; } .payment-dialog-header,.payment-dialog-body,.payment-dialog-footer { padding:18px; } .payment-dialog-header h2 { font-size:24px; } .payment-tabs button { font-size:12px; } }
 @media(prefers-reduced-motion:reduce) { .payment-dialog[open] { animation:none; } .category-card,.category-card img,.payment-choice { transition:none; } }
+/* Four latest stories on the homepage. */
+.home-stories { background:var(--white); }
+.stories-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:24px; }
+.stories-grid:empty { display:none; }
+.story-card { display:flex; flex-direction:column; min-width:0; }
+.story-cover { display:block; position:relative; width:100%; aspect-ratio:4/3; padding:0; border:0; overflow:hidden; background:var(--green-50); cursor:pointer; }
+.story-cover img { display:block; width:100%; height:100%; object-fit:cover; transition:transform .3s ease; }
+.story-cover:hover img { transform:scale(1.04); }
+.story-cover:focus-visible,.story-link:focus-visible { outline:3px solid var(--green-600); outline-offset:3px; }
+.story-play { position:absolute; inset:0; display:grid; place-items:center; color:#fff; font-size:40px; background:#052e1633; text-shadow:0 2px 10px #0008; }
+.story-card .news-card-body { display:flex; flex-direction:column; flex:1; padding:22px; }
+.story-card .badge { align-self:flex-start; }
+.story-card .news-card-title { font-size:20px; overflow-wrap:anywhere; }
+.story-card .news-card-excerpt { flex:1; }
+.story-link { align-self:flex-start; background:none; border:0; padding:0; font:inherit; cursor:pointer; text-align:left; }
+.stories-more { display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-top:var(--space-2xl); }
+.story-dialog { width:min(820px,calc(100% - 32px)); max-height:90dvh; padding:0; border:0; border-radius:var(--radius-lg); color:var(--neutral-800); background:var(--white); overflow:auto; }
+.story-dialog::backdrop { background:#052e16b3; }
+.story-dialog-heading { display:flex; align-items:flex-start; gap:20px; padding:24px; }
+.story-dialog-heading h2 { flex:1; font-size:28px; overflow-wrap:anywhere; }
+.story-dialog-heading button { flex-shrink:0; width:40px; height:40px; border:0; border-radius:50%; background:var(--green-50); color:var(--green-800); font-size:28px; cursor:pointer; }
+.story-detail-image { display:block; width:100%; max-height:65dvh; object-fit:contain; background:var(--neutral-50); }
+.story-video { display:block; width:100%; aspect-ratio:16/9; border:0; }
+.story-caption { padding:14px 24px; color:var(--neutral-600); font-size:14px; }
+.story-prose { padding:12px 24px 28px; line-height:1.9; overflow-wrap:anywhere; }
+.story-prose p,.story-prose h3,.story-prose ul { margin-bottom:16px; }
+.registration-bank { margin-top:24px; padding:22px; border:1px solid var(--green-200); border-radius:var(--radius-md); background:var(--green-50); text-align:left; }
+.registration-details>div { min-width:0; }
+#registration-form .form-input,#registration-form .form-select { min-width:0; }
+.registration-bank h4 { font-size:18px; margin:0 0 16px; color:var(--green-800); }
+.registration-bank dl { margin:0; }
+.registration-bank dl>div { margin-bottom:12px; }
+.registration-bank dt { color:var(--neutral-600); font-size:13px; }
+.registration-bank dd { margin:4px 0 0; font-weight:600; overflow-wrap:anywhere; }
+.registration-account { font-size:22px; letter-spacing:1px; }
+.registration-bank-note { margin-top:18px; color:var(--neutral-600); font-size:13px; line-height:1.7; }
+@media(max-width:1100px) { .stories-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .stories-grid { grid-template-columns:1fr; gap:20px; } .story-dialog-heading { padding:18px; } .story-dialog-heading h2 { font-size:23px; } .registration-bank { padding:18px; } }
+@media(max-width:600px) { .registration-fees { padding:20px; } .registration-fees-body { padding:0!important; } }
+.pondok-program-grid>.card,.pondok-extracurricular-grid>.card { min-width:0; }
+.pondok-program-grid .card-title { overflow-wrap:anywhere; }
+.extracurricular-card { display:flex; align-items:center; gap:16px; }
+.extracurricular-card .card-icon { flex-shrink:0; margin:0; }
+.extracurricular-card .card-title { margin:0; font-size:18px; line-height:1.5; overflow-wrap:anywhere; }
+.contact-map-link { text-align:center; margin-top:24px; }
+.footer-contact-item>* { min-width:0; overflow-wrap:anywhere; }
+@media(min-width:769px) and (max-width:1100px) { .pondok-extracurricular-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }

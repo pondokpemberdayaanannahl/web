@@ -6,6 +6,7 @@ import { optimizeImage } from './editor-tools.js';
 import { photos, photoThumbnail } from './data/photos.js';
 import { createDriveMedia } from './drive-media.js';
 import { selectDrivePhoto } from './drive-picker.js';
+import { loadLatestStories, storyCard } from './home-stories.js';
 import baseCss from './styles/index.css?url';
 import componentsCss from './styles/components.css?url';
 import pagesCss from './styles/pages.css?url';
@@ -32,7 +33,7 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
   function cards() {
     $('#cms-blocks').innerHTML = catalog.blocks.map(block => {
       const image = block.fields.find(field => field.kind === 'image');
-      const cover = image && (working.values[image.id] ?? image.value);
+      const cover = image ? working.values[image.id] ?? image.value : block.cover;
       const heading = block.fields.find(field => field.kind === 'heading');
       const text = block.fields.find(field => field.kind === 'text' && field.value.length > 45);
       const changed = block.fields.filter(field => working.values[field.id] !== undefined).length;
@@ -41,8 +42,8 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
   }
   function draw() {
     host.innerHTML = `<div class="cms-page-top"><button class="text-link" data-cms-action="pages">← Semua halaman</button><a class="text-link" href="/#${page.path}" target="_blank" rel="noopener">Lihat website ↗</a></div><div class="page-heading"><div><span class="eyebrow">KELOLA HALAMAN</span><h1>${esc(page.title)}</h1><p class="muted">${esc(page.description)}</p></div><span class="status-badge">${versions.published ? `Terbit · versi ${versions.published}` : 'Isi awal website'}</span></div><div class="cms-publish-bar"><div><strong>Siapkan dulu, terbitkan saat siap.</strong><p id="cms-local-status">${versions.draft ? 'Draft terakhir sudah tersimpan.' : 'Belum ada perubahan tersimpan.'}</p></div><div><button class="button secondary compact" data-cms-action="preview">Pratinjau</button><button class="button secondary compact" data-cms-action="draft">Simpan draft</button><button class="button compact" data-cms-action="publish">Terbitkan perubahan</button></div></div><div id="cms-recovery" class="cms-recovery" ${localDraft ? '' : 'hidden'}><span>Ada salinan teks dari pengeditan sebelumnya.</span><button class="text-link" data-cms-action="recover">Pulihkan untuk ditinjau</button><button class="text-link" data-cms-action="forget">Abaikan</button></div><p id="cms-error" class="form-message" role="status"></p><div id="cms-blocks" class="cms-section-grid"></div><details class="cms-history"><summary>Riwayat penerbitan halaman</summary><div id="cms-history-list"><button class="text-link" data-cms-action="history">Muat riwayat</button></div></details>
-      <dialog class="cms-editor-dialog" id="cms-editor" aria-labelledby="cms-editor-title"><form id="cms-fields-form"><div class="dialog-header"><div><span class="eyebrow">EDIT ISI WEBSITE</span><h2 id="cms-editor-title"></h2></div><button class="icon-button" type="button" data-cms-action="close-editor" aria-label="Tutup editor">×</button></div><div id="cms-fields" class="cms-fields"></div><div class="dialog-footer"><p>Teks disimpan sebagai draft lokal. Pilih Terbitkan untuk menampilkannya di website.</p><button class="button" type="submit">Selesai mengedit</button></div></form></dialog>
-      <dialog class="cms-preview-dialog" id="cms-preview" aria-labelledby="cms-preview-title"><div class="dialog-header"><div><h2 id="cms-preview-title">Pratinjau ${esc(page.title)}</h2><p class="muted">Pratinjau tidak mengirim formulir. Foto baru tampil setelah disimpan.</p></div><button class="icon-button" data-cms-action="close-preview" aria-label="Tutup pratinjau">×</button></div><div class="cms-preview-tools"><button class="button secondary compact" data-cms-width="desktop">Desktop</button><button class="button secondary compact" data-cms-width="phone">Ponsel</button></div><iframe id="cms-preview-frame" sandbox="" title="Pratinjau halaman website"></iframe></dialog>
+      <dialog class="cms-editor-dialog" id="cms-editor" aria-labelledby="cms-editor-title"><form id="cms-fields-form"><div class="dialog-header"><div><span class="eyebrow">EDIT ISI WEBSITE</span><h2 id="cms-editor-title"></h2></div><button class="icon-button" type="button" data-cms-action="close-editor" aria-label="Tutup editor">×</button></div><div id="cms-fields" class="cms-fields"></div><div class="dialog-footer"><p>Lihat hasil sementara sebelum menyimpan atau menerbitkan.</p><button class="button secondary" type="button" data-cms-action="preview">Pratinjau</button><button class="button" type="submit">Selesai mengedit</button></div></form></dialog>
+      <dialog class="cms-preview-dialog" id="cms-preview" aria-labelledby="cms-preview-title"><div class="dialog-header"><div><h2 id="cms-preview-title">Pratinjau ${esc(page.title)}</h2><p class="muted">Menampilkan perubahan sementara, termasuk foto baru. Formulir tidak mengirim data.</p></div><button class="icon-button" data-cms-action="close-preview" aria-label="Tutup pratinjau">×</button></div><div class="cms-preview-tools"><button class="button secondary compact" data-cms-width="desktop">Desktop</button><button class="button secondary compact" data-cms-width="phone">Ponsel</button></div><iframe id="cms-preview-frame" sandbox="" title="Pratinjau halaman website"></iframe></dialog>
       <dialog class="cms-picker-dialog" id="cms-picker" aria-labelledby="cms-picker-title"><div class="dialog-header"><div><span class="eyebrow">DOKUMENTASI PONDOK</span><h2 id="cms-picker-title">Pilih foto</h2></div><button class="icon-button" data-cms-action="close-picker" aria-label="Tutup pilihan foto">×</button></div><div class="cms-picker-body"><input id="cms-photo-search" type="search" placeholder="Cari kegiatan atau nama foto…" aria-label="Cari foto pondok" /><div id="cms-photo-grid" class="cms-photo-grid"></div><div class="cms-picker-pagination"><button class="button secondary compact" data-cms-action="photo-prev">← Sebelumnya</button><span id="cms-photo-page"></span><button class="button secondary compact" data-cms-action="photo-next">Berikutnya →</button></div></div></dialog>`;
     cards();
     $('#cms-fields-form').addEventListener('submit', event => { event.preventDefault(); $('#cms-editor').close(); cards(); });
@@ -80,13 +81,39 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
     $('#cms-editor-title').textContent = block.title;
     const priority = field => field.kind === 'heading' ? -1 : field.kind === 'image' ? 1 : 0;
     const fields = [...block.fields].sort((a,b) => priority(a) - priority(b));
-    $('#cms-fields').innerHTML = `${block.hideable ? `<label class="cms-visible"><input type="checkbox" data-cms-hide="${id}" ${working.hidden.includes(id) ? '' : 'checked'} /> Tampilkan bagian ini di website</label>` : ''}${fields.map(fieldMarkup).join('')}`;
+    const fixedPhotos = block.fixedImages.map(photo => `<div class="cms-field"><img class="cms-image-preview" src="${esc(photo.src)}" alt="${esc(photo.alt)}" /><p class="muted">Foto profil dikelola oleh pengelola website. Nama dan keterangan tetap dapat diperbarui di bawah.</p></div>`).join('');
+    $('#cms-fields').innerHTML = `${block.hideable ? `<label class="cms-visible"><input type="checkbox" data-cms-hide="${id}" ${working.hidden.includes(id) ? '' : 'checked'} /> Tampilkan bagian ini di website</label>` : ''}${fixedPhotos}${fields.map(fieldMarkup).join('')}`;
     $('#cms-editor').showModal();
   }
-  function preview() {
+  async function preview() {
+    const request = sequence;
     try {
       const content = normalizeSiteDocument(working, catalog);
-      const body = renderSiteContent(html, content);
+      // The sandboxed frame has an opaque origin and cannot read parent blob URLs.
+      // Inline only the already-validated raster file, in memory, for this preview.
+      const previewImages = Object.fromEntries(await Promise.all([...pending].map(async ([id, photo]) => {
+        if (!photo.previewData) photo.previewData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error('Foto belum dapat ditampilkan. Pilih ulang foto lalu coba lagi.'));
+          reader.readAsDataURL(photo.file);
+        });
+        return [id, photo.previewData];
+      })));
+      if (disposed || sequence !== request) return;
+      let body = renderSiteContent(html, content, document, previewImages);
+      if (page.id === 'beranda' && client && !demo) {
+        const stories = await loadLatestStories(client);
+        if (disposed || sequence !== request) return;
+        const template = document.createElement('template'); template.innerHTML = body;
+        const grid = template.content.querySelector('#home-stories-grid');
+        if (grid) grid.innerHTML = stories.items.map(storyCard).join('');
+        const status = template.content.querySelector('#home-stories-status');
+        if (status) status.textContent = stories.unavailable ? 'Sebagian cerita belum dapat dimuat.' : stories.items.length ? '' : 'Belum ada cerita yang diterbitkan.';
+        body = template.innerHTML;
+      } else if (page.id === 'beranda') {
+        body = body.replace('Memuat cerita…', 'Cerita terbaru akan ditampilkan otomatis dari konten yang diterbitkan.');
+      }
       const css = [baseCss, componentsCss, pagesCss].map(url => `<link rel="stylesheet" href="${esc(url)}">`).join('');
       $('#cms-preview-frame').srcdoc = `<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><base href="${esc(location.origin)}/"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap">${css}<style>.reveal{opacity:1!important;transform:none!important}.navbar{position:relative;background:#14532d}body{overflow-x:hidden}form{pointer-events:none}</style></head><body>${body}</body></html>`;
       $('#cms-preview').showModal();

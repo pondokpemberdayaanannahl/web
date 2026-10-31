@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import * as images from '../src/data/photos.js';
 import * as format from '../src/content-format.js';
+import * as pondok from '../src/data/pondok.js';
 import { categoryCards } from '../src/components/category-cards.js';
 import { socialIcon } from '../src/components/social-icon.js';
 
@@ -15,7 +16,7 @@ test('every public form collector is bound to real uniquely identified fields', 
   ]) {
     const source = fs.readFileSync(new URL(`../src/pages/${file}.js`, import.meta.url), 'utf8');
     const nodes = new Map(); let collected;
-    const context = { ...images, socialIcon, initDonationPayment() {}, window: {}, document: { getElementById(id) { assert.ok(nodes.has(id), `Missing ${id} in ${file}`); return nodes.get(id); } }, bindSubmission(form, actualKind, collect) { assert.equal(actualKind, kind); collected = collect(); } };
+    const context = { ...images, ...pondok, socialIcon, initDonationPayment() {}, window: {}, document: { getElementById(id) { assert.ok(nodes.has(id), `Missing ${id} in ${file}`); return nodes.get(id); } }, bindSubmission(form, actualKind, collect) { assert.equal(actualKind, kind); collected = collect(); } };
     vm.runInNewContext(source.replace(/^import .*;\r?$/gm, '').replaceAll('export function', 'function'), context);
     const markup = context[component]();
     for (const [, id] of markup.matchAll(/\bid="([^"]+)"/g)) { assert.ok(!nodes.has(id)); nodes.set(id, { value: id === 'donor-amount' ? 'Rp 500.000' : 'Contoh uji' }); }

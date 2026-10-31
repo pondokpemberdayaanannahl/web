@@ -21,6 +21,10 @@ rejected(fn()=>annahl_submission(array_replace_recursive($donation,['payload'=>[
 rejected(fn()=>annahl_submission(array_replace($donation,['kind'=>'kontak'])),422);
 $registration = ['id'=>$donation['id'],'kind'=>'pendaftaran','payload'=>['nama'=>'Data Uji','tempatLahir'=>'Bandung','tanggalLahir'=>'2012-01-01','jenisKelamin'=>'Laki-laki','asalSekolah'=>'Sekolah Uji','program'=>"Tahfidz Al-Qur'an",'namaWali'=>'Wali Uji','noWA'=>'000000000000','email'=>'uji@example.invalid','alamat'=>'Data rekaan']];
 verify(annahl_submission($registration)['payload']['noWA']==='000000000000','Phone stays text');
+foreach(['Program Tahfidz Quran','Pendidikan Madrasah Muhadloroh','Pendidikan Formal (SMP/SMA)','Tarbiyah Akhlak Islamiyah'] as $program) {
+    verify(annahl_submission(array_replace_recursive($registration,['payload'=>['program'=>$program]]))['payload']['program']===$program,'New registration program accepted');
+}
+rejected(fn()=>annahl_submission(array_replace_recursive($registration,['payload'=>['program'=>'Program tidak tersedia']])),422);
 rejected(fn()=>annahl_submission(array_replace_recursive($registration,['payload'=>['tanggalLahir'=>'2012-02-31']])),422);
 rejected(fn()=>annahl_submission(array_replace_recursive($registration,['payload'=>['email'=>'invalid']])),422);
 

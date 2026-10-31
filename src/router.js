@@ -39,6 +39,7 @@ export class Router {
     if (window.closeArticle) window.closeArticle();
     if (window.closeLightbox) window.closeLightbox();
     document.getElementById('payment-dialog')?.close();
+    document.getElementById('story-dialog')?.close();
     // Cancel a pending transition when visitors navigate quickly.
     app.style.opacity = '0';
     app.style.transform = 'translateY(10px)';

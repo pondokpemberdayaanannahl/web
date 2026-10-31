@@ -5,6 +5,8 @@ $workspacePath = (Get-Location).ProviderPath
 $artifactPath = Join-Path $workspacePath '.backend-backups/site-content-qa'
 New-Item -ItemType Directory -Path $artifactPath -Force | Out-Null
 $files = @(
+    'src/data/pondok.js','src/pages/program.js','src/components/whatsapp.js','tests/pondok-info.test.js','tests/forms-php.php',
+    'src/home-stories.js','src/pages/beranda.js','src/pages/pendaftaran.js','src/pages/tentang.js','tests/home-stories.test.js',
     'src/username-login.js','public/api/login.php','public/api/login-core.php','public/api/forms-core.php',
     'integrations/hostinger/login-config.example.php','tests/username-login.test.js','tests/login-php.php','scripts/check-login-http.mjs','USERNAME_LOGIN_SETUP.md',
     'index.html','admin.html','login.html','vite.config.js','package.json','package-lock.json',

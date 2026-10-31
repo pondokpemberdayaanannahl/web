@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════
 
 import { socialIcon } from './social-icon.js';
+import { pondokContact } from '../data/pondok.js';
 
 export function Footer() {
   return `
@@ -37,11 +38,11 @@ export function Footer() {
             <div class="footer-heading">Kontak</div>
             <div class="footer-contact-item">
               <i data-lucide="map-pin" style="width:16px;height:16px"></i>
-              <span>Jl. Pesantren Raya No. 1,<br>Desa Suka Maju, Kab. Bandung,<br>Jawa Barat 40375</span>
+              <span>${pondokContact.address}</span>
             </div>
             <div class="footer-contact-item">
               <i data-lucide="phone" style="width:16px;height:16px"></i>
-              <span>0812-3456-7890</span>
+              <a href="tel:${pondokContact.telephone}">${pondokContact.phone}</a>
             </div>
             <div class="footer-contact-item">
               <i data-lucide="mail" style="width:16px;height:16px"></i>
