@@ -9,10 +9,10 @@ test('release guard rejects private photo configuration and keys without exposin
   mkdirSync(join(folder,'api'));mkdirSync(join(folder,'assets'));
   for(const name of ['index.html','admin.html','login.html'])writeFileSync(join(folder,name),'<script type="module" src="/assets/app.js"></script>');
   writeFileSync(join(folder,'assets/app.js'),'// Built fixture');writeFileSync(join(folder,'.htaccess'),'DirectoryIndex index.html');
-  for(const name of ['forms.php','forms-core.php','media.php','media-core.php','media-image.php'])writeFileSync(join(folder,'api',name),'<?php // Fixture');
+  for(const name of ['forms.php','forms-core.php','media.php','media-core.php','media-image.php','login.php','login-core.php'])writeFileSync(join(folder,'api',name),'<?php // Fixture');
   const check=()=>spawnSync(process.execPath,['scripts/check-hostinger-build.mjs',folder],{encoding:'utf8'});
   assert.equal(check().status,0);
-  for(const name of ['media-config.php','signing-key.json','local-ca.pem']) {
+  for(const name of ['media-config.php','login-config.php','signing-key.json','local-ca.pem']) {
    const path=join(folder,name);writeFileSync(path,'PRIVATE_FIXTURE_VALUE');const result=check();
    assert.notEqual(result.status,0);assert.ok(!(result.stdout+result.stderr).includes('PRIVATE_FIXTURE_VALUE'));rmSync(path);
   }

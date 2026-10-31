@@ -1,0 +1,172 @@
+[
+  {
+    "number": 1,
+    "file": "01-beranda",
+    "caption": "Navigasi utama dan pintasan dari Beranda."
+  },
+  {
+    "number": 2,
+    "file": "02-tentang",
+    "caption": "Halaman Tentang: pengantar, visi misi, dan profil pondok."
+  },
+  {
+    "number": 3,
+    "file": "03-program",
+    "caption": "Program pendidikan dan pengantar Tahfidz pada halaman Program."
+  },
+  {
+    "number": 4,
+    "file": "04-pendaftaran-alur",
+    "caption": "Awali pendaftaran dengan membaca alur dan persyaratannya."
+  },
+  {
+    "number": 5,
+    "file": "05-pendaftaran-data",
+    "caption": "Bagian Data Calon Santri."
+  },
+  {
+    "number": 6,
+    "file": "06-pendaftaran-wali",
+    "caption": "Data wali dan alamat sebelum memilih lampiran."
+  },
+  {
+    "number": 7,
+    "file": "07-berita-publik",
+    "caption": "Kategori berita pada pratinjau lokal."
+  },
+  {
+    "number": 8,
+    "file": "08-galeri-publik",
+    "caption": "Filter kategori dan foto kegiatan."
+  },
+  {
+    "number": 9,
+    "file": "09-galeri-perbesar",
+    "caption": "Contoh pembesaran foto setelah diklik."
+  },
+  {
+    "number": 10,
+    "file": "11-donasi-popup",
+    "caption": "Popup berisi petunjuk metode pembayaran."
+  },
+  {
+    "number": 11,
+    "file": "12-donasi-konfirmasi",
+    "caption": "Konfirmasi donasi setelah melakukan pembayaran."
+  },
+  {
+    "number": 12,
+    "file": "13-kontak",
+    "caption": "Kanal komunikasi dan formulir Kirim Pesan."
+  },
+  {
+    "number": 13,
+    "file": "14-login",
+    "caption": "Masuk melalui alamat /login.html."
+  },
+  {
+    "number": 14,
+    "file": "15-ringkasan-admin",
+    "caption": "Ringkasan pengurus dalam sesi demo."
+  },
+  {
+    "number": 15,
+    "file": "16-editor-berita",
+    "caption": "Editor berita yang diisi contoh latihan."
+  },
+  {
+    "number": 16,
+    "file": "18-pratinjau-berita",
+    "caption": "Pratinjau isi artikel sebelum menyimpan."
+  },
+  {
+    "number": 17,
+    "file": "19-berita-daftar",
+    "caption": "Pencarian, filter kategori/status, dan tindakan per postingan."
+  },
+  {
+    "number": 18,
+    "file": "20-riwayat-berita",
+    "caption": "Riwayat berita pada contoh draft."
+  },
+  {
+    "number": 19,
+    "file": "21-galeri-folder",
+    "caption": "Perpustakaan foto folder beserta pencarian dan filter."
+  },
+  {
+    "number": 20,
+    "file": "22-editor-foto",
+    "caption": "Editor Tambah foto."
+  },
+  {
+    "number": 21,
+    "file": "23-editor-video",
+    "caption": "Editor Tambah video menggunakan tautan YouTube."
+  },
+  {
+    "number": 22,
+    "file": "17-pemilih-drive-demo",
+    "caption": "Pemilih foto pada mode demo."
+  },
+  {
+    "number": 23,
+    "file": "24-isi-website",
+    "caption": "Pilih halaman yang ingin diperbarui melalui Isi website."
+  },
+  {
+    "number": 24,
+    "file": "25-cms-bagian",
+    "caption": "Halaman Beranda pada pengelolaan isi website."
+  },
+  {
+    "number": 25,
+    "file": "26-cms-editor",
+    "caption": "Editor bagian: judul, teks, dan tujuan tautan."
+  },
+  {
+    "number": 26,
+    "file": "27-cms-preview-desktop",
+    "caption": "Pratinjau Desktop dan Ponsel."
+  },
+  {
+    "number": 27,
+    "file": "29-cms-riwayat-bagian",
+    "caption": "Kartu bagian informasi serta akses riwayat halaman."
+  },
+  {
+    "number": 28,
+    "file": "30-cms-qris",
+    "caption": "Isian Gambar QRIS resmi pada editor Metode Pembayaran."
+  },
+  {
+    "number": 29,
+    "file": "29-cms-riwayat-bagian",
+    "caption": "Letak Riwayat penerbitan halaman pada bagian bawah editor."
+  },
+  {
+    "number": 30,
+    "file": "31-pesan-masuk-demo",
+    "caption": "Lokasi Pesan masuk pada Ruang Pengurus."
+  },
+  {
+    "number": 31,
+    "file": "31-pesan-masuk-demo",
+    "caption": "Letak menu Rekap pendaftaran dan Rekap donasi."
+  },
+  {
+    "number": 32,
+    "file": "31-pesan-masuk-demo",
+    "caption": "Letak menu Rekap pendaftaran dan Rekap donasi."
+  },
+  {
+    "number": 33,
+    "file": "32-akun-pengurus",
+    "caption": "Peran dan status aktif akun pada mode demo."
+  },
+  {
+    "number": 34,
+    "file": "15-ringkasan-admin",
+    "caption": "Penanda Ruang demo pada bagian atas panel."
+  }
+]

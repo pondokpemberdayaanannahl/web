@@ -5,6 +5,8 @@ $workspacePath = (Get-Location).ProviderPath
 $artifactPath = Join-Path $workspacePath '.backend-backups/site-content-qa'
 New-Item -ItemType Directory -Path $artifactPath -Force | Out-Null
 $files = @(
+    'src/username-login.js','public/api/login.php','public/api/login-core.php','public/api/forms-core.php',
+    'integrations/hostinger/login-config.example.php','tests/username-login.test.js','tests/login-php.php','scripts/check-login-http.mjs','USERNAME_LOGIN_SETUP.md',
     'index.html','admin.html','login.html','vite.config.js','package.json','package-lock.json',
     'src/admin.js','src/admin-data.js','src/drive-media.js','src/drive-picker.js','src/migrate-drive-media.js','src/admin-session.js','src/login.js','src/auth-flow.js','src/bootstrap.js','src/main.js','src/router.js','src/donation-payment.js',
     'src/components/navbar.js','src/components/footer.js','src/components/social-icon.js','src/components/category-cards.js','src/pages/kontak.js','src/pages/donasi.js','src/pages/berita.js','src/pages/galeri.js',

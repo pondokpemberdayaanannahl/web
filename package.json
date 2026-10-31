@@ -14,6 +14,8 @@
     "sheets:prepare": "node scripts/prepare-sheets-sync.mjs",
     "test:sheets-db": "node scripts/check-sheets-sql.mjs",
     "test:forms-php": "php tests/forms-php.php",
+    "test:login-php": "php tests/login-php.php",
+    "test:login-http": "node scripts/check-login-http.mjs",
     "test:forms-http": "node scripts/check-forms-http.mjs",
     "forms:dev": "php -S 127.0.0.1:5174 -t public",
     "forms:prepare": "node scripts/prepare-google-forms.mjs",

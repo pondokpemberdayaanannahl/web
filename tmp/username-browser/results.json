@@ -1,0 +1,32 @@
+[
+  {
+    "width": 1440,
+    "dummyUsername": "admin",
+    "wrongUsernameRejected": true,
+    "passwordToggle": true,
+    "demoLogin": true,
+    "logout": true,
+    "noHorizontalOverflow": true,
+    "pageErrors": []
+  },
+  {
+    "width": 390,
+    "dummyUsername": "admin",
+    "wrongUsernameRejected": true,
+    "passwordToggle": true,
+    "demoLogin": true,
+    "logout": true,
+    "noHorizontalOverflow": true,
+    "pageErrors": []
+  },
+  {
+    "width": 320,
+    "dummyUsername": "admin",
+    "wrongUsernameRejected": true,
+    "passwordToggle": true,
+    "demoLogin": true,
+    "logout": true,
+    "noHorizontalOverflow": true,
+    "pageErrors": []
+  }
+]

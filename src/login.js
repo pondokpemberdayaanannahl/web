@@ -1,4 +1,5 @@
 import { readAuthFlow, validateNewPassword } from './auth-flow.js';
+import { signInPengurus } from './username-login.js';
 import { demoEnabled, demoUser, demoPassword, backendConfigured, getClient, authorizedUser, dashboardPath } from './admin-session.js';
 const $ = id => document.getElementById(id);
 const incomingAuth = readAuthFlow(location.href);
@@ -9,11 +10,12 @@ if (new URL(location.href).searchParams.has('message')) $('login-error').textCon
 $('login-form').addEventListener('submit', async event => {
   event.preventDefault();
   const button = $('login-btn');
+  if (button.disabled) return;
   button.disabled = true;
   button.textContent = 'Memeriksa akun…';
   $('login-error').textContent = '';
   try {
-    const username = $('email').value.trim(), password = $('password').value;
+    const username = $('username').value.trim(), password = $('password').value;
     if (demoEnabled && demoUser && demoPassword && username === demoUser && password === demoPassword) {
       sessionStorage.setItem('annahl-dummy-user', demoUser);
       goDashboard();
@@ -21,8 +23,7 @@ $('login-form').addEventListener('submit', async event => {
       throw new Error('Akun atau password belum sesuai. Silakan coba lagi.');
     } else {
       const client = await getClient();
-      const { data, error } = await client.auth.signInWithPassword({ email: username, password });
-      if (error) throw new Error(error.status === 400 ? 'Email atau password salah.' : 'Tidak dapat terhubung. Silakan coba lagi.');
+      const data = await signInPengurus(client, username, password);
       sessionStorage.removeItem('annahl-dummy-user');
       await authorizedUser(client, data.user); goDashboard();
     }
