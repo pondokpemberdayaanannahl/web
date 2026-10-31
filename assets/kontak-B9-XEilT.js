@@ -1,7 +1,7 @@
-import{t as e}from"./social-icon-DVvdTUrg.js";import{r as t}from"./photos-BW6EAMCN.js";import{t as n}from"./form-submission-Dtxuh8WK.js";function r(){return`
+import{t as e}from"./social-icon-DVvdTUrg.js";import{i as t,n,r}from"./pondok-DvaK_7TO.js";import{r as i}from"./photos-BW6EAMCN.js";import{t as a}from"./form-submission-Dtxuh8WK.js";function o(){return`
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
-      <div class="hero-bg" style="background-image: url('${t.hero.kontak}')"></div>
+      <div class="hero-bg" style="background-image: url('${i.hero.kontak}')"></div>
       <div class="hero-overlay"></div>
       <div class="hero-pattern"></div>
       <div class="hero-content">
@@ -27,7 +27,7 @@ import{t as e}from"./social-icon-DVvdTUrg.js";import{r as t}from"./photos-BW6EAM
                 </div>
                 <div>
                   <strong style="display:block;margin-bottom:4px">Alamat</strong>
-                  <span style="color:var(--neutral-700);font-size:15px">Jl. Pesantren Raya No. 1, Desa Suka Maju, Kecamatan Ciwidey, Kabupaten Bandung, Jawa Barat 40375</span>
+                  <span style="color:var(--neutral-700);font-size:15px">${n.address}</span>
                 </div>
               </div>
               <div style="display:flex;gap:var(--space-md);align-items:flex-start">
@@ -36,13 +36,13 @@ import{t as e}from"./social-icon-DVvdTUrg.js";import{r as t}from"./photos-BW6EAM
                 </div>
                 <div>
                   <strong style="display:block;margin-bottom:4px">Telepon</strong>
-                  <a class="contact-phone" href="tel:+6281234567890">0812-3456-7890</a>
+                  <a class="contact-phone" href="tel:${n.telephone}">${n.phone}</a>
                 </div>
               </div>
               <div style="display:flex;gap:var(--space-md);align-items:flex-start">
                 <div class="card-icon" style="flex-shrink:0"><i data-lucide="message-circle" style="width:22px;height:22px"></i></div>
                 <div><strong style="display:block;margin-bottom:4px">WhatsApp</strong><p class="contact-channel-help">Kirim pesan kepada pengurus pondok.</p>
-                  <a href="https://wa.me/6281234567890?text=Assalamu'alaikum%2C%20saya%20ingin%20bertanya%20tentang%20Pesantren%20An-Nahl." target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 16px;background:#25D366;color:white;border-radius:var(--radius-sm);font-size:13px;font-weight:500;text-decoration:none;transition:all 0.3s ease">
+                  <a href="https://wa.me/${n.whatsapp}?text=Assalamu'alaikum%2C%20saya%20ingin%20bertanya%20tentang%20Pesantren%20An-Nahl." target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 16px;background:#25D366;color:white;border-radius:var(--radius-sm);font-size:13px;font-weight:500;text-decoration:none;transition:all 0.3s ease">
                     <svg viewBox="0 0 32 32" width="16" height="16" fill="white"><path d="M16.004 0h-.008C7.174 0 0 7.176 0 16.004c0 3.5 1.128 6.744 3.046 9.378L1.054 31.29l6.118-1.958A15.914 15.914 0 0016.004 32C24.826 32 32 24.826 32 16.004 32 7.176 24.826 0 16.004 0zm9.31 22.606c-.39 1.1-1.932 2.014-3.164 2.28-.844.178-1.944.32-5.652-1.214-4.746-1.962-7.8-6.78-8.034-7.094-.226-.314-1.886-2.512-1.886-4.792 0-2.28 1.194-3.402 1.618-3.868.39-.428 1.028-.624 1.64-.624.198 0 .376.01.536.018.47.02.706.048 1.016.788.388.926 1.332 3.248 1.448 3.484.118.236.234.546.078.86-.148.32-.278.52-.518.796-.236.278-.496.62-.708.832-.236.236-.482.492-.208.964.276.47 1.226 2.022 2.632 3.274 1.81 1.612 3.334 2.112 3.806 2.348.47.236.748.198 1.024-.118.278-.32 1.194-1.388 1.512-1.866.314-.47.632-.394 1.064-.236.434.156 2.756 1.3 3.226 1.536.47.236.788.354.904.548.118.198.118 1.1-.272 2.198z"/></svg>
                     Chat via WhatsApp
                   </a>
@@ -139,7 +139,8 @@ import{t as e}from"./social-icon-DVvdTUrg.js";import{r as t}from"./photos-BW6EAM
         </div>
         <div class="reveal reveal-delay-2" style="border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-lg);height:400px">
           <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63376.420862!2d107.4935!3d-7.0389!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e8e0b1e3c7e7%3A0x301576d14fed290!2sBandung%2C+Jawa+Barat!5e0!3m2!1sen!2sid!4v1640000000000" 
+            src="${r}"
+            title="Lokasi Pondok Pesantren An-Nahl di Gunung Picung, Pamijahan, Bogor"
             width="100%" 
             height="100%" 
             style="border:0" 
@@ -148,6 +149,7 @@ import{t as e}from"./social-icon-DVvdTUrg.js";import{r as t}from"./photos-BW6EAM
             referrerpolicy="no-referrer-when-downgrade">
           </iframe>
         </div>
+        <div class="contact-map-link"><a href="${t}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">Buka di Google Maps →</a></div>
       </div>
     </section>
-  `}window.initKontak=function(){n(document.getElementById(`contact-form`),`kontak`,()=>({nama:document.getElementById(`contact-name`).value.trim(),email:document.getElementById(`contact-email`).value.trim(),telepon:document.getElementById(`contact-phone`).value.trim(),subjek:document.getElementById(`contact-subject`).value,pesan:document.getElementById(`contact-message`).value.trim()}),`Pesan diterima. Pengurus akan merespons melalui kontak yang Anda cantumkan.`)};export{r as Kontak};
+  `}window.initKontak=function(){a(document.getElementById(`contact-form`),`kontak`,()=>({nama:document.getElementById(`contact-name`).value.trim(),email:document.getElementById(`contact-email`).value.trim(),telepon:document.getElementById(`contact-phone`).value.trim(),subjek:document.getElementById(`contact-subject`).value,pesan:document.getElementById(`contact-message`).value.trim()}),`Pesan diterima. Pengurus akan merespons melalui kontak yang Anda cantumkan.`)};export{o as Kontak};

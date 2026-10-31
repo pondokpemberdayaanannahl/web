@@ -1,4 +1,4 @@
-import{t as e}from"./social-icon-DVvdTUrg.js";function t(){return`
+import{t as e}from"./social-icon-DVvdTUrg.js";import{n as t}from"./pondok-DvaK_7TO.js";function n(){return`
     <footer class="footer">
       <div class="container">
         <div class="footer-grid">
@@ -30,11 +30,11 @@ import{t as e}from"./social-icon-DVvdTUrg.js";function t(){return`
             <div class="footer-heading">Kontak</div>
             <div class="footer-contact-item">
               <i data-lucide="map-pin" style="width:16px;height:16px"></i>
-              <span>Jl. Pesantren Raya No. 1,<br>Desa Suka Maju, Kab. Bandung,<br>Jawa Barat 40375</span>
+              <span>${t.address}</span>
             </div>
             <div class="footer-contact-item">
               <i data-lucide="phone" style="width:16px;height:16px"></i>
-              <span>0812-3456-7890</span>
+              <a href="tel:${t.telephone}">${t.phone}</a>
             </div>
             <div class="footer-contact-item">
               <i data-lucide="mail" style="width:16px;height:16px"></i>
@@ -64,4 +64,4 @@ import{t as e}from"./social-icon-DVvdTUrg.js";function t(){return`
         </div>
       </div>
     </footer>
-  `}export{t as Footer};
+  `}export{n as Footer};

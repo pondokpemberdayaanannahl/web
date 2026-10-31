@@ -1,7 +1,7 @@
-import{r as e}from"./photos-BW6EAMCN.js";import{t}from"./form-submission-Dtxuh8WK.js";function n(){t(document.getElementById(`registration-form`),`pendaftaran`,()=>({nama:document.getElementById(`reg-nama`).value.trim(),tempatLahir:document.getElementById(`reg-tempat-lahir`).value.trim(),tanggalLahir:document.getElementById(`reg-tanggal-lahir`).value,jenisKelamin:document.getElementById(`reg-jenis-kelamin`).value,asalSekolah:document.getElementById(`reg-asal-sekolah`).value.trim(),program:document.getElementById(`reg-program`).value,namaWali:document.getElementById(`reg-nama-wali`).value.trim(),noWA:document.getElementById(`reg-no-wa`).value.trim(),email:document.getElementById(`reg-email`).value.trim(),alamat:document.getElementById(`reg-alamat`).value.trim()}),`Pendaftaran diterima. Pengurus akan menghubungi Anda melalui kontak yang dicantumkan.`)}window.initPendaftaran=n;function r(){return`
+import{a as e,n as t}from"./pondok-DvaK_7TO.js";import{r as n}from"./photos-BW6EAMCN.js";import{t as r}from"./form-submission-Dtxuh8WK.js";function i(){r(document.getElementById(`registration-form`),`pendaftaran`,()=>({nama:document.getElementById(`reg-nama`).value.trim(),tempatLahir:document.getElementById(`reg-tempat-lahir`).value.trim(),tanggalLahir:document.getElementById(`reg-tanggal-lahir`).value,jenisKelamin:document.getElementById(`reg-jenis-kelamin`).value,asalSekolah:document.getElementById(`reg-asal-sekolah`).value.trim(),program:document.getElementById(`reg-program`).value,namaWali:document.getElementById(`reg-nama-wali`).value.trim(),noWA:document.getElementById(`reg-no-wa`).value.trim(),email:document.getElementById(`reg-email`).value.trim(),alamat:document.getElementById(`reg-alamat`).value.trim()}),`Pendaftaran diterima. Pengurus akan menghubungi Anda melalui kontak yang dicantumkan.`)}window.initPendaftaran=i;function a(){return`
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
-      <div class="hero-bg" style="background-image: url('${e.hero.pendaftaran}')"></div>
+      <div class="hero-bg" style="background-image: url('${n.hero.pendaftaran}')"></div>
       <div class="hero-overlay"></div>
       <div class="hero-pattern"></div>
       <div class="hero-content">
@@ -36,7 +36,7 @@ import{r as e}from"./photos-BW6EAMCN.js";import{t}from"./form-submission-Dtxuh8W
     <!-- Persyaratan -->
     <section class="section" style="background: var(--green-50)">
       <div class="container">
-        <div class="grid-2">
+        <div class="grid-2 registration-details">
           <div>
             <span class="section-label reveal">PERSYARATAN</span>
             <h2 class="reveal reveal-delay-1" style="margin-bottom: var(--space-lg)">Syarat Pendaftaran</h2>
@@ -52,8 +52,8 @@ import{r as e}from"./photos-BW6EAMCN.js";import{t}from"./form-submission-Dtxuh8W
             </div>
           </div>
           <div class="reveal">
-            <div class="card" style="background: var(--white)">
-              <div style="text-align:center; padding: var(--space-lg)">
+            <div class="card registration-fees" style="background: var(--white)">
+              <div class="registration-fees-body" style="text-align:center; padding: var(--space-lg)">
                 <span class="section-label">BIAYA PENDIDIKAN</span>
                 <h3 style="font-family:var(--font-heading);font-size:28px;margin: var(--space-md) 0">Tahun Ajaran 2026/2027</h3>
                 <div style="margin: var(--space-xl) 0">
@@ -75,6 +75,12 @@ import{r as e}from"./photos-BW6EAMCN.js";import{t}from"./form-submission-Dtxuh8W
                   </div>
                 </div>
                 <p style="font-size:13px;color:var(--neutral-500)">* Tersedia program beasiswa untuk santri berprestasi dan dhuafa</p>
+                <div class="registration-bank" aria-labelledby="registration-bank-title">
+                  <h4 id="registration-bank-title">Rekening biaya pendaftaran</h4>
+                  <dl><div><dt>Bank</dt><dd>Bank Pondok (contoh)</dd></div><div><dt>Nomor rekening</dt><dd class="registration-account">0000 0000 0000</dd></div><div><dt>Atas nama</dt><dd>Pondok Pesantren An-Nahl</dd></div></dl>
+                  <p class="registration-bank-note">Rekening dummy untuk contoh tampilan. Jangan melakukan transfer ke nomor ini. Hubungi pengurus untuk informasi pembayaran yang berlaku.</p>
+                  <a href="https://wa.me/${t.whatsapp}" class="card-link" target="_blank" rel="noopener noreferrer">Hubungi pengurus: ${t.phone}</a>
+                </div>
               </div>
             </div>
           </div>
@@ -126,9 +132,7 @@ import{r as e}from"./photos-BW6EAMCN.js";import{t}from"./form-submission-Dtxuh8W
               <label class="form-label">Program yang Diminati *</label>
               <select id="reg-program" class="form-select" required>
                 <option value="">Pilih program</option>
-                <option>Tahfidz Al-Qur'an</option>
-                <option>Pendidikan Formal + Tahfidz</option>
-                <option>Pemberdayaan Ummat</option>
+                ${e.map(e=>`<option>${e.title}</option>`).join(``)}
               </select>
             </div>
 
@@ -187,7 +191,7 @@ import{r as e}from"./photos-BW6EAMCN.js";import{t}from"./form-submission-Dtxuh8W
           <h2 class="section-title reveal reveal-delay-1">Pertanyaan yang Sering Diajukan</h2>
         </div>
         <div style="max-width: 700px; margin: 0 auto; display:flex;flex-direction:column;gap:var(--space-md)">
-          ${[[`Apakah pesantren menerima santri putra dan putri?`,`Ya, Pesantren An-Nahl menerima santri putra dan putri dengan asrama terpisah dan pengajar sesuai gender.`],[`Berapa lama durasi pendidikan?`,`Program Tahfidz murni 3 tahun, Program Formal + Tahfidz 6 tahun (setara SMP-SMA).`],[`Apakah tersedia beasiswa?`,`Ya, tersedia beasiswa penuh dan parsial untuk santri berprestasi dan dari keluarga kurang mampu. Hubungi kami untuk informasi lebih lanjut.`],[`Bolehkah orang tua berkunjung?`,`Orang tua dapat berkunjung setiap hari Ahad dan hari libur. Jadwal kunjungan akan diinformasikan lebih lanjut.`],[`Apakah santri boleh membawa HP?`,`Penggunaan gadget diatur oleh pesantren. Santri tidak diperkenankan membawa HP pribadi selama kegiatan belajar.`]].map(([e,t],n)=>`
+          ${[[`Apakah pesantren menerima santri putra dan putri?`,`Ya, Pesantren An-Nahl menerima santri putra dan putri dengan asrama terpisah dan pengajar sesuai gender.`],[`Apa saja program pesantren?`,`Program Tahfidz Quran, Pendidikan Madrasah Muhadloroh, Pendidikan Formal (SMP/SMA), dan Tarbiyah Akhlak Islamiyah. Hubungi pengurus untuk informasi jenjang dan durasi pendidikan.`],[`Apakah tersedia beasiswa?`,`Ya, tersedia beasiswa penuh dan parsial untuk santri berprestasi dan dari keluarga kurang mampu. Hubungi kami untuk informasi lebih lanjut.`],[`Bolehkah orang tua berkunjung?`,`Orang tua dapat berkunjung setiap hari Ahad dan hari libur. Jadwal kunjungan akan diinformasikan lebih lanjut.`],[`Apakah santri boleh membawa HP?`,`Penggunaan gadget diatur oleh pesantren. Santri tidak diperkenankan membawa HP pribadi selama kegiatan belajar.`]].map(([e,t],n)=>`
             <div class="card reveal" style="padding:var(--space-lg)">
               <h3 style="font-size:17px;margin-bottom:var(--space-sm);color:var(--green-900)">${e}</h3>
               <p style="font-size:15px;color:var(--neutral-700);line-height:1.65">${t}</p>
@@ -196,4 +200,4 @@ import{r as e}from"./photos-BW6EAMCN.js";import{t}from"./form-submission-Dtxuh8W
         </div>
       </div>
     </section>
-  `}export{r as Pendaftaran,n as initPendaftaran};
+  `}export{a as Pendaftaran,i as initPendaftaran};

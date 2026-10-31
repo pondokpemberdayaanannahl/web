@@ -80,7 +80,7 @@ import{r as e}from"./photos-BW6EAMCN.js";function t(){return`
         </div>
         <div style="max-width: 600px; margin: 0 auto; text-align: center" class="reveal reveal-delay-2">
           <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 0 auto var(--space-lg); box-shadow: var(--shadow-lg)">
-            <img src="${e.tentang.pengasuh}" alt="KH. Muhammad Ridwan" style="width:100%; height:100%; object-fit:cover" loading="lazy" />
+            <img data-fixed-photo="founder" src="${e.tentang.pengasuh}" alt="KH. Muhammad Ridwan" style="width:100%; height:100%; object-fit:cover" loading="lazy" />
           </div>
           <h3 style="font-family: var(--font-heading); font-size: 28px; margin-bottom: var(--space-sm)">KH. Muhammad Ridwan, Lc., M.A.</h3>
           <span class="badge" style="margin-bottom: var(--space-lg)">Pengasuh & Pendiri</span>

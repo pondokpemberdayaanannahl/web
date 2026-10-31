@@ -1,5 +1,5 @@
-function e(){return`
-    <a href="https://wa.me/6285772821484?text=Assalamu'alaikum%2C%20saya%20ingin%20bertanya%20tentang%20Pesantren%20An-Nahl." target="_blank" rel="noopener noreferrer" class="wa-float" id="wa-float" aria-label="Chat WhatsApp">
+import{n as e}from"./pondok-DvaK_7TO.js";function t(){return`
+    <a href="${`https://wa.me/${e.whatsapp}?text=Assalamu'alaikum%2C%20saya%20ingin%20bertanya%20tentang%20Pesantren%20An-Nahl.`}" target="_blank" rel="noopener noreferrer" class="wa-float" id="wa-float" aria-label="Chat WhatsApp">
       <svg viewBox="0 0 32 32" width="28" height="28" fill="white">
         <path d="M16.004 0h-.008C7.174 0 0 7.176 0 16.004c0 3.5 1.128 6.744 3.046 9.378L1.054 31.29l6.118-1.958A15.914 15.914 0 0016.004 32C24.826 32 32 24.826 32 16.004 32 7.176 24.826 0 16.004 0zm9.31 22.606c-.39 1.1-1.932 2.014-3.164 2.28-.844.178-1.944.32-5.652-1.214-4.746-1.962-7.8-6.78-8.034-7.094-.226-.314-1.886-2.512-1.886-4.792 0-2.28 1.194-3.402 1.618-3.868.39-.428 1.028-.624 1.64-.624.198 0 .376.01.536.018.47.02.706.048 1.016.788.388.926 1.332 3.248 1.448 3.484.118.236.234.546.078.86-.148.32-.278.52-.518.796-.236.278-.496.62-.708.832-.236.236-.482.492-.208.964.276.47 1.226 2.022 2.632 3.274 1.81 1.612 3.334 2.112 3.806 2.348.47.236.748.198 1.024-.118.278-.32 1.194-1.388 1.512-1.866.314-.47.632-.394 1.064-.236.434.156 2.756 1.3 3.226 1.536.47.236.788.354.904.548.118.198.118 1.1-.272 2.198z"/>
       </svg>
@@ -62,4 +62,4 @@ function e(){return`
         .wa-float-label { display: none; }
       }
     </style>
-  `}export{e as WhatsAppButton};
+  `}export{t as WhatsAppButton};
