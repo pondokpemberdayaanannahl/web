@@ -22,7 +22,7 @@ function fixture() {
   }
   const context = {
     Date,Map,console:{info(){}},PropertiesService:{getScriptProperties:()=>({getProperties:()=>({...properties}),setProperty:(key,value)=>{properties[key]=value;}})},
-    SpreadsheetApp:{openById:actual=>{assert.equal(actual,sheetId);return {getSheetByName:name=>sheets[name],insertSheet:name=>{assert.ok(!sheets[name]);return sheets[name]=sheet();},setSpreadsheetTimeZone(){}};},flush(){}},
+    SpreadsheetApp:{openById:actual=>{assert.equal(actual,sheetId);return {getSheetByName:name=>sheets[name],getSheets:()=>Object.entries(sheets).map(([name,item])=>({...item,getName:()=>name})),insertSheet:name=>{assert.ok(!sheets[name]);return sheets[name]=sheet();},setSpreadsheetTimeZone(){}};},flush(){}},
     ContentService:{MimeType:{JSON:'json'},createTextOutput:value=>({value,setMimeType(){return this;}})},
     LockService:{getScriptLock:()=>({tryLock:()=>!locked,releaseLock(){releases++;}})},
     Utilities:{DigestAlgorithm:{SHA_256:'sha256'},computeDigest:(algorithm,value)=>[...createHash('sha256').update(typeof value==='string'?Buffer.from(value):Buffer.from(value)).digest()],
@@ -45,6 +45,15 @@ function fixture() {
   };
   return {context,properties,files,sheets,call,prepare,failUpload:index=>{failUpload=index;},failSheet:state=>{failSheet=state;},lock:()=>{locked=true;},releases:()=>releases};
 }
+
+test('readiness checks annual headers without creating tabs or writing registration data',()=>{
+  const app=fixture();app.prepare(2027);
+  const before=JSON.stringify(Object.fromEntries(Object.entries(app.sheets).map(([name,sheet])=>[name,sheet.rows])));
+  assert.equal(app.context.checkGoogleFormsSetup(),true);
+  assert.equal(JSON.stringify(Object.fromEntries(Object.entries(app.sheets).map(([name,sheet])=>[name,sheet.rows]))),before);
+  app.sheets['Pendaftaran 2027'].rows[0][0]='Kolom berubah';
+  assert.throws(()=>app.context.checkGoogleFormsSetup(),error=>error.formCode==='sheet_schema');
+});
 
 test('annual recap creation is idempotent and submissions stay in their own year',()=>{
   const app=fixture();

@@ -1,0 +1,17 @@
+PEMBARUAN GRID BERITA AN-NAHL - 6 NOVEMBER 2026
+
+Paket pembaruan panel admin untuk website yang sudah terpasang.
+
+1. Cadangkan admin.html dan folder assets di public_html.
+2. Unggah An-Nahl-Update-Grid-Berita-2026-11-06.zip ke public_html lalu ekstrak.
+3. Ganti admin.html dan gabungkan file assets. Biarkan aset lama tetap ada karena halaman lain masih dapat memakainya.
+4. Muat ulang panel dengan Ctrl+F5, lalu buka Berita.
+
+TAMPILAN
+- Desktop: 4 kolom, maksimal 5 baris (20 berita) per halaman.
+- Area daftar bisa digulir. Pencarian, filter, dan tombol halaman berada di luar area gulir.
+- Tablet dan HP menyesuaikan jumlah kolom.
+- Foto dan judul ringkas; tombol Lihat postingan membuka isi lengkap.
+
+Paket hanya berisi admin.html dan aset hasil build. Konfigurasi privat tidak disertakan.
+Perbaikan penghubung Google Apps Script ditangani terpisah dari unggahan Hostinger ini.

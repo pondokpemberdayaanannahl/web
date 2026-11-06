@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-06",
+  "file": "An-Nahl-Update-Grid-Berita-2026-11-06.zip",
+  "bytes": 187563,
+  "entries": 40,
+  "sha256": "7612a291a42eab1813d257b44a47bd490a5b77fae8d96de434a1a4a0d1aef53c",
+  "type": "admin-only update",
+  "hostinger_deployed": false,
+  "desktop_grid": "4 columns x 5 rows, max 20 posts/page",
+  "browser_widths": [
+    1900,
+    1440,
+    1100,
+    768,
+    390,
+    320
+  ]
+}

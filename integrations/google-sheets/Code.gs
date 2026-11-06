@@ -98,7 +98,9 @@ function checkGoogleFormsSetup() {
   const config = formsConfig_(), book = formsBook_();
   formsFolder_(config);
   Object.keys(ANNAHL_FORMS).forEach(function(kind) { formsSheet_(book,ANNAHL_FORMS[kind]); });
-  console.info('Pemeriksaan berhasil: dua tab siap dan folder Drive hanya dapat diakses pemilik.');
+  const years = book.getSheets().map(function(sheet) { return sheet.getName().match(/^Pendaftaran (20\d{2})$/); }).filter(Boolean);
+  years.forEach(function(match) { formsPeriodSheet_(book,Number(match[1]),false); });
+  console.info('Pemeriksaan berhasil: rekap utama, '+years.length+' tab tahunan, dan folder privat siap. Tidak ada data pendaftar yang diubah.');
   return true;
 }
 

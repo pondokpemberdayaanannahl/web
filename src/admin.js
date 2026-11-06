@@ -12,6 +12,7 @@ import { selectDrivePhoto } from './drive-picker.js';
 import { mountRegistrationManager } from './registration-admin.js';
 
 const $ = id => document.getElementById(id);
+const NEWS_PAGE_SIZE = 20;
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const safeImage = value => {
   if (!value || typeof value !== 'string') return '';
@@ -97,7 +98,7 @@ async function loadSummary() {
   if (recent.status === 'fulfilled') $('recent-news').innerHTML = recent.value.data.map(summaryRow).join('') || empty('Cerita pertama menanti.', 'Mulai bagikan kabar baik dari pesantren.', '<button class="button compact" data-action="new-news">Buat postingan</button>');
   else failure('recent-news');
 }
-async function loadNews() {
+async function loadNews(resetScroll = false) {
   if (!store) return;
   const source = store, request = ++newsRequest;
   $('news-prev').disabled = $('news-next').disabled = true;
@@ -107,12 +108,13 @@ async function loadNews() {
   list.inert = true;
   loading('daftar-berita', true);
   try {
-    const result = await source.list('berita', { search: $('news-search').value.trim(), category: $('news-filter').value, status: $('news-status').value, page: newsPage });
+    const result = await source.list('berita', { search: $('news-search').value.trim(), category: $('news-filter').value, status: $('news-status').value, page: newsPage, limit: NEWS_PAGE_SIZE });
     if (source !== store || request !== newsRequest) return;
     newsCount = result.count || 0;
-    if (newsPage > 1 && !result.data.length) { newsPage = Math.max(1, Math.ceil(newsCount / PAGE_SIZE)); return loadNews(); }
-    list.innerHTML = result.data.map(row => newsRow(row)).join('') || empty('Belum ada cerita di sini.', 'Coba kata kunci lain atau buat berita baru.', '<button class="button compact" data-action="new-news">Buat postingan</button>');
-    pagination('news', newsPage, newsCount);
+    if (newsPage > 1 && !result.data.length) { newsPage = Math.max(1, Math.ceil(newsCount / NEWS_PAGE_SIZE)); return loadNews(true); }
+    list.innerHTML = result.data.map(row => newsRow(row, true)).join('') || empty('Belum ada cerita di sini.', 'Coba kata kunci lain atau buat berita baru.', '<button class="button compact" data-action="new-news">Buat postingan</button>');
+    if (resetScroll) list.scrollTop = 0;
+    pagination('news', newsPage, newsCount, NEWS_PAGE_SIZE);
   } catch { if (source === store && request === newsRequest) { failure('daftar-berita'); $('news-page-info').textContent = 'Gagal memuat'; } }
   finally {
     if (source === store && request === newsRequest) {
@@ -586,9 +588,9 @@ $('dashboard-view').addEventListener('click', async event => {
   } catch (error) { toast(`Tidak dapat memproses konten. ${error.message}`, true); }
   finally { button.disabled = false; }
 });
-$('news-search').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { newsPage = 1; loadNews(); }, 250); });
-$('news-filter').addEventListener('change', () => { newsPage = 1; loadNews(); });
-$('news-status').addEventListener('change', () => { newsPage = 1; loadNews(); });
+$('news-search').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { newsPage = 1; loadNews(true); }, 250); });
+$('news-filter').addEventListener('change', () => { newsPage = 1; loadNews(true); });
+$('news-status').addEventListener('change', () => { newsPage = 1; loadNews(true); });
 async function loadInbox() {
   if (!store || currentRole !== 'admin') return;
   const source = store, kind = currentPanel, request = ++inboxRequest;
@@ -635,8 +637,8 @@ for (const type of ['library', 'foto', 'video']) $(`tab-${type}`).addEventListen
   setMedia(type);
   loadMedia();
 });
-$('news-prev').addEventListener('click', () => { if (newsPage > 1) { newsPage--; loadNews(); } });
-$('news-next').addEventListener('click', () => { if (newsPage * PAGE_SIZE < newsCount) { newsPage++; loadNews(); } });
+$('news-prev').addEventListener('click', () => { if (newsPage > 1) { newsPage--; loadNews(true); } });
+$('news-next').addEventListener('click', () => { if (newsPage * NEWS_PAGE_SIZE < newsCount) { newsPage++; loadNews(true); } });
 $('media-prev').addEventListener('click', () => { if (mediaPage > 1) { mediaPage--; loadMedia(); } });
 $('media-next').addEventListener('click', () => { if (mediaPage * (mediaType === 'library' ? LIBRARY_PAGE_SIZE : PAGE_SIZE) < mediaCount) { mediaPage++; loadMedia(); } });
 function formatBytes(bytes) { return bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`; }
