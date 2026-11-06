@@ -1,0 +1,72 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { createServer } from '../node_modules/vite/dist/node/index.js';
+const require=createRequire(import.meta.url),runtime='C:/Users/kamik/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright';
+const {chromium}=require(runtime),{expect}=require(runtime+'/test.js');
+process.env.VITE_DUMMY_LOGIN_ENABLED='true';process.env.VITE_DUMMY_USERNAME='admin';process.env.VITE_DUMMY_PASSWORD='123';
+const vite=await createServer({configFile:'vite.config.js',logLevel:'silent',server:{host:'127.0.0.1',port:0,open:false}});await vite.listen();
+const base=`http://127.0.0.1:${vite.httpServer.address().port}`,out='tmp/gallery-editor-video-browser';await mkdir(out,{recursive:true});
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+const results=[];let stage='',activePage;
+const noOverflow=async page=>assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,stage+' overflow');
+try{
+ for(const width of [1440,390,320]){
+  const context=await browser.newContext({viewport:{width,height:1000},reducedMotion:'reduce'}),page=await context.newPage(),errors=[];activePage=page;
+  let news=[];page.setDefaultTimeout(12000);page.on('pageerror',error=>errors.push(error.message));
+  await page.route('https://*.supabase.co/**',route=>route.fulfill({json:route.request().url().includes('/rest/v1/berita') ? news : [],headers:{'Content-Range':`0-0/${news.length}`}}));
+  await page.route('https://www.youtube-nocookie.com/**',route=>route.fulfill({contentType:'text/html',body:'<html><body>Local video embed check</body></html>'}));
+  const sampleImage=await readFile('public/media/e40a89e55509450e-480.jpg');
+  await page.route('https://img.youtube.com/**',route=>route.fulfill({contentType:'image/jpeg',body:sampleImage}));
+  page.on('dialog',dialog=>dialog.accept());
+  stage=`${width} login`;await page.goto(base+'/login.html');await page.locator('#username').fill('admin');await page.locator('#password').fill('123');await page.locator('#login-btn').click();
+  await page.locator('#admin-nav [data-panel="galeri"]').click();await expect(page.locator('#album-manager .album-card')).toHaveCount(4);await noOverflow(page);
+  stage=`${width} new album`;await page.locator('#add-media').click();const editor=page.locator('.album-editor');await expect(editor).toBeVisible();
+  await editor.locator('[name="judul"]').fill('Album uji kegiatan santri');await editor.locator('[name="kategori"]').selectOption('Ekskul');await editor.locator('[name="tanggal"]').fill('2026-11-06');await editor.locator('[name="deskripsi"]').fill('Satu kegiatan, lima foto. Santri belajar dan berkarya bersama.');
+  await editor.locator('[data-album-pick-local]').click();const picker=page.locator('.album-picker');await expect(picker.locator('[data-album-select]')).toHaveCount(12);
+  for(let i=0;i<5;i++)await picker.locator('[data-album-select]').nth(i).check();
+  await expect(picker.locator('[data-album-selected]')).toHaveText('5 foto dipilih');await picker.locator('[data-album-add-selected]').click();
+  await expect(editor.locator('.album-photo-editor')).toHaveCount(5);
+  await editor.locator('[data-album-caption]').first().fill('Foto pertama: kebersamaan para santri.');
+  await editor.locator('[data-album-cover]').nth(1).click();await editor.locator('[data-album-move][data-direction="-1"]').nth(1).click();
+  await expect(editor.locator('[data-album-cover]').first()).toHaveAttribute('aria-pressed','true');
+  await editor.locator('[data-album-remove]').last().click();await expect(editor.locator('.album-photo-editor')).toHaveCount(4);
+  await editor.locator('[data-album-pick-local]').click();await picker.locator('[data-album-select]').nth(4).check();await picker.locator('[data-album-add-selected]').click();await expect(editor.locator('.album-photo-editor')).toHaveCount(5);
+  await noOverflow(page);await editor.screenshot({path:`${out}/album-editor-${width}.png`});
+  await editor.locator('[data-album-preview]').click();const viewer=page.locator('.album-viewer[open]');await expect(viewer.getByRole('heading',{name:'Album uji kegiatan santri'})).toBeVisible();
+  await expect(viewer.locator('[data-photo-position]')).toHaveText('1 / 5');await viewer.locator('[data-album-next]').click();await expect(viewer.locator('[data-photo-caption]')).toHaveText('Foto pertama: kebersamaan para santri.');await viewer.locator('[data-album-close]').click();
+  await editor.locator('[data-album-save-draft]').click();await expect(editor).toBeHidden();
+  stage=`${width} draft visibility`;await page.goto(base+'/#/galeri');await expect(page.locator('#album-grid .album-card')).toHaveCount(4);await expect(page.locator('#gallery-status')).toHaveText('');await expect(page.getByText('Belum ada foto pada kategori ini.')).toHaveCount(0);
+  await page.goto(base+'/admin.html');await page.locator('#admin-nav [data-panel="galeri"]').click();let album=page.locator('#album-manager .album-card').filter({hasText:'Album uji kegiatan santri'});await album.locator('[data-album-edit]').click();
+  await editor.getByRole('button',{name:'Terbitkan album',exact:true}).click();await expect(editor).toBeHidden();
+  stage=`${width} public grouped photos`;await page.goto(base+'/#/galeri');await expect(page.locator('#album-grid .album-card')).toHaveCount(5);
+  await page.locator('.gallery-filter[data-filter="Ekskul"]').click();await expect(page.locator('#album-grid .album-card')).toHaveCount(1);await noOverflow(page);
+  await page.locator('#album-grid .album-cover').click();await expect(page.locator('.album-viewer[open] .album-thumbnails button')).toHaveCount(5);await expect(page.locator('.album-viewer[open] .album-story')).toContainText('lima foto');
+  await expect.poll(()=>page.locator('.album-viewer[open] .album-stage img').evaluate(image=>image.naturalWidth)).toBeGreaterThan(1000);
+  await page.locator('.album-viewer[open]').screenshot({path:`${out}/public-album-${width}.png`});await page.locator('.album-viewer[open] [data-album-close]').click();
+  await page.locator('.gallery-filter[data-filter="Semua"]').click();await page.locator('#album-grid').screenshot({path:`${out}/public-gallery-${width}.png`});
+  stage=`${width} archive and restore`;await page.goto(base+'/admin.html');await page.locator('#admin-nav [data-panel="galeri"]').click();album=page.locator('#album-manager .album-card').filter({hasText:'Album uji kegiatan santri'});
+  await album.locator('[data-album-archive]').click();await expect(album).toHaveCount(0);await page.locator('[data-album-status]').selectOption('trash');await expect(album).toHaveCount(1);await album.locator('[data-album-restore]').click();await expect(album).toHaveCount(0);await page.locator('[data-album-status]').selectOption('draft');await expect(album).toHaveCount(1);
+  stage=`${width} YouTube composer`;await page.locator('[data-action="new-news"]').first().click();await page.locator('#news-media-video').click();await expect(page.locator('#video-field')).toBeVisible();await expect(page.locator('#image-field')).toBeHidden();
+  await page.locator('#judul').fill('Video kegiatan santri');await page.locator('#isi').fill('Cerita kegiatan tetap terbaca bersama video.');await page.locator('#video-link').fill('https://example.org/not-youtube');await page.locator('#preview-btn').click();await expect(page.locator('#editor-message')).toContainText('YouTube yang valid');
+  await page.locator('#video-link').fill('https://youtu.be/aqz-KE-bpKQ');await page.locator('#preview-btn').click();await expect(page.locator('#preview-content iframe')).toHaveAttribute('src','https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ');await page.locator('#preview-close').click();await expect(page.locator('#preview-content iframe')).toHaveCount(0);
+  await page.locator('#editor-dialog').screenshot({path:`${out}/youtube-composer-${width}.png`});await page.locator('#draft-btn').click();await expect(page.locator('#editor-dialog')).toBeHidden();
+  const data=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('annahl-demo-content-v1')));const video=data.berita.find(row=>row.judul==='Video kegiatan santri');assert.equal(video.youtube_id,'aqz-KE-bpKQ');assert.equal(video.gambar_url,null);
+  news=[{...video,status:'published',deleted_at:null}];await page.goto(base+'/#/berita');await expect(page.locator('#news-grid .news-card')).toHaveCount(1);await expect(page.locator('.news-video-tag')).toHaveText('▶ Video YouTube');await page.locator('#news-grid .news-card').click();await expect(page.locator('.article-detail-video')).toHaveAttribute('src','https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ');await page.locator('.article-modal-close').click();await expect(page.locator('.article-detail-video')).toHaveCount(0);
+  await page.goto(base+'/#/');await expect(page.locator('#home-stories-grid .story-card')).toHaveCount(1);await page.locator('#home-stories-grid .story-cover').click();await expect(page.locator('#story-dialog-body iframe')).toHaveAttribute('src','https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ');await expect(page.locator('#story-dialog-body .story-prose')).toContainText('Cerita kegiatan');await page.locator('[data-story-close]').click();await expect(page.locator('#story-dialog-body iframe')).toHaveCount(0);
+  stage=`${width} inline website editor`;await page.goto(base+'/admin.html');await page.locator('#admin-nav [data-panel="halaman"]').click();await page.locator('[data-cms-page="beranda"]').click();await expect(page.locator('.cms-inline-editor')).toBeVisible();
+  const title=page.locator('#cms-fields input[data-cms-field]').first();await title.fill('Cerita baru dari pondok An-Nahl');
+  await expect.poll(()=>page.locator('#cms-live-frame').evaluate(frame=>frame.srcdoc)).toContain('Cerita baru dari pondok An-Nahl');await noOverflow(page);
+  await page.locator('[data-cms-action="draft"]').click();await expect(page.locator('#cms-local-status')).toContainText('Draft terakhir tersimpan');
+  await page.locator('#cms-find-field').fill('Program');await expect(page.locator('#cms-blocks .cms-section-tab')).not.toHaveCount(0);await page.locator('#cms-find-field').fill('');await page.locator('[data-cms-block]').first().click();
+  await page.locator('[data-cms-field-tab="image"]').click();await expect(page.locator('#cms-fields [data-cms-image]').first()).toBeVisible();await page.locator('#cms-fields [data-cms-pick]').first().click();await page.locator('[data-cms-photo]').first().click();
+  await page.locator('[data-cms-action="preview"]').first().click();await expect(page.locator('#cms-preview')).toBeVisible();assert.equal(await page.locator('#cms-preview-frame').getAttribute('sandbox'),'');await page.locator('[data-cms-action="close-preview"]').click();await expect(page.locator('.cms-inline-editor')).toBeVisible();
+  if(width<=720){await page.locator('[data-cms-mobile-view="preview"]').click();await expect(page.locator('.cms-live-preview')).toBeVisible();await expect(page.locator('.cms-inline-editor')).toBeHidden();await page.locator('[data-cms-mobile-view="edit"]').click();await expect(page.locator('.cms-inline-editor')).toBeVisible();}
+  await noOverflow(page);await page.screenshot({path:`${out}/website-editor-${width}.png`,fullPage:true});await page.locator('[data-cms-action="publish"]').click();
+  const saved=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('annahl-demo-site-content-v1')));assert.ok(saved.beranda.published);
+  assert.deepEqual(errors,[],`${width}px page errors`);results.push({width,albums:true,groupedPhotos:5,draftPrivacy:true,coverAndOrder:true,archiveAndRestore:true,youtube:true,inlineEditor:true,livePreview:true,overflow:false});
+  await context.close();console.log(`PASS ${width}px: albums CRUD/public grouping, YouTube posts, inline editing and live preview.`);
+ }
+ await writeFile(`${out}/results.json`,JSON.stringify(results,null,2));
+}catch(error){console.error('FAILED STAGE:',stage);if(activePage&&!activePage.isClosed())await activePage.screenshot({path:`${out}/failure.png`,fullPage:true});throw error;}
+finally{await browser.close();await vite.close();}

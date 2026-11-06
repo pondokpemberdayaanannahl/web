@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-06",
+  "archive": "An-Nahl-Update-Galeri-Editor-YouTube-2026-11-06.zip",
+  "bytes": 204868,
+  "entries": 43,
+  "sha256": "bc562e5345d64ca7843097801f51ab713a5990a6918dc1a07dde99acab74d758",
+  "hostinger_deployed": false,
+  "supabase_activated": true,
+  "initialAlbums": 4,
+  "initialPhotos": 22,
+  "browserWidths": [
+    1440,
+    390,
+    320
+  ],
+  "publicSourceCases": [
+    "missing-table fallback",
+    "configured albums",
+    "intentionally empty gallery"
+  ],
+  "unitTestsPassed": 127,
+  "sqlValidationPassed": true,
+  "publicLiveVerification": {
+    "publicRead": true,
+    "seededAlbums": 4,
+    "seededPhotos": 22,
+    "newsYoutubeColumn": true,
+    "realPublicPage": true,
+    "highResolutionViewer": true,
+    "applicantDataRead": false,
+    "productionTestWrites": false
+  },
+  "migrationSha256": "1144df90d871355dd7e7a53a00429491a0be42c414489b97170b9a5bd59a0675",
+  "allAlbumsMoreButtonVerified": true
+}

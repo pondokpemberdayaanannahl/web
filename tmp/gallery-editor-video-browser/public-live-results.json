@@ -1,0 +1,10 @@
+{
+  "publicRead": true,
+  "seededAlbums": 4,
+  "seededPhotos": 22,
+  "newsYoutubeColumn": true,
+  "realPublicPage": true,
+  "highResolutionViewer": true,
+  "applicantDataRead": false,
+  "productionTestWrites": false
+}

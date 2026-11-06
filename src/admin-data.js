@@ -57,7 +57,8 @@ export function createDemoStore(storage = sessionStorage) {
       validateImage(file);
       const next = { ...existing, ...values, id: existing?.id || crypto.randomUUID(), dibuat_pada: existing?.dibuat_pada || new Date().toISOString(), updated_at: new Date().toISOString() };
       if (type === 'berita') next.status ||= 'published';
-      if (type !== 'video') {
+      if (type === 'berita' && values.youtube_id) { next.gambar_url=null;next.thumbnail_url=null; }
+      else if (type !== 'video') {
         next.gambar_url = existing?.gambar_url || null;
         if (file) { next.gambar_url = URL.createObjectURL(file); blobs.add(next.gambar_url); }
         if (thumbnail) { next.thumbnail_url = URL.createObjectURL(thumbnail); blobs.add(next.thumbnail_url); }
@@ -119,7 +120,7 @@ export function createSupabaseStore(client, { userId, role = 'editor', media = n
   const check = result => { if (result.error) throw new Error(result.error.message); return result; };
   return {
     async list(type, { search = '', category = '', status = '', page = 1, limit = PAGE_SIZE } = {}) {
-      const fields = type === 'video' ? 'id,judul,kategori,youtube_id,dibuat_pada' : `id,judul,kategori,gambar_url,thumbnail_url,caption,dibuat_pada${type === 'berita' ? ',status,deleted_at,updated_at,author_id' : ''}`;
+      const fields = type === 'video' ? 'id,judul,kategori,youtube_id,dibuat_pada' : `id,judul,kategori,gambar_url,thumbnail_url,caption,dibuat_pada${type === 'berita' ? ',status,deleted_at,updated_at,author_id,youtube_id' : ''}`;
       let query = client.from(tables[type]).select(fields, { count: 'exact' }).order('dibuat_pada', { ascending: false }).order('id');
       if (type === 'berita') {
         query = status === 'trash' ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null);
@@ -148,7 +149,8 @@ export function createSupabaseStore(client, { userId, role = 'editor', media = n
         if (!existing) payload.author_id = userId;
         payload.status ||= existing?.status || 'draft';
       }
-      if (type !== 'video') {
+      if (type === 'berita' && payload.youtube_id) { payload.gambar_url=null;payload.thumbnail_url=null; }
+      else if (type !== 'video') {
         payload.gambar_url = existing?.gambar_url || null;
         payload.thumbnail_url = existing?.thumbnail_url || null;
         const photo = drivePhoto || (file ? await (library ||= createDriveMedia(client)).upload({file,original:original || file,thumbnail:thumbnail || file,onProgress}) : null);

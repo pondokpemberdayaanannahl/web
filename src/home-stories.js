@@ -8,7 +8,7 @@ const excerpt = value => { const text = plainText(value); return text.length > 1
 export async function loadLatestStories(client) {
   if (!client) return { items: [], unavailable: true };
   const sources = [
-    ['berita', 'berita', 'id,judul,kategori,isi,gambar_url,thumbnail_url,caption,dibuat_pada,status,deleted_at'],
+    ['berita', 'berita', 'id,judul,kategori,isi,gambar_url,thumbnail_url,caption,dibuat_pada,status,deleted_at,youtube_id'],
     ['foto', 'galeri_foto', 'id,judul,kategori,gambar_url,thumbnail_url,caption,dibuat_pada'],
     ['video', 'galeri_video', 'id,judul,kategori,youtube_id,dibuat_pada'],
   ];
@@ -26,15 +26,15 @@ export async function loadLatestStories(client) {
 }
 
 function imageFor(row) {
-  if (row.kind === 'video') return `https://img.youtube.com/vi/${row.youtube_id}/hqdefault.jpg`;
+  if (/^[\w-]{11}$/.test(row.youtube_id || '') && !row.gambar_url) return `https://img.youtube.com/vi/${row.youtube_id}/hqdefault.jpg`;
   // These are large public cards, so preserve the full-resolution rendition.
   return safeUrl(row.gambar_url) || safeUrl(row.thumbnail_url) || photos.hero.berita;
 }
 
 export function storyCard(row) {
   const title = row.judul || 'Cerita dari An-Nahl';
-  const action = row.kind === 'video' ? 'Tonton video' : row.kind === 'foto' ? 'Lihat foto' : 'Baca cerita';
-  return `<article class="news-card story-card"><button class="story-cover" type="button" data-story="${esc(row.key)}" aria-label="${action}: ${esc(title)}"><img src="${esc(imageFor(row))}" alt="${esc(title)}" loading="lazy" decoding="async" />${row.kind === 'video' ? '<span class="story-play" aria-hidden="true">▶</span>' : ''}</button><div class="news-card-body"><span class="badge">${labels[row.kind]}</span><h3 class="news-card-title">${esc(title)}</h3><time class="news-card-date" datetime="${esc(row.dibuat_pada || '')}">${dateLabel(row.dibuat_pada)}</time><p class="news-card-excerpt">${esc(excerpt(row.kind === 'berita' ? row.isi : row.caption || row.kategori || 'Kegiatan dan keseharian di pondok.'))}</p><button type="button" class="card-link story-link" data-story="${esc(row.key)}">${action} <span aria-hidden="true">→</span></button></div></article>`;
+  const action = /^[\w-]{11}$/.test(row.youtube_id || '') ? 'Tonton video' : row.kind === 'foto' ? 'Lihat foto' : 'Baca cerita';
+  return `<article class="news-card story-card"><button class="story-cover" type="button" data-story="${esc(row.key)}" aria-label="${action}: ${esc(title)}"><img src="${esc(imageFor(row))}" alt="${esc(title)}" loading="lazy" decoding="async" />${/^[\w-]{11}$/.test(row.youtube_id || '') ? '<span class="story-play" aria-hidden="true">▶</span>' : ''}</button><div class="news-card-body"><span class="badge">${labels[row.kind]}</span><h3 class="news-card-title">${esc(title)}</h3><time class="news-card-date" datetime="${esc(row.dibuat_pada || '')}">${dateLabel(row.dibuat_pada)}</time><p class="news-card-excerpt">${esc(excerpt(row.kind === 'berita' ? row.isi : row.caption || row.kategori || 'Kegiatan dan keseharian di pondok.'))}</p><button type="button" class="card-link story-link" data-story="${esc(row.key)}">${action} <span aria-hidden="true">→</span></button></div></article>`;
 }
 
 export async function initHomeStories(client) {
@@ -51,8 +51,8 @@ export async function initHomeStories(client) {
     const button = event.target.closest('[data-story]');
     const row = items.find(item => item.key === button?.dataset.story); if (!row) return;
     document.getElementById('story-dialog-title').textContent = row.judul || 'Cerita dari An-Nahl';
-    body.innerHTML = row.kind === 'video'
-      ? `<iframe class="story-video" src="https://www.youtube-nocookie.com/embed/${row.youtube_id}" title="${esc(row.judul)}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`
+    body.innerHTML = /^[\w-]{11}$/.test(row.youtube_id || '')
+      ? `<iframe class="story-video" src="https://www.youtube-nocookie.com/embed/${row.youtube_id}" title="${esc(row.judul)}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>${row.kind === 'berita' ? `<div class="story-prose">${renderBody(row.isi)}</div>` : ''}`
       : `<img class="story-detail-image" src="${esc(imageFor(row))}" alt="${esc(row.caption || row.judul)}" />${row.caption ? `<p class="story-caption">${esc(row.caption)}</p>` : ''}${row.kind === 'berita' ? `<div class="story-prose">${renderBody(row.isi)}</div>` : ''}`;
     previousOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden'; dialog.showModal();
   });

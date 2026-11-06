@@ -1,0 +1,20 @@
+[
+  {
+    "mode": "missing-table",
+    "albums": 4,
+    "publicRequest": true,
+    "detailRead": false
+  },
+  {
+    "mode": "configured",
+    "albums": 4,
+    "publicRequest": true,
+    "detailRead": true
+  },
+  {
+    "mode": "empty",
+    "albums": 0,
+    "publicRequest": true,
+    "detailRead": false
+  }
+]

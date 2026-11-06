@@ -33,7 +33,7 @@ function fixture(dev = true, restored = false) {
   const session = { getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value), removeItem: key => saved.delete(key) };
   const nav = [...html.matchAll(/class="nav-item[^"]*" data-panel="([^"]+)"/g)].map(([, panel]) => ({ ...element(panel), dataset: { panel } }));
   const context = {
-    ...data, ...format, ...editor, ...library, ...authFlow, RECAP_URL, mountRegistrationManager:async()=>({refresh(){}}), loadPhotoLibrary: async () => libraryData, createDemoStore: () => data.createDemoStore(session),
+    ...data, ...format, ...editor, ...library, ...authFlow, RECAP_URL, mountRegistrationManager:async()=>({refresh(){}}), mountGalleryManager:()=>({refresh(){},dispose(){},openNew(){}}), loadPhotoLibrary: async () => libraryData, createDemoStore: () => data.createDemoStore(session),
     env: { DEV: dev, VITE_DUMMY_LOGIN_ENABLED: 'true', VITE_DUMMY_USERNAME: 'admin', VITE_DUMMY_PASSWORD: '123', VITE_SUPABASE_ANON_KEY: 'local-preview-only' },
     document: { getElementById: $, querySelectorAll: () => nav },
     sessionStorage: session, localStorage: session, location: { origin: 'http://localhost:5173', href: 'http://localhost:5173/admin.html', search: '', hash: '', replace(value) { context.redirected = value; } }, window: { addEventListener() {} },
@@ -121,6 +121,17 @@ test('admin guard redirects visitors and rejects production demo sessions', asyn
   }
 });
 
+test('YouTube news validates links, previews safely, keeps the link on edit, and can switch back to photo',async()=>{
+  const ui=fixture(true,true);await tick();await ui.click({dataset:{action:'new-news'}});
+  await ui.fire('news-media-video','click');ui.$('judul').value='Video santri';ui.$('isi').value='Cerita kegiatan';ui.$('kategori').value='Ekskul';
+  ui.$('video-link').value='https://example.org/not-youtube';await ui.fire('editor-form','submit');assert.match(ui.$('editor-message').textContent,/YouTube yang valid/);
+  ui.$('video-link').value='https://youtube.com/shorts/aqz-KE-bpKQ';await ui.fire('preview-btn','click');assert.match(ui.$('preview-content').innerHTML,/youtube-nocookie\.com\/embed\/aqz-KE-bpKQ/);
+  await ui.fire('preview-close','click');assert.equal(ui.$('preview-content').innerHTML,'');await ui.fire('draft-btn','click');
+  let row=JSON.parse(ui.saved.get('annahl-demo-content-v1')).berita.find(item=>item.judul==='Video santri');assert.equal(row.youtube_id,'aqz-KE-bpKQ');assert.equal(row.gambar_url,null);
+  await ui.click({dataset:{edit:row.id,type:'berita'}});assert.equal(ui.$('video-field').hidden,false);assert.equal(ui.$('video-link').value,'https://youtu.be/aqz-KE-bpKQ');
+  await ui.fire('news-media-photo','click');await ui.fire('draft-btn','click');row=JSON.parse(ui.saved.get('annahl-demo-content-v1')).berita.find(item=>item.id===row.id);assert.equal(row.youtube_id,null);
+});
+
 test('autosave recovers editor text and server draft/archive/restore workflow stays unpublished', async () => {
   const ui = fixture(true, true); await tick();
   await ui.click({ dataset: { action: 'new-news' } });
@@ -148,7 +159,7 @@ test('autosave recovers editor text and server draft/archive/restore workflow st
 
 test('local gallery shows every photo through pagination, folder filters and keyboard preview', async () => {
   const ui = fixture(true, true); await tick();
-  await ui.click({ dataset: { panel: 'galeri' } });
+  await ui.click({ dataset: { go: 'galeri', kind: 'library' } });
   assert.equal(ui.$('library-tools').hidden, false);
   assert.equal(ui.$('media-count').textContent, `149 dari ${libraryData.length} foto folder`);
   assert.equal((ui.$('media-list').innerHTML.match(/class="media-card local-photo-card"/g) || []).length, 24);

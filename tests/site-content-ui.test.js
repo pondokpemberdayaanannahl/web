@@ -14,7 +14,7 @@ function fixture({templateHtml=template}={}) {
   const { document,window }=parseHTML('<html><body><main id="host"></main></body></html>');
   const saved=new Map(), storage={getItem:key=>saved.get(key)||null,setItem:(key,value)=>saved.set(key,value),removeItem:key=>saved.delete(key)};
   const messages=[],host=document.getElementById('host');
-const context={ ...content,createContentCatalog:html=>content.createContentCatalog(html,document),renderSiteContent:(html,value,doc,previews)=>content.renderSiteContent(html,value,document,previews),createSiteContentStore,esc,photos,photoThumbnail,document,window,sessionStorage:storage,localStorage:storage,location:{origin:'https://example.org'},pageTemplate:async()=>templateHtml,baseCss:'/index.css',componentsCss:'/components.css',pagesCss:'/pages.css',URL,confirm:()=>true,console,Date,structuredClone };
+const context={ ...content,createContentCatalog:html=>content.createContentCatalog(html,document),renderSiteContent:(html,value,doc,previews)=>content.renderSiteContent(html,value,document,previews),createSiteContentStore,esc,photos,photoThumbnail,document,window,sessionStorage:storage,localStorage:storage,location:{origin:'https://example.org'},pageTemplate:async()=>templateHtml,baseCss:'/index.css',componentsCss:'/components.css',pagesCss:'/pages.css',URL,confirm:()=>true,console,Date,structuredClone,setTimeout,clearTimeout };
   vm.runInNewContext(code,context);
   const manager=context.mountWebsiteManager({host,client:null,demo:true,userId:'admin-test',role:'admin',notify:(message,error)=>messages.push({message,error})});
   const $=selector=>host.querySelector(selector);
@@ -34,7 +34,7 @@ test('website manager edits a section, preserves form values, saves a draft, pre
     title.value='Cerita baru dari pondok';title.dispatchEvent(new ui.window.Event('input',{bubbles:true}));
     assert.equal(ui.manager.dirty,true);
     assert.ok([...ui.saved.keys()].some(key=>key.includes('admin-test:beranda')));
-    await ui.click('[data-cms-action="close-editor"]');
+    await ui.click('[data-cms-block]');
     assert.match(ui.$('#cms-blocks').textContent,/Cerita baru dari pondok/);
     await ui.click('[data-cms-action="preview"]');
     assert.equal(ui.$('#cms-preview-frame').getAttribute('sandbox'),'');
@@ -68,11 +68,30 @@ test('section editor can preview unsaved text and return to the same open editor
     await ui.click('[data-cms-block]');
     const title=ui.$('#cms-fields [data-cms-field]');title.value='Judul sebelum disimpan';title.dispatchEvent(new ui.window.Event('input',{bubbles:true}));
     await ui.click('#cms-editor [data-cms-action="preview"]');
-    assert.equal(ui.$('#cms-editor').open,true);assert.equal(ui.$('#cms-preview').open,true);
+    assert.ok(ui.$('#cms-editor #cms-fields'));assert.equal(ui.$('#cms-preview').open,true);
     assert.match(ui.$('#cms-preview-frame').srcdoc,/Judul sebelum disimpan/);
     await ui.click('[data-cms-action="close-preview"]');
-    assert.equal(ui.$('#cms-editor').open,true);assert.equal(title.value,'Judul sebelum disimpan');
+    assert.ok(ui.$('#cms-editor #cms-fields'));assert.equal(title.value,'Judul sebelum disimpan');
     const stored=createSiteContentStore(null,{role:'admin',storage:ui.storage});assert.equal((await stored.load('beranda')).draft,null);
+  }finally{ui.manager.dispose();}
+});
+
+test('inline search, field tabs and live preview preserve edits without a section popup',async()=>{
+  const ui=fixture();
+  try{
+    await ui.manager.open('beranda');
+    assert.equal(ui.$('#cms-editor').tagName,'SECTION');
+    const title=ui.$('#cms-fields [data-cms-field]');title.value='Judul langsung berubah';title.dispatchEvent(new ui.window.Event('input',{bubbles:true}));
+    await new Promise(resolve=>setTimeout(resolve,220));
+    assert.match(ui.$('#cms-live-frame').srcdoc,/Judul langsung berubah/);
+    assert.equal(ui.$('#cms-live-frame').getAttribute('sandbox'),'');
+    const search=ui.$('#cms-find-field');search.value='Program';search.dispatchEvent(new ui.window.Event('input',{bubbles:true}));
+    assert.equal(ui.host.querySelectorAll('[data-cms-block]').length,1);
+    assert.match(ui.$('#cms-editor-title').textContent,/Program/);
+    await ui.click('[data-cms-field-tab="image"]');assert.ok(ui.$('#cms-fields [data-cms-image]'));
+    search.value='';search.dispatchEvent(new ui.window.Event('input',{bubbles:true}));
+    await ui.click('[data-cms-block]');await ui.click('[data-cms-field-tab="text"]');
+    assert.equal(ui.$('#cms-fields [data-cms-field]').value,'Judul langsung berubah');
   }finally{ui.manager.dispose();}
 });
 
@@ -80,8 +99,8 @@ test('founder section keeps its local photo visible without Drive or upload cont
   const ui=fixture({templateHtml:'<section><h2>Profil Pendiri</h2><img data-fixed-photo="founder" src="/media/founder.jpg" alt="Pendiri"><h3>Nama Pendiri</h3><p>Profil pesantren.</p></section>'});
   try{
     await ui.manager.open('tentang');
-    ui.$('#cms-editor').showModal=()=>{};
     await ui.click('[data-cms-block]');
+    await ui.click('[data-cms-field-tab="image"]');
     assert.equal(ui.$('#cms-fields img').getAttribute('src'),'/media/founder.jpg');
     assert.equal(ui.$('#cms-fields [data-cms-drive]'),null);assert.equal(ui.$('#cms-fields [data-cms-upload]'),null);
     assert.ok(ui.$('#cms-fields [data-cms-field]'));

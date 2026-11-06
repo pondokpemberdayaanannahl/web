@@ -1,3 +1,4 @@
+import './styles/gallery-albums.css';
 import { PAGE_SIZE, createDemoStore, createSupabaseStore, validateImage, youtubeId } from './admin-data.js';
 import { renderBody, safeUrl } from './content-format.js';
 import { draftKey, saveDraft, readDraft, optimizeImage } from './editor-tools.js';
@@ -10,6 +11,7 @@ import './styles/admin-dashboard.css';
 import './styles/admission.css';
 import { selectDrivePhoto } from './drive-picker.js';
 import { mountRegistrationManager } from './registration-admin.js';
+import { mountGalleryManager } from './gallery-admin.js';
 
 const $ = id => document.getElementById(id);
 const NEWS_PAGE_SIZE = 20;
@@ -23,6 +25,7 @@ let store, isDemo = false, currentPanel = 'overview', mediaType = 'foto';
 let newsPage = 1, mediaPage = 1, newsCount = 0, mediaCount = 0;
 let newsRequest = 0, mediaRequest = 0, summaryRequest = 0;
 let editorType = 'berita', editedRow = null, dirty = false, saving = false, previewUrl = null;
+let newsMediaKind = 'photo';
 let searchTimer, toastTimer;
 let currentUser = '', currentUserId = '', currentRole = 'editor';
 let draftTimer, activeDraftKey = '', draftStored = false, imageProcessing = false, imageSequence = 0, processedImage = null;
@@ -32,7 +35,8 @@ let inboxPage = 1, inboxCount = 0, inboxRequest = 0;
 let libraryRows = [], filteredLibrary = [], libraryImageIndex = -1, librarySearchTimer;
 let websiteManager = null, websiteManagerLoading = null, requestedSitePage = null;
 let settingsMount = null, settingsManager = null, registrationManager = null, registrationMount = null;
-const labels = { overview: 'Ringkasan', berita: 'Postingan berita', galeri: 'Galeri', halaman: 'Isi website', pendaftaran: 'Pendaftaran', pengaturan: 'Pengaturan', donasi: 'Rekap donasi', kontak: 'Pesan masuk' };
+let galleryManager = null, galleryMount = null;
+const labels = { overview: 'Ringkasan', berita: 'Postingan berita', galeri: 'Galeri', halaman: 'Edit website', pendaftaran: 'Pendaftaran', pengaturan: 'Pengaturan', donasi: 'Rekap donasi', kontak: 'Pesan masuk' };
 const categories = { berita: ['Akademik', 'Keagamaan', 'Sosial', 'Pengumuman', 'Ekskul'], foto: ['Akademik', 'Ibadah', 'Acara', 'Fasilitas'], video: ['Profil', 'Acara', 'Kegiatan'] };
 
 function toast(message, error = false) {
@@ -57,6 +61,7 @@ function cover(row, className = 'row-cover', fullSize = false) {
   return src ? `<img src="${src}" alt="" class="${className}" loading="lazy" decoding="async" />` : `<span class="${className} cover-placeholder" aria-hidden="true">N</span>`;
 }
 function newsRow(row, compact = false) {
+  if (/^[\w-]{11}$/.test(row.youtube_id || '') && !row.gambar_url) row={...row,gambar_url:`https://img.youtube.com/vi/${row.youtube_id}/hqdefault.jpg`};
   const id = escape(row.id);
   const canEdit = currentRole === 'admin' || row.author_id === currentUserId && row.status === 'draft';
   const status = row.deleted_at ? 'Diarsipkan' : row.status === 'draft' ? 'Draft' : 'Terbit';
@@ -125,6 +130,7 @@ async function loadNews(resetScroll = false) {
 }
 async function loadMedia() {
   if (!store) return;
+  if (mediaType === 'album') { await loadAlbumManager(); return; }
   const source = store, type = mediaType, request = ++mediaRequest;
   $('media-prev').disabled = $('media-next').disabled = true;
   $('media-page-info').textContent = 'Memuat galeri…';
@@ -171,9 +177,22 @@ function setMedia(type) {
   if (type !== mediaType) $('media-count').textContent = '';
   mediaType = type;
   mediaPage = 1;
-  for (const kind of ['library', 'foto', 'video']) { $(`tab-${kind}`).classList.toggle('selected', type === kind); $(`tab-${kind}`).setAttribute('aria-pressed', String(type === kind)); }
+  for (const kind of ['album', 'library', 'foto', 'video']) { $(`tab-${kind}`).classList.toggle('selected', type === kind); $(`tab-${kind}`).setAttribute('aria-pressed', String(type === kind)); }
   $('library-tools').hidden = type !== 'library';
-  $('add-media').textContent = type === 'library' ? '＋ Unggah foto' : `＋ Tambah ${type}`;
+  $('album-manager').hidden = type !== 'album';
+  $('media-list').hidden = $('media-pagination').hidden = $('media-count').hidden = type === 'album';
+  $('drive-library-open').hidden = $('import-legacy-photos').hidden = currentRole !== 'admin' || type === 'album';
+  $('add-media').textContent = type === 'album' ? '＋ Buat album' : type === 'library' ? '＋ Unggah foto' : `＋ Tambah ${type}`;
+}
+async function loadAlbumManager() {
+  if (galleryManager) { galleryManager.refresh(); return; }
+  if (galleryMount) return galleryMount;
+  galleryMount=(async()=>{
+    const source=store,client=isDemo ? null : await getClient();
+    if(!source||source!==store)return;
+    galleryManager=mountGalleryManager({host:$('album-manager'),client,demo:isDemo,role:currentRole,notify:toast,onChange:()=>loadSummary()});
+  })().catch(error=>{ $('album-manager').textContent=error.message || 'Album belum dapat dibuka.'; }).finally(()=>{galleryMount=null;});
+  return galleryMount;
 }
 function navigate(panel, focus = true) {
   if (panel === 'program') { requestedSitePage = 'program'; panel = 'halaman'; }
@@ -248,6 +267,7 @@ async function loadWebsiteManager() {
   await websiteManagerLoading;
 }
 function openDashboard(user, demo) {
+  galleryManager?.dispose(); galleryManager=null; galleryMount=null;
   websiteManager?.dispose(); websiteManager = null;
   store?.dispose();
   isDemo = demo;
@@ -272,7 +292,7 @@ function openDashboard(user, demo) {
   $('dashboard-view').hidden = false;
   newsPage = mediaPage = 1;
   $('news-search').value = $('news-filter').value = $('news-status').value = '';
-  setMedia('library');
+  setMedia('album');
   navigate('overview');
   try {
     const page = new URL(location.href || location.origin).searchParams.get('page');
@@ -287,6 +307,7 @@ $('logout-btn').addEventListener('click', async () => {
     sessionStorage.removeItem('annahl-dummy-user');
     clearTimeout(draftTimer);
     websiteManager?.dispose(); websiteManager = null; requestedSitePage = null;
+    galleryManager?.dispose(); galleryManager=null; galleryMount=null;
     store?.dispose(); store = null;
     ++newsRequest; ++mediaRequest; ++summaryRequest;
     for (const id of ['recent-news', 'daftar-berita', 'media-list']) $(id).replaceChildren();
@@ -305,8 +326,18 @@ function updateCounters() {
   $('title-count').textContent = `${$('judul').value.length}/180`;
   $('word-count').textContent = `${$('isi').value.trim().split(/\s+/).filter(Boolean).length} kata`;
 }
+function syncNewsMedia() {
+  const video=editorType==='video' || editorType==='berita' && newsMediaKind==='video';
+  $('news-media-chooser').hidden=editorType!=='berita';
+  $('video-field').hidden=!video;$('video-link').disabled=!video;$('video-link').required=video;
+  $('image-field').hidden=video;$('gambar').disabled=video;
+  $('caption-field').hidden=video;
+  for(const kind of ['photo','video'])$(`news-media-${kind}`).setAttribute('aria-pressed',String(newsMediaKind===kind));
+}
+for(const kind of ['photo','video'])$(`news-media-${kind}`).addEventListener('click',()=>{if(saving||imageProcessing)return;newsMediaKind=kind;dirty=true;syncNewsMedia();persistDraft();});
 function openEditor(type = 'berita', row = null, preset = '') {
   editorType = type; editedRow = row; dirty = false;
+  newsMediaKind=row?.youtube_id ? 'video' : 'photo';
   $('editor-form').reset(); resetPreview();
   processedImage = null; driveSelection = null; imageProcessing = false; ++imageSequence;
   $('save-btn').disabled = $('draft-btn').disabled = false;
@@ -342,11 +373,13 @@ function openEditor(type = 'berita', row = null, preset = '') {
       $('judul').value = draft.judul; $('isi').value = draft.isi;
       if (categories.berita.includes(draft.kategori)) $('kategori').value = draft.kategori;
       $('image-caption').value = draft.caption || '';
+      $('video-link').value = draft.videoLink || '';
+      newsMediaKind=draft.mediaKind==='video' ? 'video' : 'photo';
       dirty = true; draftStored = true;
       $('autosave-status').textContent = 'Teks dipulihkan dari browser. Foto unggahan perlu dipilih kembali.';
     }
   }
-  updateCounters();
+  syncNewsMedia();updateCounters();
   $('editor-dialog').showModal();
   $('editor-dialog').scrollTop = 0;
 }
@@ -367,7 +400,7 @@ function persistDraft() {
   clearTimeout(draftTimer);
   if (!activeDraftKey || !dirty || saving) return;
   try {
-    saveDraft(localStorage, activeDraftKey, { judul: $('judul').value, isi: $('isi').value, kategori: $('kategori').value, caption: $('image-caption').value });
+    saveDraft(localStorage, activeDraftKey, { judul: $('judul').value, isi: $('isi').value, kategori: $('kategori').value, caption: $('image-caption').value, mediaKind:newsMediaKind,videoLink:$('video-link').value });
     draftStored = true;
     $('autosave-status').textContent = 'Teks tersimpan di browser · foto belum tersimpan';
   } catch { draftStored = false; $('autosave-status').textContent = 'Autosave gagal. Simpan draft sebelum menutup halaman.'; }
@@ -427,12 +460,16 @@ $('import-legacy-photos').addEventListener('click',async()=>{
   finally{button.disabled=false;button.textContent='Salin foto lama';}
 });
 $('preview-btn').addEventListener('click', () => {
-  $('preview-content').innerHTML = postPreview($('judul').value.trim() || 'Judul berita Anda', $('kategori').value, $('isi').value, previewUrl || driveSelection?.full || editedRow?.gambar_url, $('image-caption').value);
+  const video=editorType==='berita'&&newsMediaKind==='video' ? youtubeId($('video-link').value) : null;
+  if(editorType==='berita'&&newsMediaKind==='video'&&!video){$('editor-message').textContent='Tempelkan link YouTube yang valid untuk melihat pratinjau.';return;}
+  $('preview-content').innerHTML = postPreview($('judul').value.trim() || 'Judul berita Anda', $('kategori').value, $('isi').value, previewUrl || driveSelection?.full || editedRow?.gambar_url, $('image-caption').value,video);
   $('preview-dialog').showModal();
 });
-function postPreview(title, category, body, src, caption) {
+$('preview-dialog').addEventListener('close',()=>{ $('preview-content').innerHTML=''; });
+function postPreview(title, category, body, src, caption, videoId = null) {
   const image = safeImage(src);
-  return `<div class="preview-post-author"><span class="post-avatar"><img src="/brand/an-nahl.png" alt="" width="678" height="366"></span><strong>Pondok An-Nahl</strong><span class="category">${escape(category)}</span></div>${image ? `<figure><img src="${image}" alt="${escape(caption || title)}" />${caption ? `<figcaption>${escape(caption)}</figcaption>` : ''}</figure>` : ''}<h1 id="preview-title">${escape(title)}</h1>${renderBody(body)}`;
+  const video=/^[\w-]{11}$/.test(videoId || '') ? `<iframe class="post-youtube" src="https://www.youtube-nocookie.com/embed/${videoId}" title="${escape(title)}" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>` : '';
+  return `<div class="preview-post-author"><span class="post-avatar"><img src="/brand/an-nahl.png" alt="" width="678" height="366"></span><strong>Pondok An-Nahl</strong><span class="category">${escape(category)}</span></div>${video || (image ? `<figure><img src="${image}" alt="${escape(caption || title)}" />${caption ? `<figcaption>${escape(caption)}</figcaption>` : ''}</figure>` : '')}<h1 id="preview-title">${escape(title)}</h1>${renderBody(body)}`;
 }
 $('preview-close').addEventListener('click', () => $('preview-dialog').close());
 $('preview-content').addEventListener('click', event => {
@@ -508,7 +545,9 @@ async function submitContent(event, status = 'published') {
   if (editorType === 'berita') { values.isi = $('isi').value.trim(); if (!values.isi && currentRole === 'admin' && status === 'published') { $('editor-message').textContent = 'Tuliskan isi berita sebelum menerbitkan.'; return; } }
   if (editorType !== 'video') values.caption = $('image-caption').value.trim();
   if (editorType === 'berita') values.status = currentRole === 'admin' ? status : 'draft';
-  if (editorType === 'video') { values.youtube_id = youtubeId($('video-link').value); if (!values.youtube_id) { $('editor-message').textContent = 'Gunakan link YouTube yang valid.'; return; } }
+  if (editorType === 'berita') values.youtube_id=null;
+  if (editorType === 'video' || editorType==='berita' && newsMediaKind==='video') { values.youtube_id = youtubeId($('video-link').value); if (!values.youtube_id) { $('editor-message').textContent = 'Gunakan link YouTube yang valid.'; return; } }
+  if(editorType==='berita' && values.youtube_id)values.caption='';
   const button = event.currentTarget === $('draft-btn') ? $('draft-btn') : $('save-btn');
   const previousText = button.textContent;
   if (editorType === 'berita') persistDraft();
@@ -520,7 +559,8 @@ async function submitContent(event, status = 'published') {
   $('editor-message').dataset.state = 'info';
   $('editor-message').textContent = 'Menyimpan postingan…';
   try {
-    await source.put(editorType, values, processedImage?.file || $('gambar').files[0], editedRow, { thumbnail: processedImage?.thumbnail, original:$('gambar').files[0], drivePhoto:driveSelection, onProgress:message=>{ $('editor-message').textContent=message; } });
+    const videoPost=editorType==='berita' && !!values.youtube_id;
+    await source.put(editorType, values, videoPost ? null : processedImage?.file || $('gambar').files[0], editedRow, { thumbnail:videoPost ? null : processedImage?.thumbnail, original:videoPost ? null : $('gambar').files[0], drivePhoto:videoPost ? null : driveSelection, onProgress:message=>{ $('editor-message').textContent=message; } });
     clearTimeout(draftTimer);
     if (activeDraftKey) { try { localStorage.removeItem(activeDraftKey); } catch { /* Saved server content remains authoritative. */ } }
     dirty = false; $('editor-dialog').close();
@@ -557,7 +597,7 @@ $('dashboard-view').addEventListener('click', async event => {
   if (button.dataset.action === 'new-extracurricular') return openEditor('berita', null, 'Ekskul');
   if (['new-photo', 'new-video'].includes(button.dataset.action)) { if (currentRole === 'admin') { setMedia(button.dataset.action === 'new-photo' ? 'foto' : 'video'); navigate('galeri'); openEditor(mediaType); } return; }
   if (button.dataset.localPhoto) { showLibraryImage(button.dataset.localPhoto); return; }
-  if (button.dataset.action === 'new-media' || button.id === 'add-media') { if (currentRole === 'admin') openEditor(mediaType === 'library' ? 'foto' : mediaType); return; }
+  if (button.dataset.action === 'new-media' || button.id === 'add-media') { if (currentRole === 'admin') { if(mediaType==='album'){await loadAlbumManager();galleryManager?.openNew();} else openEditor(mediaType === 'library' ? 'foto' : mediaType); } return; }
   if (button.dataset.action === 'refresh') return navigate(currentPanel, false);
   const id = button.dataset.edit || button.dataset.delete || button.dataset.restore || button.dataset.history || button.dataset.view;
   if (!id) return;
@@ -569,7 +609,7 @@ $('dashboard-view').addEventListener('click', async event => {
     if (source !== store) return;
     if (button.dataset.edit) openEditor(button.dataset.type, row);
     else if (button.dataset.view) {
-      $('preview-content').innerHTML = postPreview(row.judul, row.kategori, row.isi, row.gambar_url || row.thumbnail_url, row.caption);
+      $('preview-content').innerHTML = postPreview(row.judul, row.kategori, row.isi, row.gambar_url || row.thumbnail_url, row.caption,row.youtube_id);
       $('preview-dialog').showModal();
     }
     else if (button.dataset.history) {
@@ -632,7 +672,7 @@ $('submission-list').addEventListener('click', async event => {
 });
 $('inbox-prev').addEventListener('click', () => { if (inboxPage > 1) { inboxPage--; loadInbox(); } });
 $('inbox-next').addEventListener('click', () => { if (inboxPage * PAGE_SIZE < inboxCount) { inboxPage++; loadInbox(); } });
-for (const type of ['library', 'foto', 'video']) $(`tab-${type}`).addEventListener('click', () => {
+for (const type of ['album', 'library', 'foto', 'video']) $(`tab-${type}`).addEventListener('click', () => {
   if (type === mediaType) return;
   setMedia(type);
   loadMedia();

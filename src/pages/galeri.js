@@ -1,11 +1,13 @@
 import { categoryCards } from '../components/category-cards.js';
 import { galleryImages, photos, photoThumbnail } from '../data/photos.js';
 import { escapeHtml, safeUrl } from '../content-format.js';
+import { createGalleryAlbumStore, defaultGalleryAlbums, galleryDemoStorage } from '../gallery-albums.js';
+import { galleryAlbumCard, createAlbumViewer } from '../gallery-view.js';
 
 export function Galeri() {
   return `
     <section class="hero" style="min-height:50vh"><div class="hero-bg" style="background-image:url('${photos.hero.galeri}')"></div><div class="hero-overlay"></div><div class="hero-content"><span class="section-label" style="color:var(--green-300)">GALERI</span><h1>Galeri Foto & Video</h1><p class="hero-subtitle">Dokumentasi kegiatan dan suasana Pesantren An-Nahl.</p></div></section>
-    <section class="section"><div class="container"><div class="section-header"><span class="section-label">FOTO KEGIATAN</span><h2 class="section-title">Momen yang Terabadikan</h2></div>${categoryCards('gallery')}<p id="gallery-status" role="status"></p><div class="gallery-grid" id="photo-grid"></div><button id="gallery-more" class="btn btn-secondary" hidden>Muat foto lainnya</button></div></section>
+    <section class="section"><div class="container"><div class="section-header"><span class="section-label">FOTO KEGIATAN</span><h2 class="section-title">Momen yang Terabadikan</h2></div>${categoryCards('gallery')}<p id="gallery-status" role="status"></p><p id="album-status" role="status"></p><div class="album-grid" id="album-grid"></div><button id="album-more" class="btn btn-secondary" hidden>Muat album lainnya</button><h3 id="legacy-photo-heading" class="gallery-loose-heading" hidden>Foto lainnya</h3><div class="gallery-grid" id="photo-grid"></div><button id="gallery-more" class="btn btn-secondary" hidden>Muat foto lainnya</button></div></section>
     <section class="section" style="background:var(--green-50)"><div class="container"><div class="section-header"><span class="section-label">VIDEO</span><h2 class="section-title">Video Kegiatan Pesantren</h2></div><p id="video-status" role="status"></p><div class="grid-3" id="video-grid"></div><button id="video-more" class="btn btn-secondary" hidden>Muat video lainnya</button></div></section>
     <dialog id="lightbox" class="lightbox" aria-label="Pratinjau foto"><button class="lightbox-close" aria-label="Tutup foto">&times;</button><img id="lightbox-img" alt="" /><div id="lightbox-caption" class="lightbox-caption"></div></dialog>
   `;
@@ -190,68 +192,82 @@ window.closeLightbox = function() {
   document.getElementById('lightbox-img').removeAttribute('src');
 };
 window.initGalleryFilter = async function() {
-  const grid = document.getElementById('photo-grid'), videoGrid = document.getElementById('video-grid');
-  if (!grid || !videoGrid) return;
-  let category = 'Semua', photoOffset = 0, videoOffset = 0, request = 0;
-  const status = document.getElementById('gallery-status'), videoStatus = document.getElementById('video-status');
-  const more = document.getElementById('gallery-more'), videoMore = document.getElementById('video-more');
-  const { supabase } = await import('../supabase.js');
-  if (!grid.isConnected) return;
-  async function loadPhotos(reset = false) {
-    const current = ++request;
-    if (reset) { photoOffset = 0; grid.replaceChildren(); }
-    status.textContent = 'Memuat foto…'; more.disabled = true;
-    try {
-      let rows, count;
-      if (!supabase) {
-        const filtered = galleryImages.filter(row => category === 'Semua' || row.category === category);
-        rows = filtered.slice(photoOffset, photoOffset + 12); count = filtered.length;
-      } else {
-        let query = supabase.from('galeri_foto').select('id,judul,kategori,gambar_url,thumbnail_url,caption', { count: 'exact' }).order('dibuat_pada', { ascending: false }).order('id');
-        if (category !== 'Semua') query = query.eq('kategori', category);
-        const result = await query.range(photoOffset, photoOffset + 11);
-        if (result.error) throw result.error;
-        rows = result.data; count = result.count || 0;
+  const grid=document.getElementById('photo-grid'),videoGrid=document.getElementById('video-grid'),albumGrid=document.getElementById('album-grid');
+  if(!grid||!videoGrid||!albumGrid)return;
+  let category='Semua',photoOffset=0,videoOffset=0,request=0,albumRequest=0,albumPage=1,albumCount=0,photoCount=0;
+  let photoLoading=false,albumLoading=false,photoError=false,albumError=false,fallback=null;
+  const status=document.getElementById('gallery-status'),albumStatus=document.getElementById('album-status'),videoStatus=document.getElementById('video-status');
+  const more=document.getElementById('gallery-more'),videoMore=document.getElementById('video-more'),albumMore=document.getElementById('album-more');
+  const {supabase}=await import('../supabase.js');
+  if(!grid.isConnected)return;
+  const albums=createGalleryAlbumStore(supabase,{storage:galleryDemoStorage(),publicOnly:true,role:'visitor'}),viewer=createAlbumViewer(albumGrid.parentElement);
+  const updateStatus=()=>{
+    if(photoLoading||albumLoading){status.textContent='Memuat galeri…';return;}
+    status.textContent=photoCount||albumCount ? '' : photoError||albumError ? 'Galeri belum dapat dimuat sepenuhnya. Silakan coba lagi.' : 'Belum ada foto pada kategori ini.';
+    document.getElementById('legacy-photo-heading').hidden=!photoCount||!albumCount;
+  };
+  async function loadAlbums(reset=false){
+    const current=++albumRequest;if(reset){albumPage=1;albumCount=0;albumGrid.replaceChildren();}
+    albumLoading=true;albumError=false;albumMore.disabled=true;albumStatus.textContent='';updateStatus();
+    try{
+      let result;
+      try{result=await albums.list({category:category==='Semua' ? '' : category,page:albumPage});}
+      catch(error){
+        if(!['42P01','PGRST205','PGRST202'].includes(error.code))throw error;
+        fallback=defaultGalleryAlbums();const filtered=fallback.filter(album=>category==='Semua'||album.kategori===category);
+        result={data:filtered.slice((albumPage-1)*12,albumPage*12),count:filtered.length};
       }
-      if (!grid.isConnected || current !== request) return;
-      grid.insertAdjacentHTML('beforeend', rows.map(imageCard).join(''));
-      photoOffset += rows.length; more.hidden = photoOffset >= count;
-      status.textContent = count ? '' : 'Belum ada foto pada kategori ini.';
-    } catch { if (grid.isConnected && current === request) { status.textContent = 'Foto belum dapat dimuat. Klik muat foto untuk mencoba lagi.'; more.hidden = false; } }
-    finally { if (current === request) more.disabled = false; }
+      if(!albumGrid.isConnected||current!==albumRequest)return;
+      albumCount=result.count;albumGrid.insertAdjacentHTML('beforeend',result.data.map(album=>galleryAlbumCard(album)).join(''));
+      albumMore.hidden=albumPage*12>=albumCount;
+    }catch{if(albumGrid.isConnected&&current===albumRequest){albumError=true;albumStatus.textContent='Album belum dapat dimuat. Klik muat album untuk mencoba lagi.';albumMore.hidden=false;}}
+    finally{if(current===albumRequest){albumLoading=false;albumMore.disabled=false;updateStatus();}}
   }
-  async function loadVideos() {
-    if (videoMore.disabled) return;
-    videoMore.disabled = true; videoStatus.textContent = 'Memuat video…';
-    try {
-      if (!supabase) { videoStatus.textContent = 'Video kegiatan belum tersedia.'; return; }
-      const { data, count, error } = await supabase.from('galeri_video').select('id,judul,kategori,youtube_id', { count: 'exact' }).order('dibuat_pada', { ascending: false }).order('id').range(videoOffset, videoOffset + 5);
-      if (error) throw error;
-      if (!videoGrid.isConnected) return;
-      videoGrid.insertAdjacentHTML('beforeend', data.map(videoCard).join(''));
-      videoOffset += data.length; videoMore.hidden = videoOffset >= count;
-      videoStatus.textContent = count ? '' : 'Video kegiatan belum tersedia.';
-    } catch { if (videoGrid.isConnected) { videoStatus.textContent = 'Video belum dapat dimuat. Klik muat video untuk mencoba lagi.'; videoMore.hidden = false; } }
-    finally { videoMore.disabled = false; }
+  async function loadPhotos(reset=false){
+    const current=++request;if(reset){photoOffset=0;photoCount=0;grid.replaceChildren();}
+    photoLoading=true;photoError=false;more.disabled=true;updateStatus();
+    try{
+      let rows=[],count=0;
+      if(supabase){
+        let query=supabase.from('galeri_foto').select('id,judul,kategori,gambar_url,thumbnail_url,caption',{count:'exact'}).order('dibuat_pada',{ascending:false}).order('id');
+        if(category!=='Semua')query=query.eq('kategori',category);
+        const result=await query.range(photoOffset,photoOffset+11);if(result.error)throw result.error;
+        rows=result.data||[];count=Math.max(result.count ?? photoOffset+rows.length+(rows.length===12 ? 1 : 0),photoOffset+rows.length);
+      }
+      if(!grid.isConnected||current!==request)return;
+      grid.insertAdjacentHTML('beforeend',rows.map(imageCard).join(''));photoOffset+=rows.length;photoCount=count;more.hidden=photoOffset>=count;
+    }catch{if(grid.isConnected&&current===request){photoError=true;more.hidden=false;}}
+    finally{if(current===request){photoLoading=false;more.disabled=false;updateStatus();}}
   }
-  document.querySelectorAll('.gallery-filter').forEach(button => button.addEventListener('click', () => {
-    category = button.dataset.filter;
-    document.querySelectorAll('.gallery-filter').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
-    loadPhotos(true);
+  async function loadVideos(){
+    if(videoMore.disabled)return;videoMore.disabled=true;videoStatus.textContent='Memuat video…';
+    try{
+      if(!supabase){videoStatus.textContent='Video kegiatan belum tersedia.';return;}
+      const {data,count,error}=await supabase.from('galeri_video').select('id,judul,kategori,youtube_id',{count:'exact'}).order('dibuat_pada',{ascending:false}).order('id').range(videoOffset,videoOffset+5);
+      if(error)throw error;if(!videoGrid.isConnected)return;
+      videoGrid.insertAdjacentHTML('beforeend',(data||[]).map(videoCard).join(''));videoOffset+=(data||[]).length;videoMore.hidden=videoOffset>=(count ?? videoOffset+((data||[]).length===6 ? 1 : 0));
+      videoStatus.textContent=videoOffset ? '' : 'Video kegiatan belum tersedia.';
+    }catch{if(videoGrid.isConnected){videoStatus.textContent='Video belum dapat dimuat. Klik muat video untuk mencoba lagi.';videoMore.hidden=false;}}
+    finally{videoMore.disabled=false;}
+  }
+  document.querySelectorAll('.gallery-filter').forEach(button=>button.addEventListener('click',()=>{
+    category=button.dataset.filter;document.querySelectorAll('.gallery-filter').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+    loadPhotos(true);loadAlbums(true);
   }));
-  more.addEventListener('click', () => loadPhotos()); videoMore.addEventListener('click', loadVideos);
-  grid.addEventListener('click', event => { const button = event.target.closest('[data-full]'); if (button) window.openLightbox(button.dataset.full, button.dataset.caption); });
-  const dialog = document.getElementById('lightbox');
-  dialog.querySelector('button').addEventListener('click', window.closeLightbox);
-  dialog.addEventListener('cancel', event => { event.preventDefault(); window.closeLightbox(); });
-  dialog.addEventListener('click', event => { if (event.target === dialog) window.closeLightbox(); });
-  videoGrid.addEventListener('click', event => {
-    const button = event.target.closest('[data-video]'); if (!button) return;
-    const iframe = document.createElement('iframe');
-    iframe.src = `https://www.youtube-nocookie.com/embed/${button.dataset.video}?autoplay=1`;
-    iframe.title = button.dataset.title; iframe.allow = 'autoplay; encrypted-media; fullscreen'; iframe.allowFullscreen = true;
-    iframe.style.cssText = 'width:100%;aspect-ratio:16/9;border:0;display:block';
-    button.replaceWith(iframe);
+  more.addEventListener('click',()=>loadPhotos());videoMore.addEventListener('click',loadVideos);
+  albumMore.addEventListener('click',()=>{if(!albumError)albumPage++;loadAlbums();});
+  albumGrid.addEventListener('click',async event=>{
+    const button=event.target.closest('[data-open-album]');if(!button)return;button.disabled=true;
+    try{const local=fallback?.find(album=>album.id===button.dataset.openAlbum);const album=local||await albums.get(button.dataset.openAlbum);if(albumGrid.isConnected)viewer.show(album);}
+    catch{albumStatus.textContent='Album belum dapat dibuka. Silakan coba lagi.';}finally{button.disabled=false;}
   });
-  await Promise.all([loadPhotos(true), loadVideos()]);
+  grid.addEventListener('click',event=>{const button=event.target.closest('[data-full]');if(button)window.openLightbox(button.dataset.full,button.dataset.caption);});
+  const dialog=document.getElementById('lightbox');dialog.querySelector('button').addEventListener('click',window.closeLightbox);
+  dialog.addEventListener('cancel',event=>{event.preventDefault();window.closeLightbox();});dialog.addEventListener('click',event=>{if(event.target===dialog)window.closeLightbox();});
+  videoGrid.addEventListener('click',event=>{
+    const button=event.target.closest('[data-video]');if(!button)return;const iframe=document.createElement('iframe');
+    iframe.src=`https://www.youtube-nocookie.com/embed/${button.dataset.video}?autoplay=1`;iframe.title=button.dataset.title;iframe.allow='autoplay; encrypted-media; fullscreen';iframe.allowFullscreen=true;
+    iframe.style.cssText='width:100%;aspect-ratio:16/9;border:0;display:block';button.replaceWith(iframe);
+  });
+  await Promise.all([loadPhotos(true),loadAlbums(true),loadVideos()]);
 };

@@ -1,0 +1,38 @@
+[
+  {
+    "width": 1440,
+    "albums": true,
+    "groupedPhotos": 5,
+    "draftPrivacy": true,
+    "coverAndOrder": true,
+    "archiveAndRestore": true,
+    "youtube": true,
+    "inlineEditor": true,
+    "livePreview": true,
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "albums": true,
+    "groupedPhotos": 5,
+    "draftPrivacy": true,
+    "coverAndOrder": true,
+    "archiveAndRestore": true,
+    "youtube": true,
+    "inlineEditor": true,
+    "livePreview": true,
+    "overflow": false
+  },
+  {
+    "width": 320,
+    "albums": true,
+    "groupedPhotos": 5,
+    "draftPrivacy": true,
+    "coverAndOrder": true,
+    "archiveAndRestore": true,
+    "youtube": true,
+    "inlineEditor": true,
+    "livePreview": true,
+    "overflow": false
+  }
+]

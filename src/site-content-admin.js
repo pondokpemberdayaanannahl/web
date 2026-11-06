@@ -16,6 +16,7 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
   let page = null, html = '', catalog = null, working = blankSiteContent(), baseline = '', versions = { draft: 0, published: 0 };
   let busy = false, sequence = 0, disposed = false, localDraft = null, library = [], libraryPage = 0, pickerField = '', history = [];
   const pending = new Map();
+  let selectedBlock = null, fieldTab = "text", mobileView = "edit", liveWidth = 390, livePreviewTimer, liveRequest = 0, previewObserver = null;
   const $ = selector => host.querySelector(selector);
   const localKey = () => `annahl-site-draft-v1:${demo ? 'demo' : 'live'}:${userId}:${page?.id}`;
   const dirty = () => !!page && (JSON.stringify(working) !== baseline || pending.size > 0);
@@ -23,34 +24,44 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
   function remember() {
     try { localStorage.setItem(localKey(), JSON.stringify({ content: working, versions, savedAt: new Date().toISOString() })); }
     catch { notify('Salinan lokal belum dapat disimpan. Simpan draft sebelum menutup halaman.', true); }
+    scheduleLivePreview();
     const status = $('#cms-local-status'); if (status) status.textContent = 'Perubahan belum diterbitkan · teks tersimpan di perangkat ini';
   }
   const beforeUnload = event => { if (dirty()) { event.preventDefault(); event.returnValue = ''; } };
   window.addEventListener('beforeunload', beforeUnload);
   function landing() {
-    host.innerHTML = `<div class="page-heading"><div><span class="eyebrow">WEBSITE DALAM GENGGAMAN</span><h1>Isi website</h1><p class="muted">Pilih halaman, ubah isinya, lalu terbitkan saat sudah siap.</p></div></div><div class="cms-intro"><span class="cms-intro-mark" aria-hidden="true">✳</span><div><h2>Kelola langsung dari akun pondok.</h2><p>Judul, cerita, foto, program, jadwal, biaya, dan kontak dapat diperbarui di sini.</p></div></div><div class="cms-page-grid">${SITE_PAGES.map(item => `<button class="cms-page-card" data-cms-page="${item.id}">${photos.hero[item.id] ? `<img src="${esc(photoThumbnail(photos.hero[item.id]))}" alt="" loading="lazy" />` : '<span class="cms-page-symbol" aria-hidden="true">N</span>'}<span class="cms-page-copy"><strong>${esc(item.title)}</strong><span>${esc(item.description)}</span><small>Kelola halaman <span aria-hidden="true">↗</span></small></span></button>`).join('')}</div><div class="cms-post-note"><strong>Ingin membagikan kabar baru?</strong><p>Postingan berita, foto, dan video tetap dibuat melalui menu Berita dan Galeri.</p></div>`;
+    host.innerHTML = `<div class="page-heading"><div><span class="eyebrow">WEBSITE DALAM GENGGAMAN</span><h1>Edit website</h1><p class="muted">Pilih halaman, ubah isinya, lalu terbitkan saat sudah siap.</p></div></div><div class="cms-intro"><span class="cms-intro-mark" aria-hidden="true">✳</span><div><h2>Kelola langsung dari akun pondok.</h2><p>Pilih halaman dan bagian yang ingin diubah. Edit tulisan, foto, atau tautan sambil melihat hasilnya.</p></div></div><div class="cms-page-grid">${SITE_PAGES.map(item => `<button class="cms-page-card" data-cms-page="${item.id}">${photos.hero[item.id] ? `<img src="${esc(photoThumbnail(photos.hero[item.id]))}" alt="" loading="lazy" />` : '<span class="cms-page-symbol" aria-hidden="true">N</span>'}<span class="cms-page-copy"><strong>${esc(item.title)}</strong><span>${esc(item.description)}</span><small>Kelola halaman <span aria-hidden="true">↗</span></small></span></button>`).join('')}</div><div class="cms-post-note"><strong>Ingin membagikan kabar baru?</strong><p>Postingan berita, foto, dan video tetap dibuat melalui menu Berita dan Galeri.</p></div>`;
+  }
+  function matchingBlocks() {
+    const query=($('#cms-find-field')?.value || '').trim().toLocaleLowerCase('id');
+    return catalog.blocks.filter(block=>!query || `${block.title} ${block.fields.map(field=>working.values[field.id] ?? field.value).join(' ')}`.toLocaleLowerCase('id').includes(query));
   }
   function cards() {
-    $('#cms-blocks').innerHTML = catalog.blocks.map(block => {
-      const image = block.fields.find(field => field.kind === 'image');
-      const cover = image ? working.values[image.id] ?? image.value : block.cover;
-      const heading = block.fields.find(field => field.kind === 'heading');
-      const text = block.fields.find(field => field.kind === 'text' && field.value.length > 45);
-      const changed = block.fields.filter(field => working.values[field.id] !== undefined).length;
-      return `<article class="cms-section-card${working.hidden.includes(block.id) ? ' is-hidden' : ''}">${cover && contentUrl(cover, 'image') ? `<img src="${esc(cover)}" alt="" loading="lazy" />` : '<div class="cms-section-art" aria-hidden="true">✳</div>'}<div class="cms-section-copy"><div class="cms-card-meta"><span>${working.hidden.includes(block.id) ? 'Disembunyikan' : 'Ditampilkan'}</span>${changed ? `<span>${changed} isian diubah</span>` : ''}</div><h2>${esc(heading ? working.values[heading.id] ?? heading.value : block.title)}</h2><p>${esc(text ? working.values[text.id] ?? text.value : `${block.fields.length} isian dapat diperbarui`)}</p><button class="button secondary compact" data-cms-block="${block.id}">Edit bagian <span aria-hidden="true">↗</span></button>${block.hideable ? `<button class="row-action ${working.hidden.includes(block.id) ? '' : 'danger'}" data-cms-${working.hidden.includes(block.id) ? 'restore' : 'remove'}="${block.id}">${working.hidden.includes(block.id) ? 'Pulihkan bagian' : 'Hapus bagian'}</button>` : ''}</div></article>`;
-    }).join('');
+    $('#cms-blocks').innerHTML=matchingBlocks().map((block,index)=>{
+      const heading=block.fields.find(field=>field.kind==='heading');
+      const title=heading ? working.values[heading.id] ?? heading.value : block.title;
+      const changed=block.fields.filter(field=>working.values[field.id]!==undefined).length;
+      return `<div class="cms-section-choice"><button type="button" class="cms-section-tab" data-cms-block="${block.id}" aria-pressed="${block.id===selectedBlock}"><span class="cms-section-number">${index+1}</span><span><strong>${esc(title)}</strong><small>${working.hidden.includes(block.id) ? 'Disembunyikan' : changed ? `${changed} perubahan` : 'Klik untuk mengedit'}</small></span></button>${block.hideable ? `<button type="button" class="cms-visibility-action" data-cms-${working.hidden.includes(block.id) ? 'restore' : 'remove'}="${block.id}" aria-label="${working.hidden.includes(block.id) ? 'Tampilkan' : 'Sembunyikan'} ${esc(block.title)}">${working.hidden.includes(block.id) ? 'Tampilkan' : 'Sembunyikan'}</button>` : ''}</div>`;
+    }).join('') || '<p class="muted">Tidak ada bagian yang cocok.</p>';
   }
   function draw() {
-    host.innerHTML = `<div class="cms-page-top"><button class="text-link" data-cms-action="pages">← Semua halaman</button><a class="text-link" href="/#${page.path}" target="_blank" rel="noopener">Lihat website ↗</a></div><div class="page-heading"><div><span class="eyebrow">KELOLA HALAMAN</span><h1>${esc(page.title)}</h1><p class="muted">${esc(page.description)}</p></div><span class="status-badge">${versions.published ? `Terbit · versi ${versions.published}` : 'Isi awal website'}</span></div><div class="cms-publish-bar"><div><strong>Siapkan dulu, terbitkan saat siap.</strong><p id="cms-local-status">${versions.draft ? 'Draft terakhir sudah tersimpan.' : 'Belum ada perubahan tersimpan.'}</p></div><div><button class="button secondary compact" data-cms-action="preview">Pratinjau</button><button class="button secondary compact" data-cms-action="draft">Simpan draft</button><button class="button compact" data-cms-action="publish">Terbitkan perubahan</button></div></div><div id="cms-recovery" class="cms-recovery" ${localDraft ? '' : 'hidden'}><span>Ada salinan teks dari pengeditan sebelumnya.</span><button class="text-link" data-cms-action="recover">Pulihkan untuk ditinjau</button><button class="text-link" data-cms-action="forget">Abaikan</button></div><p id="cms-error" class="form-message" role="status"></p><div id="cms-blocks" class="cms-section-grid"></div><details class="cms-history"><summary>Riwayat penerbitan halaman</summary><div id="cms-history-list"><button class="text-link" data-cms-action="history">Muat riwayat</button></div></details>
-      <dialog class="cms-editor-dialog" id="cms-editor" aria-labelledby="cms-editor-title"><form id="cms-fields-form"><div class="dialog-header"><div><span class="eyebrow">EDIT ISI WEBSITE</span><h2 id="cms-editor-title"></h2></div><button class="icon-button" type="button" data-cms-action="close-editor" aria-label="Tutup editor">×</button></div><div id="cms-fields" class="cms-fields"></div><div class="dialog-footer"><p>Lihat hasil sementara sebelum menyimpan atau menerbitkan.</p><button class="button secondary" type="button" data-cms-action="preview">Pratinjau</button><button class="button" type="submit">Selesai mengedit</button></div></form></dialog>
+    previewObserver?.disconnect();
+    const shortcut=page.id==='galeri' ? ['galeri','Kelola album, foto, dan video'] : page.id==='berita' ? ['berita','Kelola postingan berita'] : page.id==='pendaftaran' ? ['pendaftaran','Atur tahun dan jadwal penerimaan'] : page.id==='program' ? ['pengaturan','Atur daftar jenjang pendidikan'] : null;
+    host.innerHTML=`<div class="cms-page-top"><button class="text-link" data-cms-action="pages">← Semua halaman</button><a class="text-link" href="/#${page.path}" target="_blank" rel="noopener">Lihat website ↗</a></div><div class="page-heading"><div><span class="eyebrow">EDIT LANGSUNG, LIHAT HASILNYA</span><h1>${esc(page.title)}</h1><p class="muted">Pilih bagian di sebelah kiri, lalu ubah isinya.</p></div><span class="status-badge">${versions.published ? `Terbit · versi ${versions.published}` : 'Isi awal website'}</span></div>
+    <div class="cms-publish-bar"><div><strong>Perubahan siap saat Anda siap.</strong><p id="cms-local-status">${versions.draft ? 'Draft terakhir tersimpan. Terbitkan untuk menampilkannya.' : 'Edit isian di bawah. Hasilnya langsung terlihat di pratinjau.'}</p></div><div><button class="button secondary compact" data-cms-action="preview">Halaman penuh</button><button class="button secondary compact" data-cms-action="draft">Simpan draft</button><button class="button compact" data-cms-action="publish">Terbitkan perubahan</button></div></div>
+    ${shortcut ? `<div class="cms-related-task"><span>Ingin mengubah data kegiatannya?</span><button type="button" class="text-link" data-go="${shortcut[0]}" ${shortcut[0]==='galeri' ? 'data-kind="album"' : ''}>${shortcut[1]} ↗</button></div>` : ''}
+    <div id="cms-recovery" class="cms-recovery" ${localDraft ? '' : 'hidden'}><span>Ada salinan teks dari pengeditan sebelumnya.</span><button class="text-link" data-cms-action="recover">Pulihkan untuk ditinjau</button><button class="text-link" data-cms-action="forget">Abaikan</button></div><p id="cms-error" class="form-message" role="status"></p>
+    <div class="cms-mobile-view-switch" role="group" aria-label="Tampilan editor"><button type="button" data-cms-mobile-view="edit" aria-pressed="${mobileView==='edit'}">Edit isian</button><button type="button" data-cms-mobile-view="preview" aria-pressed="${mobileView==='preview'}">Lihat hasil</button></div><div class="cms-workbench" data-cms-view="${mobileView}"><aside class="cms-section-nav"><label for="cms-find-field">Cari bagian atau tulisan</label><input id="cms-find-field" type="search" placeholder="Contoh: alamat, pengasuh…"><div id="cms-blocks"></div></aside>
+    <section class="cms-inline-editor" id="cms-editor" aria-labelledby="cms-editor-title"><form id="cms-fields-form"><div class="cms-inline-heading"><span class="eyebrow">BAGIAN YANG DIEDIT</span><h2 id="cms-editor-title"></h2><p>Isi bidang yang diperlukan. Perubahan belum tampil di website sampai diterbitkan.</p></div><div class="cms-field-tabs" role="group" aria-label="Jenis isian"><button type="button" data-cms-field-tab="text" aria-pressed="true">Tulisan</button><button type="button" data-cms-field-tab="image" aria-pressed="false">Foto</button><button type="button" data-cms-field-tab="link" aria-pressed="false">Tautan & peta</button></div><div id="cms-fields" class="cms-fields"></div><div class="cms-inline-footer"><button class="button secondary compact" type="button" data-cms-action="preview">Perbesar pratinjau</button><button class="button compact" type="submit">Simpan draft</button></div></form></section>
+    <aside class="cms-live-preview"><div class="cms-live-heading"><div><strong>Pratinjau langsung</strong><p id="cms-live-note">Bagian yang sedang Anda edit.</p></div><div class="cms-device-switch" role="group" aria-label="Perangkat pratinjau"><button type="button" data-cms-live-width="390" aria-pressed="true">Ponsel</button><button type="button" data-cms-live-width="1100" aria-pressed="false">Desktop</button></div></div><div class="cms-live-stage" data-cms-live-stage><iframe id="cms-live-frame" sandbox="" title="Pratinjau langsung bagian website"></iframe></div></aside></div>
+    <details class="cms-history"><summary>Riwayat penerbitan halaman</summary><div id="cms-history-list"><button class="text-link" data-cms-action="history">Muat riwayat</button></div></details>
       <dialog class="cms-preview-dialog" id="cms-preview" aria-labelledby="cms-preview-title"><div class="dialog-header"><div><h2 id="cms-preview-title">Pratinjau ${esc(page.title)}</h2><p class="muted">Menampilkan perubahan sementara, termasuk foto baru. Formulir tidak mengirim data.</p></div><button class="icon-button" data-cms-action="close-preview" aria-label="Tutup pratinjau">×</button></div><div class="cms-preview-tools"><button class="button secondary compact" data-cms-width="desktop">Desktop</button><button class="button secondary compact" data-cms-width="phone">Ponsel</button></div><iframe id="cms-preview-frame" sandbox="" title="Pratinjau halaman website"></iframe></dialog>
       <dialog class="cms-picker-dialog" id="cms-picker" aria-labelledby="cms-picker-title"><div class="dialog-header"><div><span class="eyebrow">DOKUMENTASI PONDOK</span><h2 id="cms-picker-title">Pilih foto</h2></div><button class="icon-button" data-cms-action="close-picker" aria-label="Tutup pilihan foto">×</button></div><div class="cms-picker-body"><input id="cms-photo-search" type="search" placeholder="Cari kegiatan atau nama foto…" aria-label="Cari foto pondok" /><div id="cms-photo-grid" class="cms-photo-grid"></div><div class="cms-picker-pagination"><button class="button secondary compact" data-cms-action="photo-prev">← Sebelumnya</button><span id="cms-photo-page"></span><button class="button secondary compact" data-cms-action="photo-next">Berikutnya →</button></div></div></dialog>`;
     cards();
-    $('#cms-fields-form').addEventListener('submit', event => { event.preventDefault(); $('#cms-editor').close(); cards(); });
-    $('#cms-editor').addEventListener('close', () => {
-      if ($('#cms-editor').dataset.drivePickerSuspended !== 'true') cards();
-    });
-    $('#cms-photo-search').addEventListener('input', () => { libraryPage = 0; photoGrid(); });
+    $('#cms-fields-form').addEventListener('submit',event=>{event.preventDefault();save(false);});
+    $('#cms-photo-search').addEventListener('input',()=>{libraryPage=0;photoGrid();});
+    if(typeof ResizeObserver!=='undefined'){previewObserver=new ResizeObserver(scaleLivePreview);previewObserver.observe($('[data-cms-live-stage]'));}
+    editBlock(catalog.blocks.some(block=>block.id===selectedBlock) ? selectedBlock : catalog.blocks[0]?.id);
   }
   async function open(id) {
     if (disposed || busy) return;
@@ -72,20 +83,52 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
   }
   function fieldMarkup(field, index) {
     const value = working.values[field.id] ?? field.value;
-    const label = `${field.label}${field.kind === 'heading' ? ` · ${field.value.slice(0, 45)}` : ''}`;
+    const label = `${field.label}${['heading','text'].includes(field.kind) && field.value ? ` · ${field.value.slice(0, 58)}${field.value.length>58 ? '…' : ''}` : ''}`;
     const name = `cms-input-${index}`;
     if (field.kind === 'image') return `<div class="cms-field"><label for="${name}">${esc(label)}</label><img class="cms-image-preview" data-cms-image="${field.id}" src="${esc(pending.get(field.id)?.preview || value)}" alt="Pratinjau foto" /><div class="cms-image-actions"><button type="button" class="button secondary compact" data-cms-drive="${field.id}">Ambil dari Drive</button><button type="button" class="button secondary compact" data-cms-pick="${field.id}">Pilih foto pondok</button><label class="button secondary compact cms-upload-label">Unggah foto<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-cms-upload="${field.id}" /></label></div><details><summary>Gunakan tautan foto</summary><input id="${name}" data-cms-field="${field.id}" value="${esc(value)}" maxlength="2048" inputmode="url" /></details></div>`;
     if (field.kind === 'text' && value.length > 100) return `<div class="cms-field"><label for="${name}">${esc(label)}</label><textarea id="${name}" data-cms-field="${field.id}" rows="4" maxlength="8000" dir="auto">${esc(value)}</textarea></div>`;
     return `<div class="cms-field"><label for="${name}">${esc(label)}</label><input id="${name}" data-cms-field="${field.id}" type="${field.kind === 'number' ? 'number' : 'text'}" ${field.kind === 'number' ? 'min="0" max="9999999"' : ''} ${['link','map'].includes(field.kind) ? 'inputmode="url"' : ''} dir="auto" value="${esc(value)}" maxlength="${['image','link','map'].includes(field.kind) ? 2048 : 8000}" /></div>`;
   }
-  function editBlock(id) {
-    const block = catalog.blocks.find(item => item.id === id); if (!block) return;
-    $('#cms-editor-title').textContent = block.title;
-    const priority = field => field.kind === 'heading' ? -1 : field.kind === 'image' ? 1 : 0;
-    const fields = [...block.fields].sort((a,b) => priority(a) - priority(b));
-    const fixedPhotos = block.fixedImages.map(photo => `<div class="cms-field"><img class="cms-image-preview" src="${esc(photo.src)}" alt="${esc(photo.alt)}" /><p class="muted">Foto profil dikelola oleh pengelola website. Nama dan keterangan tetap dapat diperbarui di bawah.</p></div>`).join('');
-    $('#cms-fields').innerHTML = `${block.hideable ? `<label class="cms-visible"><input type="checkbox" data-cms-hide="${id}" ${working.hidden.includes(id) ? '' : 'checked'} /> Tampilkan bagian ini di website</label>` : ''}${fixedPhotos}${fields.map(fieldMarkup).join('')}`;
-    $('#cms-editor').showModal();
+  const fieldGroup=field=>['image'].includes(field.kind)||field.label==='Keterangan foto' ? 'image' : ['link','map'].includes(field.kind) ? 'link' : 'text';
+  function editBlock(id, forceMatch = false) {
+    const block=catalog.blocks.find(item=>item.id===id);if(!block)return;
+    selectedBlock=id;$('#cms-editor-title').textContent=block.title;
+    const query=($('#cms-find-field')?.value || '').trim().toLocaleLowerCase('id');
+    const groups=['text','image','link'];
+    if(!block.fields.some(field=>fieldGroup(field)===fieldTab) && !(fieldTab==='image'&&block.fixedImages.length))fieldTab=groups.find(group=>block.fields.some(field=>fieldGroup(field)===group)) || 'text';
+    if(query && forceMatch){const match=block.fields.find(field=>`${field.label} ${working.values[field.id] ?? field.value}`.toLocaleLowerCase('id').includes(query));if(match)fieldTab=fieldGroup(match);}
+    host.querySelectorAll('[data-cms-field-tab]').forEach(button=>{const kind=button.dataset.cmsFieldTab;button.setAttribute('aria-pressed',String(kind===fieldTab));button.disabled=!block.fields.some(field=>fieldGroup(field)===kind)&&!(kind==='image'&&block.fixedImages.length);});
+    const fields=block.fields.filter(field=>fieldGroup(field)===fieldTab).sort((a,b)=>(a.kind==='heading' ? -1 : 0)-(b.kind==='heading' ? -1 : 0));
+    const fixed=fieldTab==='image' ? block.fixedImages.map(photo=>`<div class="cms-field"><img class="cms-image-preview" src="${esc(photo.src)}" alt="${esc(photo.alt)}"><p class="muted">Foto profil tetap memakai foto resmi. Nama dan keterangan tetap dapat diperbarui di bawah.</p></div>`).join('') : '';
+    $('#cms-fields').innerHTML=`${block.hideable ? `<label class="cms-visible"><input type="checkbox" data-cms-hide="${id}" ${working.hidden.includes(id) ? '' : 'checked'}> Tampilkan bagian ini di website</label>` : ''}${fixed}${fields.map(fieldMarkup).join('') || (!fixed ? '<p class="muted">Tidak ada isian pada tab ini.</p>' : '')}`;
+    cards();scheduleLivePreview();
+  }
+  function scaleLivePreview() {
+    const stage=$('[data-cms-live-stage]'),frame=$('#cms-live-frame');if(!stage||!frame)return;
+    const scale=Math.min(1,(stage.clientWidth || 360)/liveWidth);
+    const height=Math.max(400,Math.floor(Math.min(620,(window.innerHeight || 900)-280)/scale));
+    frame.style.width=`${liveWidth}px`;frame.style.height=`${height}px`;frame.style.transform=`scale(${scale})`;stage.style.height=`${Math.round(height*scale)}px`;
+    host.querySelectorAll('[data-cms-live-width]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.cmsLiveWidth)===liveWidth)));
+  }
+  function scheduleLivePreview() {
+    clearTimeout(livePreviewTimer);const version=++liveRequest;
+    if($('#cms-live-frame'))livePreviewTimer=setTimeout(()=>drawLivePreview(version),160);
+  }
+  async function drawLivePreview(version) {
+    if(disposed||!page||!selectedBlock)return;
+    try{
+      const clone=createContentCatalog(html),content=normalizeSiteDocument(working,clone);
+      for(const field of clone.fields)if(content.values[field.id]!==undefined)field.apply(content.values[field.id]);
+      for(const [id,photo] of pending){
+        if(!photo.previewData)photo.previewData=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('Pratinjau foto belum siap.'));reader.readAsDataURL(photo.file);});
+        clone.fields.find(field=>field.id===id&&field.kind==='image')?.apply(photo.previewData);
+      }
+      if(disposed||version!==liveRequest||!$('#cms-live-frame'))return;
+      const block=clone.blocks.find(item=>item.id===selectedBlock),body=block?.element.outerHTML || '';
+      const css=[baseCss,componentsCss,pagesCss].map(url=>`<link rel="stylesheet" href="${esc(url)}">`).join('');
+      $('#cms-live-frame').srcdoc=`<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><base href="${esc(location.origin)}/">${css}<style>.reveal{opacity:1!important;transform:none!important}.navbar{position:relative;background:#14532d}body{overflow-x:hidden;background:white}form,a,button{pointer-events:none}.hero{min-height:460px!important}</style></head><body>${body}</body></html>`;
+      $('#cms-live-note').textContent=working.hidden.includes(selectedBlock) ? 'Bagian ini disembunyikan. Anda tetap bisa meninjau isinya.' : 'Hasil bagian ini berubah saat Anda mengetik.';scaleLivePreview();
+    }catch(error){if($('#cms-live-note'))$('#cms-live-note').textContent=error.message;}
   }
   async function preview() {
     const request = sequence;
@@ -160,6 +203,9 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
     const data = button.dataset;
     if (data.cmsPage) return open(data.cmsPage);
     if (data.cmsBlock) return editBlock(data.cmsBlock);
+    if (data.cmsFieldTab) {fieldTab=data.cmsFieldTab;return editBlock(selectedBlock);}
+    if (data.cmsLiveWidth) {liveWidth=Number(data.cmsLiveWidth);scaleLivePreview();return;}
+    if(data.cmsMobileView){mobileView=data.cmsMobileView;$('.cms-workbench').dataset.cmsView=mobileView;host.querySelectorAll('[data-cms-mobile-view]').forEach(item=>item.setAttribute('aria-pressed',String(item.dataset.cmsMobileView===mobileView)));scaleLivePreview();return;}
     if (data.cmsDrive) {
       const photo = await selectDrivePhoto({client,demo});
       if (!photo || disposed) return;
@@ -196,7 +242,7 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
       case 'draft': return save(false);
       case 'publish': return save(true);
       case 'preview': return preview();
-      case 'close-editor': $('#cms-editor').close(); return;
+      case 'close-editor': host.querySelector(`[data-cms-block="${selectedBlock}"]`)?.focus(); return;
       case 'close-preview': $('#cms-preview').close(); return;
       case 'close-picker': $('#cms-picker').close(); return;
       case 'photo-prev': libraryPage--; photoGrid(); return;
@@ -214,6 +260,7 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
   };
   const input = event => {
     if (busy || !page) return;
+    if(event.target.id==='cms-find-field'){cards();const blocks=matchingBlocks();if(blocks.length)editBlock(blocks.find(block=>block.id===selectedBlock)?.id || blocks[0].id,true);else $('#cms-fields').innerHTML='<p>Tidak ada isian yang cocok. Coba kata kunci lain.</p>';return;}
     const field = event.target.dataset.cmsField;
     if (field) {
       const original = catalog.fields.find(item => item.id === field); if (!original) return;
@@ -241,5 +288,5 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
   const onClick = event => { click(event).catch(error => { if (!disposed) notify(error.message || 'Tindakan belum berhasil. Coba lagi.', true); }); };
   host.addEventListener('click', onClick); host.addEventListener('input', input); host.addEventListener('change', change);
   landing();
-  return { open, get dirty() { return dirty(); }, dispose() { disposed = true; sequence++; clearPhotos(); window.removeEventListener('beforeunload', beforeUnload); host.removeEventListener('click', onClick); host.removeEventListener('input', input); host.removeEventListener('change', change); host.innerHTML = ''; } };
+  return { open, get dirty() { return dirty(); }, dispose() { disposed = true; sequence++; liveRequest++; clearTimeout(livePreviewTimer); previewObserver?.disconnect(); clearPhotos(); window.removeEventListener('beforeunload', beforeUnload); host.removeEventListener('click', onClick); host.removeEventListener('input', input); host.removeEventListener('change', change); host.innerHTML = ''; } };
 }

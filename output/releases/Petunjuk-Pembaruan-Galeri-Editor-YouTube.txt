@@ -1,0 +1,38 @@
+PEMBARUAN AN-NAHL: GALERI, EDITOR WEBSITE, DAN YOUTUBE
+6 November 2026
+
+Paket ini memperbarui website yang sudah terpasang.
+
+UNGGAH MANUAL KE HOSTINGER
+1. Cadangkan index.html, admin.html, login.html, dan folder assets di public_html.
+2. Unggah An-Nahl-Update-Galeri-Editor-YouTube-2026-11-06.zip ke public_html lalu ekstrak.
+3. Ganti tiga file HTML dan gabungkan file assets. Biarkan aset lama tetap ada untuk pengunjung yang masih membuka versi sebelumnya.
+4. Muat ulang website dan panel dengan Ctrl+F5.
+
+GALERI
+Buka Galeri > Album foto > Buat album. Isi judul, kategori, tanggal (opsional), serta cerita kegiatan.
+Pilih beberapa foto dokumentasi, ambil dari Drive, atau unggah foto perangkat.
+Atur urutan dengan panah, pilih sampul, dan isi keterangan tiap foto.
+Simpan draft untuk melanjutkan nanti; Terbitkan album agar muncul di website.
+Arsipkan untuk menyembunyikan album. Album dapat dipulihkan sebagai draft.
+Empat album awal memakai 22 foto yang sudah tersedia di website.
+
+EDIT WEBSITE
+Pilih halaman > pilih bagian > pilih tab Tulisan, Foto, atau Tautan & peta.
+Pratinjau berubah saat mengetik. Di HP, gunakan tombol Edit isian / Lihat hasil.
+Simpan draft untuk melanjutkan nanti; Terbitkan perubahan untuk menampilkan hasilnya.
+
+POSTINGAN YOUTUBE
+Buat postingan > Video YouTube > tempel link video/Shorts.
+Isi judul, cerita, dan kategori; cek Pratinjau lalu simpan draft atau terbitkan.
+
+Paket tidak menyertakan konfigurasi privat, file sumber, atau foto asli.
+Status aktivasi Supabase dicatat terpisah pada gallery-editor-youtube-release-status.json.
+
+SUPABASE SUDAH AKTIF
+Struktur album, penyimpanan perubahannya, dan kolom YouTube pada berita sudah diaktifkan.
+Akses publik berhasil membaca 4 album awal / 22 foto. Draft dan arsip tidak ditampilkan ke publik.
+Anda cukup mengunggah ZIP pembaruan website secara manual; tidak perlu menjalankan SQL lagi.
+
+VALIDASI
+127 pengujian lulus; skema SQL dan akses admin diuji lokal; alur album, YouTube, serta editor dicek pada 1440, 390, dan 320 piksel.

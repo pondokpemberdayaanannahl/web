@@ -40,13 +40,16 @@ export function ringkasan(isi, maks = 150) {
 
 // Ubah baris database ke bentuk yang dipakai kartu dan modal
 function ubahKeArtikel(b) {
+  const youtube=/^[\w-]{11}$/.test(b.youtube_id || '') ? b.youtube_id : '';
+  const videoCover=youtube ? `https://img.youtube.com/vi/${youtube}/hqdefault.jpg` : '';
   return {
+    youtube,
     slug: String(b.id),
     category: escapeHtml(b.kategori),
     title: escapeHtml(b.judul),
     date: formatTanggal(b.dibuat_pada),
-    img: escapeHtml(safeUrl(b.gambar_url) || photos.hero.berita),
-    thumbnail: escapeHtml(safeUrl(b.thumbnail_url) || safeUrl(b.gambar_url) || photos.hero.berita),
+    img: escapeHtml(safeUrl(b.gambar_url) || videoCover || photos.hero.berita),
+    thumbnail: escapeHtml(safeUrl(b.thumbnail_url) || safeUrl(b.gambar_url) || videoCover || photos.hero.berita),
     caption: escapeHtml(b.caption || ''),
     excerpt: escapeHtml(ringkasan(b.isi)),
     content: isiKeHtml(b.isi),
@@ -58,6 +61,7 @@ function kartuBerita(a) {
     <article class="news-card" data-category="${a.category}" data-slug="${a.slug}">
       <div class="news-card-img">
         <img src="${a.thumbnail}" alt="${a.title}" loading="lazy" />
+        ${a.youtube ? '<span class="news-video-tag">▶ Video YouTube</span>' : ''}
       </div>
       <div class="news-card-body">
         <span class="badge">${a.category}</span>
@@ -225,7 +229,7 @@ window.showArticle = function(slug) {
 
   const modal = document.getElementById('article-modal');
   document.getElementById('article-modal-body').innerHTML = `
-    <img src="${article.img}" alt="${article.title}" class="article-detail-cover" />
+    ${article.youtube ? `<iframe class="article-detail-video" src="https://www.youtube-nocookie.com/embed/${article.youtube}" title="${article.title}" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>` : `<img src="${article.img}" alt="${article.title}" class="article-detail-cover" />`}
     <div class="article-detail-body">
       <span class="badge">${article.category}</span>
       <h2>${article.title}</h2>
@@ -258,6 +262,7 @@ window.closeArticle = function() {
   const modal = document.getElementById('article-modal');
   if (modal) {
     modal.classList.remove('open');
+    document.getElementById('article-modal-body').innerHTML='';
     document.body.style.overflow = '';
   }
 };
@@ -267,6 +272,11 @@ window.closeArticle = function() {
 window.initNewsFilter = async function() {
   const grid = document.getElementById('news-grid');
   if (!grid) return;
+  grid.addEventListener('click',event=>{
+    if(event.defaultPrevented)return;
+    const card=event.target.closest('[data-slug]');
+    if(card)window.showArticle(card.dataset.slug);
+  });
   let selected = 'Semua';
   const applyFilter = () => {
     let visible = 0;

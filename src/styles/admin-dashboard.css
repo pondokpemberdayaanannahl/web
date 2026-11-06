@@ -1,4 +1,9 @@
 /* Dashboard shell */
+.compose-media-kind { display:flex;gap:8px;background:var(--green-soft);padding:5px;border-radius:12px;margin:18px 0; }
+.compose-media-kind button { flex:1;min-height:44px;padding:10px;background:transparent;color:var(--forest);border-radius:8px;font-size:13px; }
+.compose-media-kind button[aria-pressed=true] { background:var(--forest);color:white; }
+.post-youtube { display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:10px;margin:18px 0; }
+#editor-dialog:has(#news-media-video[aria-pressed=true]) .compose-grid { grid-template-columns:1fr; }
 .app-layout { --rail: 208px; background: var(--canvas); }
 .admin-sprite { position: absolute; pointer-events: none; }
 .admin-icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }

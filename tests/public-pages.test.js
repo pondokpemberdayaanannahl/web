@@ -8,6 +8,8 @@ import * as pondok from '../src/data/pondok.js';
 import { categoryCards } from '../src/components/category-cards.js';
 import { socialIcon } from '../src/components/social-icon.js';
 import { ATTACHMENT_HELP } from '../src/google-forms.js';
+import { createGalleryAlbumStore,defaultGalleryAlbums,galleryDemoStorage } from '../src/gallery-albums.js';
+import { galleryAlbumCard } from '../src/gallery-view.js';
 import { tiktokUrl } from '../src/pondok-settings.js';
 
 test('contact and donation collectors are bound to real uniquely identified fields', () => {
@@ -39,7 +41,7 @@ function gallery(client) {
   nodes.set('galeri-styles', makeNode());
   const close = makeNode();
   const filters = ['Semua', 'Ibadah'].map(filter => ({ ...makeNode(), dataset: { filter } }));
-  const context = { ...images, ...format, categoryCards, window: {}, getSupabase: async () => ({ supabase: client }), document: { body: { style: {} }, getElementById: id => nodes.get(id) || null, querySelectorAll: () => filters } };
+  const context = { ...images, ...format, categoryCards,createGalleryAlbumStore,defaultGalleryAlbums,galleryDemoStorage,galleryAlbumCard,createAlbumViewer:()=>({show(){}}), window: {}, getSupabase: async () => ({ supabase: client }), document: { body: { style: {} }, getElementById: id => nodes.get(id) || null, querySelectorAll: () => filters } };
   vm.runInNewContext(source.replace(/^import .*;\r?$/gm, '').replace('export function Galeri', 'function Galeri').replace("await import('../supabase.js')", 'await getSupabase()'), context);
   const markup = context.Galeri();
   for (const [, id] of markup.matchAll(/\bid="([^"]+)"/g)) nodes.set(id, makeNode());
@@ -50,7 +52,7 @@ function gallery(client) {
 test('unconfigured gallery uses optimized static photos and no unrelated example videos', async () => {
   const fixture = gallery(null);
   await fixture.context.window.initGalleryFilter();
-  assert.match(fixture.nodes.get('photo-grid').innerHTML, /-480\.jpg/);
+  assert.match(fixture.nodes.get('album-grid').innerHTML, /-480\.jpg/);
   assert.equal(fixture.nodes.get('video-grid').innerHTML, '');
   assert.match(fixture.nodes.get('video-status').textContent, /belum tersedia/);
 });
@@ -71,5 +73,5 @@ test('configured gallery reads backend metadata, escapes captions, and filters s
   assert.deepEqual(requests[0].range, [0, 11]);
   fixture.filters[1].listeners.click[0]();
   await new Promise(resolve => setImmediate(resolve));
-  assert.deepEqual(requests.at(-1).filter, ['kategori', 'Ibadah']);
+  assert.deepEqual(requests.filter(request=>request.table==='galeri_foto').at(-1).filter, ['kategori', 'Ibadah']);
 });

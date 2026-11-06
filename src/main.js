@@ -1,3 +1,4 @@
+import './styles/gallery-albums.css';
 // ═══════════════════════════════════════════
 // MAIN — Entry Point
 // Website Pondok Pesantren An-Nahl
