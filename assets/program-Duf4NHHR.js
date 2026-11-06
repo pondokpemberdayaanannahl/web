@@ -1,4 +1,4 @@
-import{a as e,o as t,t as n}from"./pondok-DvaK_7TO.js";import{n as r}from"./pondok-settings-4G-4LMmH.js";import{r as i}from"./photos-BW6EAMCN.js";function a(a={}){return`
+import{n as e}from"./pondok-settings-PoRC5ax-.js";import{a as t,o as n,t as r}from"./pondok-DvaK_7TO.js";import{r as i}from"./photos-BW6EAMCN.js";function a(a={}){return`
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
       <div class="hero-bg" style="background-image: url('${i.hero.program}')"></div>
@@ -14,7 +14,7 @@ import{a as e,o as t,t as n}from"./pondok-DvaK_7TO.js";import{n as r}from"./pond
     <section class="section" data-content-key="education-levels">
       <div class="container">
         <div class="section-header"><span class="section-label">JENJANG</span><h2 class="section-title">Pilih jenjang pendidikan</h2></div>
-        <div data-content-ignore>${r(a.levels)}</div>
+        <div data-content-ignore>${e(a.levels)}</div>
       </div>
     </section>
 
@@ -23,7 +23,7 @@ import{a as e,o as t,t as n}from"./pondok-DvaK_7TO.js";import{n as r}from"./pond
       <div class="container">
         <div class="section-header"><span class="section-label reveal">PROGRAM PESANTREN</span><h2 class="section-title reveal reveal-delay-1">Empat Program Pesantren</h2><p class="section-subtitle reveal reveal-delay-2">Pendidikan Al-Qur’an, madrasah, sekolah formal, dan pembinaan akhlak.</p></div>
         <div class="grid-2 pondok-program-grid">
-          ${e.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p></article>`).join(``)}
+          ${t.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p></article>`).join(``)}
         </div>
       </div>
     </section>
@@ -33,7 +33,7 @@ import{a as e,o as t,t as n}from"./pondok-DvaK_7TO.js";import{n as r}from"./pond
       <div class="container">
         <div class="section-header"><span class="section-label reveal">PROGRAM UNGGULAN</span><h2 class="section-title reveal reveal-delay-1">Ilmu, Bahasa, dan Keterampilan</h2><p class="section-subtitle reveal reveal-delay-2">Empat program unggulan yang melengkapi pendidikan santri.</p></div>
         <div class="grid-4 pondok-program-grid">
-          ${t.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p></article>`).join(``)}
+          ${n.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p></article>`).join(``)}
         </div>
       </div>
     </section>
@@ -51,7 +51,7 @@ import{a as e,o as t,t as n}from"./pondok-DvaK_7TO.js";import{n as r}from"./pond
       <div class="container">
         <div class="section-header"><span class="section-label reveal">EKSTRAKURIKULER</span><h2 class="section-title reveal reveal-delay-1">Ruang untuk Minat dan Bakat</h2><p class="section-subtitle reveal reveal-delay-2">Pilihan kegiatan untuk mengembangkan kemampuan, kreativitas, dan kemandirian santri.</p></div>
         <div class="grid-3 pondok-extracurricular-grid">
-          ${n.map((e,t)=>`<article class="card extracurricular-card reveal reveal-delay-${t%4}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:24px;height:24px"></i></div><h3 class="card-title">${e.title}</h3></article>`).join(``)}
+          ${r.map((e,t)=>`<article class="card extracurricular-card reveal reveal-delay-${t%4}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:24px;height:24px"></i></div><h3 class="card-title">${e.title}</h3></article>`).join(``)}
         </div>
       </div>
     </section>

@@ -1,4 +1,4 @@
-import{t as e}from"./social-icon-CS2bHoaL.js";import{n as t}from"./pondok-DvaK_7TO.js";import{a as n}from"./pondok-settings-4G-4LMmH.js";function r(r={}){let i=n(r.tiktok);return`
+import{a as e}from"./pondok-settings-PoRC5ax-.js";import{t}from"./social-icon-CS2bHoaL.js";import{n}from"./pondok-DvaK_7TO.js";function r(r={}){let i=e(r.tiktok);return`
     <footer class="footer">
       <div class="container">
         <div class="footer-grid">
@@ -30,11 +30,11 @@ import{t as e}from"./social-icon-CS2bHoaL.js";import{n as t}from"./pondok-DvaK_7
             <div class="footer-heading">Kontak</div>
             <div class="footer-contact-item">
               <i data-lucide="map-pin" style="width:16px;height:16px"></i>
-              <span>${t.address}</span>
+              <span>${n.address}</span>
             </div>
             <div class="footer-contact-item">
               <i data-lucide="phone" style="width:16px;height:16px"></i>
-              <a href="tel:${t.telephone}">${t.phone}</a>
+              <a href="tel:${n.telephone}">${n.phone}</a>
             </div>
             <div class="footer-contact-item">
               <i data-lucide="mail" style="width:16px;height:16px"></i>
@@ -47,15 +47,15 @@ import{t as e}from"./social-icon-CS2bHoaL.js";import{n as t}from"./pondok-DvaK_7
             <div class="footer-heading">Ikuti Kami</div>
             <div class="footer-social">
               <a href="https://www.instagram.com/annahl.official?vrfl=MmlweHloM2wzcWgw" class="footer-social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
-                ${e(`instagram`)}
+                ${t(`instagram`)}
               </a>
               <a href="https://www.facebook.com/share/1DjhtbZ3na/" class="footer-social-link" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
-                ${e(`facebook`)}
+                ${t(`facebook`)}
               </a>
               <a href="https://youtube.com/@ppuan-nahl4784?si=iWzGJO98qyJwW8HN" class="footer-social-link" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
-                ${e(`youtube`)}
+                ${t(`youtube`)}
               </a>
-              ${i?`<a href="${i}" data-content-ignore class="footer-social-link" aria-label="TikTok" target="_blank" rel="noopener noreferrer">${e(`tiktok`)}</a>`:``}
+              ${i?`<a href="${i}" data-content-ignore class="footer-social-link" aria-label="TikTok" target="_blank" rel="noopener noreferrer">${t(`tiktok`)}</a>`:``}
             </div>
           </div>
         </div>

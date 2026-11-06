@@ -1,4 +1,4 @@
-import{t as e}from"./content-format-CtCzfUOR.js";import{r as t}from"./photos-BW6EAMCN.js";var n=[{id:`founder`,name:`KH. Muhammad Ridwan, Lc., M.A.`,role:`Pengasuh & Pendiri`,image:t.tentang.pengasuh,bio:`Lulusan Universitas Al-Azhar, Kairo. Hafidz 30 juz bersanad. Berpengalaman lebih dari 20 tahun dalam pendidikan Islam dan pemberdayaan masyarakat. Aktif sebagai dai dan motivator pendidikan Islam di tingkat nasional.`}];function r(){return`
+import{m as e}from"./pondok-settings-PoRC5ax-.js";import{r as t}from"./photos-BW6EAMCN.js";var n=[{id:`founder`,name:`KH. Mahfudz Noor Fawwaz`,role:`Pengasuh Pesantren`,initials:`MNF`,image:`/images/leadership/kh-mahfudz-noor-fawwaz.png`},{id:`agus-thoha-noor-fawwaz`,name:`Abah Agus Thoha Noor Fawwaz, S.Pd., M.M.`,role:`Pengurus / tokoh pimpinan keluarga besar pesantren`,initials:`AT`,image:`/images/leadership/abah-agus-thoha-noor-fawwaz-white.png`},{id:`rahmat-abu-bakar`,name:`Rahmat Abu Bakar`,role:`Pembina / pengasuh umum pesantren`,initials:`RAB`,image:`/images/leadership/rahmat-abu-bakar.jpg`}];function r(){return`
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
       <div class="hero-bg" style="background-image: url('${t.hero.tentang}')"></div>
@@ -59,7 +59,7 @@ import{t as e}from"./content-format-CtCzfUOR.js";import{r as t}from"./photos-BW6
         </div>
         <div style="max-width: 800px; margin: 0 auto">
           <p class="reveal" style="color: var(--neutral-700); margin-bottom: var(--space-lg); text-align: center">
-            Pondok Pesantren Pemberdayaan Ummat An-Nahl didirikan pada tahun 2011 oleh KH. Muhammad Ridwan dengan visi sederhana namun kuat: mencetak generasi muda Muslim yang tidak hanya menghafal Al-Qur'an, tetapi juga mampu menjadi agen perubahan di masyarakat.
+            Pondok Pesantren Pemberdayaan Ummat An-Nahl didirikan pada tahun 2011 dengan visi sederhana namun kuat: mencetak generasi muda Muslim yang tidak hanya menghafal Al-Qur'an, tetapi juga mampu menjadi agen perubahan di masyarakat.
           </p>
           <p class="reveal reveal-delay-1" style="color: var(--neutral-700); margin-bottom: var(--space-lg); text-align: center">
             Bermula dari sebuah musholla kecil dengan hanya 15 santri, saat ini An-Nahl telah berkembang menjadi lembaga pendidikan dengan lebih dari 500 santri, fasilitas modern, dan jaringan alumni yang tersebar di seluruh Indonesia.
@@ -71,23 +71,20 @@ import{t as e}from"./content-format-CtCzfUOR.js";import{r as t}from"./photos-BW6
       </div>
     </section>
 
-    <!-- Profil Pengasuh -->
-    <section class="section" style="background: var(--neutral-50)">
+    <!-- Profil Pengasuh dan Pengurus -->
+    <section id="pimpinan-pesantren" class="section" style="background: var(--neutral-50)">
       <div class="container leadership-grid">
         <div class="section-header">
-          <span class="section-label reveal">PENGASUH</span>
+          <span class="section-label reveal">PENGASUH & PENGURUS</span>
           <h2 class="section-title reveal reveal-delay-1">Profil Pimpinan Pesantren</h2>
         </div>
-        ${n.map(t=>`<div class="leadership-card reveal reveal-delay-2">
-          <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 0 auto var(--space-lg); box-shadow: var(--shadow-lg)">
-            <img data-fixed-photo="${e(t.id)}" src="${e(t.image)}" alt="${e(t.name)}" style="width:100%; height:100%; object-fit:cover" loading="lazy" />
+        ${n.map((t,n)=>`<article class="leadership-card reveal reveal-delay-${n+1}" aria-labelledby="leadership-${e(t.id)}">
+          <div class="leadership-portrait">
+            ${t.image?`<img data-fixed-photo="${e(t.id)}" src="${e(t.image)}" alt="${e(t.name)}" width="160" height="160" loading="lazy" decoding="async" />`:`<div class="leadership-photo-placeholder" role="img" aria-label="Foto ${e(t.name)} belum tersedia" data-content-ignore><span aria-hidden="true">${e(t.initials)}</span><small aria-hidden="true">Foto segera hadir</small></div>`}
           </div>
-          <h3 style="font-family: var(--font-heading); font-size: 28px; margin-bottom: var(--space-sm)">${e(t.name)}</h3>
-          <span class="badge" style="margin-bottom: var(--space-lg)">${e(t.role)}</span>
-          <p style="color: var(--neutral-700)">
-            ${e(t.bio)}
-          </p>
-        </div>`).join(``)}
+          <h3 id="leadership-${e(t.id)}" class="leadership-name">${e(t.name)}</h3>
+          <p class="leadership-role">${e(t.role)}</p>
+        </article>`).join(``)}
       </div>
     </section>
 

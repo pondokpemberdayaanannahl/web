@@ -1,4 +1,4 @@
-import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supabase-HBzNintJ.js";import{r}from"./photos-BW6EAMCN.js";import{escapeHtml as i,formatTanggal as a,ringkasan as o}from"./berita-CY7EKg91.js";import{t as s}from"./home-stories-DIw_QJJ1.js";function c(){return`
+import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supabase-HBzNintJ.js";import{r}from"./photos-BW6EAMCN.js";import{escapeHtml as i,formatTanggal as a,ringkasan as o}from"./berita-Bq0ey-9i.js";import{t as s}from"./home-stories-QILuUPlC.js";function c(){return`
     <!-- HERO -->
     <section class="hero hero-left" id="hero">
       <div class="hero-bg" style="background-image: url('${r.hero.beranda}')"></div>
