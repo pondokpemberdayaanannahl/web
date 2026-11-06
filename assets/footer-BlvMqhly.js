@@ -1,4 +1,4 @@
-import{a as e}from"./pondok-settings-PoRC5ax-.js";import{t}from"./social-icon-CS2bHoaL.js";import{n}from"./pondok-DvaK_7TO.js";function r(r={}){let i=e(r.tiktok);return`
+import{f as e}from"./site-content-BKWZVrCp.js";import{t}from"./social-icon-CS2bHoaL.js";import{n}from"./pondok-DvaK_7TO.js";function r(r={}){let i=e(r.tiktok);return`
     <footer class="footer">
       <div class="container">
         <div class="footer-grid">

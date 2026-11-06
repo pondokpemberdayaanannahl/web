@@ -1,7 +1,7 @@
-import{n as e}from"./pondok-settings-PoRC5ax-.js";import{a as t,o as n,t as r}from"./pondok-DvaK_7TO.js";import{r as i}from"./photos-BW6EAMCN.js";function a(a={}){return`
+import{l as e}from"./site-content-BKWZVrCp.js";import{r as t}from"./photos-BW6EAMCN.js";import{a as n,o as r,t as i}from"./pondok-DvaK_7TO.js";function a(a={}){return`
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
-      <div class="hero-bg" style="background-image: url('${i.hero.program}')"></div>
+      <div class="hero-bg" style="background-image: url('${t.hero.program}')"></div>
       <div class="hero-overlay"></div>
       <div class="hero-pattern"></div>
       <div class="hero-content">
@@ -23,7 +23,7 @@ import{n as e}from"./pondok-settings-PoRC5ax-.js";import{a as t,o as n,t as r}fr
       <div class="container">
         <div class="section-header"><span class="section-label reveal">PROGRAM PESANTREN</span><h2 class="section-title reveal reveal-delay-1">Empat Program Pesantren</h2><p class="section-subtitle reveal reveal-delay-2">Pendidikan Al-Qur’an, madrasah, sekolah formal, dan pembinaan akhlak.</p></div>
         <div class="grid-2 pondok-program-grid">
-          ${t.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p></article>`).join(``)}
+          ${n.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p></article>`).join(``)}
         </div>
       </div>
     </section>
@@ -33,7 +33,7 @@ import{n as e}from"./pondok-settings-PoRC5ax-.js";import{a as t,o as n,t as r}fr
       <div class="container">
         <div class="section-header"><span class="section-label reveal">PROGRAM UNGGULAN</span><h2 class="section-title reveal reveal-delay-1">Ilmu, Bahasa, dan Keterampilan</h2><p class="section-subtitle reveal reveal-delay-2">Empat program unggulan yang melengkapi pendidikan santri.</p></div>
         <div class="grid-4 pondok-program-grid">
-          ${n.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p></article>`).join(``)}
+          ${r.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p></article>`).join(``)}
         </div>
       </div>
     </section>
@@ -42,7 +42,7 @@ import{n as e}from"./pondok-settings-PoRC5ax-.js";import{a as t,o as n,t as r}fr
     <section class="section" style="background:var(--neutral-50)">
       <div class="container"><div class="about-content">
         <div class="about-text"><span class="section-label reveal">PEMBINAAN SANTRI</span><h2 class="reveal reveal-delay-1">Tarbiyah Akhlak Islamiyah</h2><p class="reveal reveal-delay-2">Pembinaan akhlak menjadi bagian dari pendidikan pesantren, bersama tahfidz, madrasah muhadloroh, dan pendidikan formal SMP/SMA.</p><p class="reveal reveal-delay-3">Santri juga dapat mengembangkan minat dan keterampilan melalui kegiatan ekstrakurikuler pesantren.</p></div>
-        <div class="about-image reveal"><img src="${i.program.pemberdayaan}" alt="Kegiatan santri An-Nahl" loading="lazy" /></div>
+        <div class="about-image reveal"><img src="${t.program.pemberdayaan}" alt="Kegiatan santri An-Nahl" loading="lazy" /></div>
       </div></div>
     </section>
 
@@ -51,7 +51,7 @@ import{n as e}from"./pondok-settings-PoRC5ax-.js";import{a as t,o as n,t as r}fr
       <div class="container">
         <div class="section-header"><span class="section-label reveal">EKSTRAKURIKULER</span><h2 class="section-title reveal reveal-delay-1">Ruang untuk Minat dan Bakat</h2><p class="section-subtitle reveal reveal-delay-2">Pilihan kegiatan untuk mengembangkan kemampuan, kreativitas, dan kemandirian santri.</p></div>
         <div class="grid-3 pondok-extracurricular-grid">
-          ${r.map((e,t)=>`<article class="card extracurricular-card reveal reveal-delay-${t%4}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:24px;height:24px"></i></div><h3 class="card-title">${e.title}</h3></article>`).join(``)}
+          ${i.map((e,t)=>`<article class="card extracurricular-card reveal reveal-delay-${t%4}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:24px;height:24px"></i></div><h3 class="card-title">${e.title}</h3></article>`).join(``)}
         </div>
       </div>
     </section>

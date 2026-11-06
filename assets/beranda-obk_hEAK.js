@@ -1,7 +1,7 @@
-import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supabase-HBzNintJ.js";import{r}from"./photos-BW6EAMCN.js";import{escapeHtml as i,formatTanggal as a,ringkasan as o}from"./berita-Bq0ey-9i.js";import{t as s}from"./home-stories-QILuUPlC.js";function c(){return`
+import{r as e}from"./photos-BW6EAMCN.js";import{a as t,o as n}from"./pondok-DvaK_7TO.js";import{supabase as r}from"./supabase-HBzNintJ.js";import{escapeHtml as i,formatTanggal as a,ringkasan as o}from"./berita-DF_sJWrk.js";import{t as s}from"./home-stories-BhEnIcW1.js";function c(){return`
     <!-- HERO -->
     <section class="hero hero-left" id="hero">
-      <div class="hero-bg" style="background-image: url('${r.hero.beranda}')"></div>
+      <div class="hero-bg" style="background-image: url('${e.hero.beranda}')"></div>
       <div class="hero-overlay" style="background: linear-gradient(105deg, rgba(5,46,22,0.92) 0%, rgba(5,46,22,0.75) 40%, rgba(5,46,22,0.15) 75%, transparent 100%)"></div>
       <div class="hero-pattern"></div>
       <div class="hero-content" style="text-align:left;align-items:flex-start;max-width:620px">
@@ -49,7 +49,7 @@ import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supa
             </div>
           </div>
           <div class="about-image reveal">
-            <img src="${r.about}" 
+            <img src="${e.about}" 
                  alt="Pondok Pesantren An-Nahl" loading="lazy" />
           </div>
         </div>
@@ -82,7 +82,7 @@ import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supa
           <p class="section-subtitle reveal reveal-delay-2">Empat program pendidikan yang mendampingi proses belajar dan pembinaan santri.</p>
         </div>
         <div class="grid-4 pondok-program-grid">
-          ${e.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p><a href="#/jenjang" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a></article>`).join(``)}
+          ${t.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p><a href="#/jenjang" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a></article>`).join(``)}
         </div>
         <div style="text-align:center; margin-top: var(--space-2xl)" class="reveal">
           <a href="#/jenjang" class="btn btn-secondary">Lihat Jenjang Pendidikan →</a>
@@ -94,7 +94,7 @@ import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supa
       <div class="container">
         <div class="section-header"><span class="section-label reveal">PROGRAM UNGGULAN</span><h2 class="section-title reveal reveal-delay-1">Ilmu, Bahasa, dan Keterampilan</h2></div>
         <div class="grid-4 pondok-program-grid">
-          ${t.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p></article>`).join(``)}
+          ${n.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p></article>`).join(``)}
         </div>
       </div>
     </section>
@@ -153,16 +153,16 @@ import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supa
         </div>
       </div>
     </section>
-  `}window.initBerandaNews=async function(){await Promise.all([s(n),l()])};async function l(){if(!n){let e=document.getElementById(`beranda-news-grid`);e&&(e.innerHTML=`<p>Berita pesantren akan tersedia setelah layanan terhubung.</p>`);return}let{data:e,error:t}=await n.from(`berita`).select(`*`).eq(`status`,`published`).is(`deleted_at`,null).order(`dibuat_pada`,{ascending:!1}).limit(3),s=document.getElementById(`beranda-news-grid`);s&&(t?(console.error(t),s.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:var(--neutral-500)">Gagal memuat berita.</p>`):e.length===0?s.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:var(--neutral-500)">Belum ada berita.</p>`:(s.innerHTML=e.map(e=>`
+  `}window.initBerandaNews=async function(){await Promise.all([s(r),l()])};async function l(){if(!r){let e=document.getElementById(`beranda-news-grid`);e&&(e.innerHTML=`<p>Berita pesantren akan tersedia setelah layanan terhubung.</p>`);return}let{data:t,error:n}=await r.from(`berita`).select(`*`).eq(`status`,`published`).is(`deleted_at`,null).order(`dibuat_pada`,{ascending:!1}).limit(3),s=document.getElementById(`beranda-news-grid`);s&&(n?(console.error(n),s.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:var(--neutral-500)">Gagal memuat berita.</p>`):t.length===0?s.innerHTML=`<p style="grid-column:1/-1;text-align:center;color:var(--neutral-500)">Belum ada berita.</p>`:(s.innerHTML=t.map(t=>`
     <div class="news-card">
       <div class="news-card-img">
-        <img src="${i(e.thumbnail_url||e.gambar_url||r.hero.berita)}" alt="${i(e.judul)}" loading="lazy" />
+        <img src="${i(t.thumbnail_url||t.gambar_url||e.hero.berita)}" alt="${i(t.judul)}" loading="lazy" />
       </div>
       <div class="news-card-body">
-        <span class="badge">${i(e.kategori)}</span>
-        <h3 class="news-card-title">${i(e.judul)}</h3>
-        <div class="news-card-date">${a(e.dibuat_pada)}</div>
-        <p class="news-card-excerpt">${i(o(e.isi))}</p>
+        <span class="badge">${i(t.kategori)}</span>
+        <h3 class="news-card-title">${i(t.judul)}</h3>
+        <div class="news-card-date">${a(t.dibuat_pada)}</div>
+        <p class="news-card-excerpt">${i(o(t.isi))}</p>
         <a href="#/berita" class="card-link">Baca selengkapnya <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a>
       </div>
     </div>
