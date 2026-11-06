@@ -1,4 +1,4 @@
-import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supabase-HBzNintJ.js";import{r}from"./photos-BW6EAMCN.js";import{escapeHtml as i,formatTanggal as a,ringkasan as o}from"./berita-Dmn36vJE.js";import{t as s}from"./home-stories-DIw_QJJ1.js";function c(){return`
+import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supabase-HBzNintJ.js";import{r}from"./photos-BW6EAMCN.js";import{escapeHtml as i,formatTanggal as a,ringkasan as o}from"./berita-CY7EKg91.js";import{t as s}from"./home-stories-DIw_QJJ1.js";function c(){return`
     <!-- HERO -->
     <section class="hero hero-left" id="hero">
       <div class="hero-bg" style="background-image: url('${r.hero.beranda}')"></div>
@@ -12,7 +12,7 @@ import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supa
         </p>
         <div class="btn-group">
           <a href="#/pendaftaran" class="btn btn-white">Daftar Sekarang</a>
-          <a href="#/program" class="btn btn-outline-white">Program Kami →</a>
+          <a href="#/jenjang" class="btn btn-outline-white">Lihat Jenjang →</a>
         </div>
       </div>
       <div class="hero-scroll">
@@ -82,10 +82,10 @@ import{a as e,o as t}from"./pondok-DvaK_7TO.js";import{supabase as n}from"./supa
           <p class="section-subtitle reveal reveal-delay-2">Empat program pendidikan yang mendampingi proses belajar dan pembinaan santri.</p>
         </div>
         <div class="grid-4 pondok-program-grid">
-          ${e.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p><a href="#/program" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a></article>`).join(``)}
+          ${e.map((e,t)=>`<article class="card reveal reveal-delay-${t}"><div class="card-icon"><i data-lucide="${e.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${e.title}</h3><p class="card-text">${e.description}</p><a href="#/jenjang" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a></article>`).join(``)}
         </div>
         <div style="text-align:center; margin-top: var(--space-2xl)" class="reveal">
-          <a href="#/program" class="btn btn-secondary">Lihat Semua Program →</a>
+          <a href="#/jenjang" class="btn btn-secondary">Lihat Jenjang Pendidikan →</a>
         </div>
       </div>
     </section>

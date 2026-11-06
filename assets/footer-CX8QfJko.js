@@ -1,4 +1,4 @@
-import{t as e}from"./social-icon-DVvdTUrg.js";import{n as t}from"./pondok-DvaK_7TO.js";function n(){return`
+import{t as e}from"./social-icon-CS2bHoaL.js";import{n as t}from"./pondok-DvaK_7TO.js";import{a as n}from"./pondok-settings-4G-4LMmH.js";function r(r={}){let i=n(r.tiktok);return`
     <footer class="footer">
       <div class="container">
         <div class="footer-grid">
@@ -16,7 +16,7 @@ import{t as e}from"./social-icon-DVvdTUrg.js";import{n as t}from"./pondok-DvaK_7
             <div class="footer-links">
               <a href="#/" class="footer-link">Beranda</a>
               <a href="#/tentang" class="footer-link">Tentang Kami</a>
-              <a href="#/program" class="footer-link">Program</a>
+              <a href="#/jenjang" class="footer-link">Jenjang</a>
               <a href="#/pendaftaran" class="footer-link">Pendaftaran</a>
               <a href="#/berita" class="footer-link">Berita</a>
               <a href="#/galeri" class="footer-link">Galeri</a>
@@ -55,6 +55,7 @@ import{t as e}from"./social-icon-DVvdTUrg.js";import{n as t}from"./pondok-DvaK_7
               <a href="https://youtube.com/@ppuan-nahl4784?si=iWzGJO98qyJwW8HN" class="footer-social-link" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
                 ${e(`youtube`)}
               </a>
+              ${i?`<a href="${i}" data-content-ignore class="footer-social-link" aria-label="TikTok" target="_blank" rel="noopener noreferrer">${e(`tiktok`)}</a>`:``}
             </div>
           </div>
         </div>
@@ -64,4 +65,4 @@ import{t as e}from"./social-icon-DVvdTUrg.js";import{n as t}from"./pondok-DvaK_7
         </div>
       </div>
     </footer>
-  `}export{n as Footer};
+  `}export{r as Footer};

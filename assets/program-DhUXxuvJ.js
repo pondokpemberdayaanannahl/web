@@ -1,13 +1,20 @@
-import{a as e,o as t,t as n}from"./pondok-DvaK_7TO.js";import{r}from"./photos-BW6EAMCN.js";function i(){return`
+import{a as e,o as t,t as n}from"./pondok-DvaK_7TO.js";import{n as r}from"./pondok-settings-4G-4LMmH.js";import{r as i}from"./photos-BW6EAMCN.js";function a(a={}){return`
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
-      <div class="hero-bg" style="background-image: url('${r.hero.program}')"></div>
+      <div class="hero-bg" style="background-image: url('${i.hero.program}')"></div>
       <div class="hero-overlay"></div>
       <div class="hero-pattern"></div>
       <div class="hero-content">
         <span class="section-label" style="color: var(--green-300)">PROGRAM</span>
-        <h1 style="font-size: 44px">Program Pesantren</h1>
+        <h1 style="font-size: 44px">Jenjang Pendidikan</h1>
         <p class="hero-subtitle">Kurikulum terpadu yang memadukan pendidikan agama, akademik, dan keterampilan hidup.</p>
+      </div>
+    </section>
+
+    <section class="section" data-content-key="education-levels">
+      <div class="container">
+        <div class="section-header"><span class="section-label">JENJANG</span><h2 class="section-title">Pilih jenjang pendidikan</h2></div>
+        <div data-content-ignore>${r(a.levels)}</div>
       </div>
     </section>
 
@@ -35,7 +42,7 @@ import{a as e,o as t,t as n}from"./pondok-DvaK_7TO.js";import{r}from"./photos-BW
     <section class="section" style="background:var(--neutral-50)">
       <div class="container"><div class="about-content">
         <div class="about-text"><span class="section-label reveal">PEMBINAAN SANTRI</span><h2 class="reveal reveal-delay-1">Tarbiyah Akhlak Islamiyah</h2><p class="reveal reveal-delay-2">Pembinaan akhlak menjadi bagian dari pendidikan pesantren, bersama tahfidz, madrasah muhadloroh, dan pendidikan formal SMP/SMA.</p><p class="reveal reveal-delay-3">Santri juga dapat mengembangkan minat dan keterampilan melalui kegiatan ekstrakurikuler pesantren.</p></div>
-        <div class="about-image reveal"><img src="${r.program.pemberdayaan}" alt="Kegiatan santri An-Nahl" loading="lazy" /></div>
+        <div class="about-image reveal"><img src="${i.program.pemberdayaan}" alt="Kegiatan santri An-Nahl" loading="lazy" /></div>
       </div></div>
     </section>
 
@@ -81,4 +88,4 @@ import{a as e,o as t,t as n}from"./pondok-DvaK_7TO.js";import{r}from"./photos-BW
         </div>
       </div>
     </section>
-  `}export{i as Program};
+  `}export{a as Program};

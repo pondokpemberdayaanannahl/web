@@ -1,7 +1,7 @@
-import{r as e}from"./photos-BW6EAMCN.js";function t(){return`
+import{t as e}from"./content-format-CtCzfUOR.js";import{r as t}from"./photos-BW6EAMCN.js";var n=[{id:`founder`,name:`KH. Muhammad Ridwan, Lc., M.A.`,role:`Pengasuh & Pendiri`,image:t.tentang.pengasuh,bio:`Lulusan Universitas Al-Azhar, Kairo. Hafidz 30 juz bersanad. Berpengalaman lebih dari 20 tahun dalam pendidikan Islam dan pemberdayaan masyarakat. Aktif sebagai dai dan motivator pendidikan Islam di tingkat nasional.`}];function r(){return`
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
-      <div class="hero-bg" style="background-image: url('${e.hero.tentang}')"></div>
+      <div class="hero-bg" style="background-image: url('${t.hero.tentang}')"></div>
       <div class="hero-overlay"></div>
       <div class="hero-pattern"></div>
       <div class="hero-content">
@@ -44,7 +44,7 @@ import{r as e}from"./photos-BW6EAMCN.js";function t(){return`
             </div>
           </div>
           <div class="about-image reveal">
-            <img src="${e.tentang.visi}" alt="Visi Misi Pesantren" loading="lazy" />
+            <img src="${t.tentang.visi}" alt="Visi Misi Pesantren" loading="lazy" />
           </div>
         </div>
       </div>
@@ -73,21 +73,21 @@ import{r as e}from"./photos-BW6EAMCN.js";function t(){return`
 
     <!-- Profil Pengasuh -->
     <section class="section" style="background: var(--neutral-50)">
-      <div class="container">
+      <div class="container leadership-grid">
         <div class="section-header">
           <span class="section-label reveal">PENGASUH</span>
           <h2 class="section-title reveal reveal-delay-1">Profil Pimpinan Pesantren</h2>
         </div>
-        <div style="max-width: 600px; margin: 0 auto; text-align: center" class="reveal reveal-delay-2">
+        ${n.map(t=>`<div class="leadership-card reveal reveal-delay-2">
           <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 0 auto var(--space-lg); box-shadow: var(--shadow-lg)">
-            <img data-fixed-photo="founder" src="${e.tentang.pengasuh}" alt="KH. Muhammad Ridwan" style="width:100%; height:100%; object-fit:cover" loading="lazy" />
+            <img data-fixed-photo="${e(t.id)}" src="${e(t.image)}" alt="${e(t.name)}" style="width:100%; height:100%; object-fit:cover" loading="lazy" />
           </div>
-          <h3 style="font-family: var(--font-heading); font-size: 28px; margin-bottom: var(--space-sm)">KH. Muhammad Ridwan, Lc., M.A.</h3>
-          <span class="badge" style="margin-bottom: var(--space-lg)">Pengasuh & Pendiri</span>
+          <h3 style="font-family: var(--font-heading); font-size: 28px; margin-bottom: var(--space-sm)">${e(t.name)}</h3>
+          <span class="badge" style="margin-bottom: var(--space-lg)">${e(t.role)}</span>
           <p style="color: var(--neutral-700)">
-            Lulusan Universitas Al-Azhar, Kairo. Hafidz 30 juz bersanad. Berpengalaman lebih dari 20 tahun dalam pendidikan Islam dan pemberdayaan masyarakat. Aktif sebagai dai dan motivator pendidikan Islam di tingkat nasional.
+            ${e(t.bio)}
           </p>
-        </div>
+        </div>`).join(``)}
       </div>
     </section>
 
@@ -130,4 +130,4 @@ import{r as e}from"./photos-BW6EAMCN.js";function t(){return`
         </div>
       </div>
     </section>
-  `}export{t as Tentang};
+  `}export{r as Tentang};

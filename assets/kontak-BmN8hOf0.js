@@ -1,7 +1,7 @@
-import{t as e}from"./social-icon-DVvdTUrg.js";import{i as t,n,r}from"./pondok-DvaK_7TO.js";import{r as i}from"./photos-BW6EAMCN.js";import{t as a}from"./form-submission-Dtxuh8WK.js";function o(){return`
+import{t as e}from"./social-icon-CS2bHoaL.js";import{i as t,n,r}from"./pondok-DvaK_7TO.js";import{a as i}from"./pondok-settings-4G-4LMmH.js";import{r as a}from"./photos-BW6EAMCN.js";import{t as o}from"./form-submission-BZ3L4Rau.js";function s(o={}){let s=i(o.tiktok);return`
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
-      <div class="hero-bg" style="background-image: url('${i.hero.kontak}')"></div>
+      <div class="hero-bg" style="background-image: url('${a.hero.kontak}')"></div>
       <div class="hero-overlay"></div>
       <div class="hero-pattern"></div>
       <div class="hero-content">
@@ -81,6 +81,7 @@ import{t as e}from"./social-icon-DVvdTUrg.js";import{i as t,n,r}from"./pondok-Dv
                 <a href="https://youtube.com/@ppuan-nahl4784?si=iWzGJO98qyJwW8HN" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--green-50);color:var(--green-700);transition:all 0.3s ease" onmouseover="this.style.background='var(--green-800)';this.style.color='white'" onmouseout="this.style.background='var(--green-50)';this.style.color='var(--green-700)'" target="_blank" rel="noopener noreferrer" aria-label="youtube">
                   ${e(`youtube`)}
                 </a>
+                ${s?`<a href="${s}" data-content-ignore class="contact-social-link" aria-label="TikTok" target="_blank" rel="noopener noreferrer">${e(`tiktok`)}</a>`:``}
               </div>
             </div>
           </div>
@@ -152,4 +153,4 @@ import{t as e}from"./social-icon-DVvdTUrg.js";import{i as t,n,r}from"./pondok-Dv
         <div class="contact-map-link"><a href="${t}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">Buka di Google Maps →</a></div>
       </div>
     </section>
-  `}window.initKontak=function(){a(document.getElementById(`contact-form`),`kontak`,()=>({nama:document.getElementById(`contact-name`).value.trim(),email:document.getElementById(`contact-email`).value.trim(),telepon:document.getElementById(`contact-phone`).value.trim(),subjek:document.getElementById(`contact-subject`).value,pesan:document.getElementById(`contact-message`).value.trim()}),`Pesan diterima. Pengurus akan merespons melalui kontak yang Anda cantumkan.`)};export{o as Kontak};
+  `}window.initKontak=function(){o(document.getElementById(`contact-form`),`kontak`,()=>({nama:document.getElementById(`contact-name`).value.trim(),email:document.getElementById(`contact-email`).value.trim(),telepon:document.getElementById(`contact-phone`).value.trim(),subjek:document.getElementById(`contact-subject`).value,pesan:document.getElementById(`contact-message`).value.trim()}),`Pesan diterima. Pengurus akan merespons melalui kontak yang Anda cantumkan.`)};export{s as Kontak};
