@@ -16,6 +16,15 @@ if (process.argv.includes('--env')) {
   } else if (!key.startsWith('sb_publishable_')) {
     fail('Gunakan anon key atau publishable key Supabase yang valid.');
   }
+  const picker = [
+    process.env.VITE_GOOGLE_PICKER_CLIENT_ID,
+    process.env.VITE_GOOGLE_PICKER_API_KEY,
+    process.env.VITE_GOOGLE_PICKER_APP_ID,
+  ];
+  if (picker.some(Boolean)) {
+    if (!picker.every(Boolean)) fail('Isi ketiga repository Variables Google Picker, atau kosongkan semuanya.');
+    if (!picker[0].endsWith('.apps.googleusercontent.com') || !/^AIza[A-Za-z0-9_-]+$/.test(picker[1]) || !/^\d+$/.test(picker[2])) fail('Konfigurasi publik Google Picker belum sesuai. Periksa Client ID, API key, dan nomor proyek.');
+  }
   console.log('Konfigurasi publik Supabase tersedia. Nilai kunci tidak ditampilkan.');
 } else {
   const root = resolve(process.argv[2] || 'dist');

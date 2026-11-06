@@ -20,16 +20,21 @@ try {
     $tag = annahl_ip_tag($config, $_SERVER);
     if ($method === 'GET') {
         annahl_rate($config, $tag, 'token', 120);
-        echo json_encode(['ok'=>true, 'token'=>annahl_token($config, $tag)], JSON_THROW_ON_ERROR);
+        $extra = ($_GET['kind'] ?? '') === 'pendaftaran' ? ['registration'=>annahl_registration_status(annahl_registration_settings($config))] : [];
+        echo json_encode(['ok'=>true, 'token'=>annahl_token($config, $tag)] + $extra, JSON_THROW_ON_ERROR);
     } else {
-        if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 7 * 1024 * 1024 || stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) annahl_fail(413, 'Total kiriman terlalu besar atau format tidak sesuai.');
-        $body = file_get_contents('php://input', false, null, 0, 7 * 1024 * 1024 + 1);
-        if ($body === false || strlen($body) > 7 * 1024 * 1024) annahl_fail(413, 'Total kiriman terlalu besar.');
+        if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) > ANNAHL_BODY_LIMIT || stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) annahl_fail(413, 'Total kiriman terlalu besar atau format tidak sesuai.');
+        $body = file_get_contents('php://input', false, null, 0, ANNAHL_BODY_LIMIT + 1);
+        if ($body === false || strlen($body) > ANNAHL_BODY_LIMIT) annahl_fail(413, 'Total kiriman terlalu besar.');
         try { $input = json_decode($body, true, 20, JSON_THROW_ON_ERROR); } catch (JsonException) { annahl_fail(422, 'Format formulir tidak valid.'); }
         if (!is_array($input) || ($input['website'] ?? '') !== '') annahl_fail(422, 'Formulir tidak dapat diproses.');
         annahl_check_token($config, $tag, $input['token'] ?? null);
         annahl_rate($config, $tag, 'submit', $config['submissions_per_hour'] ?? 30);
-        $record = annahl_submission($input);
+        unset($body);
+        $settings = ($input['kind'] ?? '') === 'pendaftaran' ? annahl_registration_settings($config) : null;
+        $record = annahl_submission($input, $settings);
+        unset($input);
+        if ($settings !== null) annahl_require_open($settings);
         echo json_encode(annahl_forward($config, $record), JSON_THROW_ON_ERROR);
     }
 } catch (AnnahlFormError $error) {

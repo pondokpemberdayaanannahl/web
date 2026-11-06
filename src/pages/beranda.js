@@ -23,7 +23,7 @@ export function Beranda() {
         </p>
         <div class="btn-group">
           <a href="#/pendaftaran" class="btn btn-white">Daftar Sekarang</a>
-          <a href="#/program" class="btn btn-outline-white">Program Kami →</a>
+          <a href="#/jenjang" class="btn btn-outline-white">Lihat Jenjang →</a>
         </div>
       </div>
       <div class="hero-scroll">
@@ -93,10 +93,10 @@ export function Beranda() {
           <p class="section-subtitle reveal reveal-delay-2">Empat program pendidikan yang mendampingi proses belajar dan pembinaan santri.</p>
         </div>
         <div class="grid-4 pondok-program-grid">
-          ${programPesantren.map((program,i) => `<article class="card reveal reveal-delay-${i}"><div class="card-icon"><i data-lucide="${program.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${program.title}</h3><p class="card-text">${program.description}</p><a href="#/program" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a></article>`).join('')}
+          ${programPesantren.map((program,i) => `<article class="card reveal reveal-delay-${i}"><div class="card-icon"><i data-lucide="${program.icon}" style="width:28px;height:28px"></i></div><h3 class="card-title">${program.title}</h3><p class="card-text">${program.description}</p><a href="#/jenjang" class="card-link">Pelajari lebih lanjut <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a></article>`).join('')}
         </div>
         <div style="text-align:center; margin-top: var(--space-2xl)" class="reveal">
-          <a href="#/program" class="btn btn-secondary">Lihat Semua Program →</a>
+          <a href="#/jenjang" class="btn btn-secondary">Lihat Jenjang Pendidikan →</a>
         </div>
       </div>
     </section>

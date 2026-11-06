@@ -19,14 +19,20 @@ $normalized = annahl_submission($donation);
 verify(!isset($normalized['payload']['unknown']),'Unlisted fields must not leave hosting');
 rejected(fn()=>annahl_submission(array_replace_recursive($donation,['payload'=>['jumlah'=>'0']])),422);
 rejected(fn()=>annahl_submission(array_replace($donation,['kind'=>'kontak'])),422);
-$registration = ['id'=>$donation['id'],'kind'=>'pendaftaran','payload'=>['nama'=>'Data Uji','tempatLahir'=>'Bandung','tanggalLahir'=>'2012-01-01','jenisKelamin'=>'Laki-laki','asalSekolah'=>'Sekolah Uji','program'=>"Tahfidz Al-Qur'an",'namaWali'=>'Wali Uji','noWA'=>'000000000000','email'=>'uji@example.invalid','alamat'=>'Data rekaan']];
-verify(annahl_submission($registration)['payload']['noWA']==='000000000000','Phone stays text');
-foreach(['Program Tahfidz Quran','Pendidikan Madrasah Muhadloroh','Pendidikan Formal (SMP/SMA)','Tarbiyah Akhlak Islamiyah'] as $program) {
-    verify(annahl_submission(array_replace_recursive($registration,['payload'=>['program'=>$program]]))['payload']['program']===$program,'New registration program accepted');
-}
-rejected(fn()=>annahl_submission(array_replace_recursive($registration,['payload'=>['program'=>'Program tidak tersedia']])),422);
-rejected(fn()=>annahl_submission(array_replace_recursive($registration,['payload'=>['tanggalLahir'=>'2012-02-31']])),422);
-rejected(fn()=>annahl_submission(array_replace_recursive($registration,['payload'=>['email'=>'invalid']])),422);
+$registration = ['id'=>$donation['id'],'kind'=>'pendaftaran','payload'=>['nama'=>'Data Uji','tempatLahir'=>'Bandung','tanggalLahir'=>'2012-01-01','jenisKelamin'=>'Laki-laki','asalSekolah'=>'Sekolah Uji','jenjang'=>'Jenjang Uji','namaWali'=>'Wali Uji','noWA'=>'000000000000','email'=>'uji@example.invalid','alamat'=>'Data rekaan']];
+$settings = ['opens_on'=>'2020-01-01','closes_on'=>'2099-12-31','levels'=>[['title'=>'Jenjang Uji','description'=>'']]];
+verify(annahl_submission($registration,$settings)['payload']['noWA']==='000000000000','Phone stays text');
+verify(annahl_submission($registration,$settings)['payload']['jenjang']==='Jenjang Uji','Published registration level is accepted');
+rejected(fn()=>annahl_submission($registration),503);
+rejected(fn()=>annahl_submission(array_replace_recursive($registration,['payload'=>['jenjang'=>'Jenjang tidak tersedia']]),$settings),422);
+rejected(fn()=>annahl_submission(array_replace_recursive($registration,['payload'=>['tanggalLahir'=>'2012-02-31']]),$settings),422);
+rejected(fn()=>annahl_submission(array_replace_recursive($registration,['payload'=>['email'=>'invalid']]),$settings),422);
+$oneDay = array_replace($settings,['opens_on'=>'2026-11-04','closes_on'=>'2026-11-04']);
+rejected(fn()=>annahl_require_open($oneDay,strtotime('2026-11-03T23:59:59+07:00')),409);
+annahl_require_open($oneDay,strtotime('2026-11-04T00:00:00+07:00'));
+annahl_require_open($oneDay,strtotime('2026-11-04T23:59:59+07:00'));
+verify(true,'Both opening and final second are inclusive in WIB');
+rejected(fn()=>annahl_require_open($oneDay,strtotime('2026-11-05T00:00:00+07:00')),409);
 
 $pdf = '%PDF-1.4 data uji';
 $file = ['name'=>'uji.pdf','data'=>base64_encode($pdf)];
@@ -34,8 +40,9 @@ verify(annahl_files([$file])[0]['sha256']===hash('sha256',$pdf),'File hash and b
 rejected(fn()=>annahl_files([['name'=>'uji.pdf','data'=>base64_encode('<?php echo 1;')]]),422);
 rejected(fn()=>annahl_files([['name'=>'uji.exe','data'=>base64_encode($pdf)]]),422);
 rejected(fn()=>annahl_files(array_fill(0,4,$file)),422);
-rejected(fn()=>annahl_files([['name'=>'uji.pdf','data'=>base64_encode(str_repeat('x',2097153))]]),422);
-$bigPdf = ['name'=>'uji.pdf','data'=>base64_encode('%PDF-'.str_repeat('x',2097147))];
+rejected(fn()=>annahl_files([['name'=>'uji.pdf','data'=>base64_encode(str_repeat('x',ANNAHL_FILE_LIMIT + 1))]]),422);
+$bigPdf = ['name'=>'uji.pdf','data'=>base64_encode('%PDF-'.str_repeat('x',6 * 1024 * 1024 - 5))];
+verify(count(annahl_files([$bigPdf,$bigPdf])) === 2,'Larger attachments below the combined cap accepted');
 rejected(fn()=>annahl_files([$bigPdf,$bigPdf,$bigPdf]),422);
 $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=');
 verify(annahl_files([['name'=>'uji.png','data'=>base64_encode($png)]])[0]['mime']==='image/png','PNG is sniffed');

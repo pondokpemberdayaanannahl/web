@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-05",
+  "projectId": "annahl-website-media-2026",
+  "projectName": "An-Nahl Website Media",
+  "account": "pondokpemberdayaanannahl@gmail.com",
+  "driveApi": "enabled",
+  "pickerApi": "awaiting-terms-confirmation",
+  "oauthBranding": "filled-not-submitted",
+  "oauthAppName": "An-Nahl Website",
+  "audience": "External testing",
+  "credentialsCreated": false,
+  "pendingApproval": [
+    "Google API terms and user data policy",
+    "restricted browser API key",
+    "web OAuth client for pondok domain and localhost",
+    "Drive readonly scope and pondok test user"
+  ],
+  "tabs": {
+    "picker": "1",
+    "oauth": "2",
+    "credentials": "3"
+  }
+}

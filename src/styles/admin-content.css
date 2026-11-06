@@ -55,3 +55,9 @@
 .cms-editor-dialog .dialog-footer { flex-wrap:wrap; }
 .cms-editor-dialog .dialog-footer>p { flex:1 1 190px; }
 .cms-editor-dialog .dialog-footer>.button { flex-shrink:0; }
+.google-drive-connect { width: min(480px, calc(100% - 24px)); }
+.google-drive-connect .dialog-header h2 { font: 600 22px/1.3 var(--serif); }
+.google-drive-connect-body { padding: 22px; }
+.google-drive-connect-body > p { font-size: 14px; color: var(--muted); line-height: 1.65; }
+.google-drive-connect [data-google-status] { min-height: 24px; margin: 16px 0; }
+.google-drive-connect [data-google-open] { width: 100%; }

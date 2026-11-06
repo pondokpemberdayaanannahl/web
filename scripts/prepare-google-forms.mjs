@@ -1,6 +1,7 @@
 // Local setup only. Generates private PHP configuration without printing secrets.
 import { readFileSync,writeFileSync,mkdirSync,existsSync,copyFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { loadEnv } from 'vite';
 const owner='pondokpemberdayaanannahl@gmail.com', sheet='1GJJDb0AEv4a3yugzQpv2hMhU1ke9g_zIbsNGQMNlmg8';
 const source=JSON.parse(readFileSync('.backend-backups/sheets-sync/script-properties.json','utf8'));
 if(source.ANNAHL_SPREADSHEET_ID!==sheet || !/^[a-f0-9]{64}$/.test(source.ANNAHL_SHEETS_SECRET||'')) throw new Error('Konfigurasi Google pondok belum valid.');
@@ -10,9 +11,12 @@ const previous=existsSync(metadataFile)?JSON.parse(readFileSync(metadataFile,'ut
 const url=process.argv[2]||previous.appsScriptUrl||'';
 if(url&&!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)) throw new Error('Gunakan URL deployment Google berakhiran /exec.');
 const origins=['https://pondokpesantrenpemberdayaanummatannahl.com','https://www.pondokpesantrenpemberdayaanummatannahl.com'];
+const frontend=loadEnv('production',process.cwd(),'VITE_SUPABASE_');
 const quote=value=>"'"+value.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'";
 function configuration(allowedOrigins) {
-  const json=JSON.stringify({apps_script_url:url,shared_secret:source.ANNAHL_SHEETS_SECRET,allowed_origins:allowedOrigins,submissions_per_hour:30});
+  const json=JSON.stringify({apps_script_url:url,shared_secret:source.ANNAHL_SHEETS_SECRET,
+    supabase_url:frontend.VITE_SUPABASE_URL || '',supabase_anon_key:frontend.VITE_SUPABASE_ANON_KEY || '',
+    allowed_origins:allowedOrigins,submissions_per_hour:30});
   return `<?php\n// Private configuration. Keep OUTSIDE public_html.\n$settings = json_decode(${quote(json)}, true, 512, JSON_THROW_ON_ERROR);\n$settings['rate_limit_directory'] = __DIR__ . '/rate-limits';\nreturn $settings;\n`;
 }
 const privateHost=resolve(folder,'hostinger-private');mkdirSync(privateHost,{recursive:true});

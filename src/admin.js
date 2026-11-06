@@ -4,8 +4,9 @@ import { draftKey, saveDraft, readDraft, optimizeImage } from './editor-tools.js
 import { loadPhotoLibrary, filterPhotoLibrary, LIBRARY_PAGE_SIZE } from './photo-library.js';
 import { readAuthFlow } from './auth-flow.js';
 import { demoEnabled, demoUser, backendConfigured, getClient, authorizedUser, loginPath } from './admin-session.js';
-import { RECAP_URL, getGoogleFormToken } from './google-forms.js';
+import { RECAP_URL, getGoogleFormToken, getRegistrationStatus } from './google-forms.js';
 import './styles/admin-content.css';
+import './styles/admin-dashboard.css';
 import { selectDrivePhoto } from './drive-picker.js';
 
 const $ = id => document.getElementById(id);
@@ -27,8 +28,9 @@ let historyRows = [], historyTarget = null;
 let inboxPage = 1, inboxCount = 0, inboxRequest = 0;
 let libraryRows = [], filteredLibrary = [], libraryImageIndex = -1, librarySearchTimer;
 let websiteManager = null, websiteManagerLoading = null, requestedSitePage = null;
-const labels = { overview: 'Ringkasan', berita: 'Postingan berita', galeri: 'Galeri', halaman: 'Isi website', pendaftaran: 'Pendaftaran', program: 'Program', donasi: 'Donasi', kontak: 'Pesan masuk' };
-const categories = { berita: ['Akademik', 'Keagamaan', 'Sosial', 'Pengumuman'], foto: ['Akademik', 'Ibadah', 'Acara', 'Fasilitas'], video: ['Profil', 'Acara', 'Kegiatan'] };
+let settingsMount = null;
+const labels = { overview: 'Ringkasan', berita: 'Postingan berita', galeri: 'Galeri', halaman: 'Isi website', pendaftaran: 'Rekap pendaftaran', pengaturan: 'Pengaturan', donasi: 'Rekap donasi', kontak: 'Pesan masuk' };
+const categories = { berita: ['Akademik', 'Keagamaan', 'Sosial', 'Pengumuman', 'Ekskul'], foto: ['Akademik', 'Ibadah', 'Acara', 'Fasilitas'], video: ['Profil', 'Acara', 'Kegiatan'] };
 
 function toast(message, error = false) {
   clearTimeout(toastTimer);
@@ -40,7 +42,10 @@ function toast(message, error = false) {
 function empty(title, description, action = '') {
   return `<div class="empty-state"><span aria-hidden="true">◇</span><h3>${escape(title)}</h3><p>${escape(description)}</p>${action}</div>`;
 }
-function loading(id) { $(id).innerHTML = empty('Memuat konten…', 'Sebentar, cerita sedang disiapkan.'); }
+function loading(id, retainContent = false) {
+  const list = $(id);
+  if (!retainContent || !list.innerHTML) list.innerHTML = empty('Memuat konten…', 'Sebentar, cerita sedang disiapkan.');
+}
 function failure(id) { $(id).innerHTML = empty('Konten belum dapat dimuat.', 'Periksa koneksi lalu coba lagi.', '<button class="button secondary compact" data-action="refresh">Coba lagi</button>'); }
 function cover(row, className = 'row-cover', fullSize = false) {
   const full = safeImage(row.gambar_url), thumbnail = safeImage(row.thumbnail_url);
@@ -63,6 +68,9 @@ function mediaCard(row) {
   const image = mediaType === 'video' ? { ...row, gambar_url: thumbnail } : row;
   return `<div class="media-card">${cover(image, 'media-cover')}<div class="media-info"><span class="category">${escape(row.kategori)}</span><h3>${escape(row.judul)}</h3><div class="row-actions"><button class="row-action" data-edit="${escape(row.id)}" data-type="${mediaType}" aria-label="Edit ${escape(row.judul)}">Edit</button><button class="row-action danger" data-delete="${escape(row.id)}" data-type="${mediaType}" aria-label="Hapus ${escape(row.judul)}">Hapus</button></div></div></div>`;
 }
+function summaryRow(row) {
+  return `<article class="recent-post">${cover(row)}<div><h3>${escape(row.judul)}</h3><p>${escape(row.kategori)} · ${formatDate(row.updated_at || row.dibuat_pada)}</p></div><button class="row-action" data-view="${escape(row.id)}" data-type="berita" aria-label="Lihat ${escape(row.judul)}">Lihat <span aria-hidden="true">↗</span></button></article>`;
+}
 function pagination(prefix, page, count, pageSize = PAGE_SIZE) {
   const pages = Math.max(1, Math.ceil(count / pageSize));
   $(`${prefix}-page-info`).textContent = count ? `Halaman ${page} dari ${pages} · ${count} konten` : 'Belum ada konten';
@@ -72,7 +80,7 @@ function pagination(prefix, page, count, pageSize = PAGE_SIZE) {
 async function loadSummary() {
   if (!store) return;
   const source = store, request = ++summaryRequest;
-  loading('recent-news');
+  loading('recent-news', true);
   const [counts, recent] = await Promise.allSettled([source.counts(), source.list('berita', { limit: 4, status: 'published' })]);
   if (store !== source || request !== summaryRequest) return;
   if (counts.status === 'fulfilled') {
@@ -84,35 +92,53 @@ async function loadSummary() {
     for (const id of ['stat-news', 'stat-photos', 'stat-videos']) $(id).textContent = '—';
     toast('Ringkasan belum dapat dimuat. Coba muat ulang.', true);
   }
-  if (recent.status === 'fulfilled') $('recent-news').innerHTML = recent.value.data.map(row => newsRow(row, true)).join('') || empty('Cerita pertama menanti.', 'Mulai bagikan kabar baik dari pesantren.', '<button class="button compact" data-action="new-news">Tulis berita</button>');
+  if (recent.status === 'fulfilled') $('recent-news').innerHTML = recent.value.data.map(summaryRow).join('') || empty('Cerita pertama menanti.', 'Mulai bagikan kabar baik dari pesantren.', '<button class="button compact" data-action="new-news">Buat postingan</button>');
   else failure('recent-news');
 }
 async function loadNews() {
   if (!store) return;
   const source = store, request = ++newsRequest;
   $('news-prev').disabled = $('news-next').disabled = true;
-  loading('daftar-berita');
+  $('news-page-info').textContent = 'Memuat berita…';
+  const list = $('daftar-berita');
+  list.setAttribute('aria-busy', 'true');
+  list.inert = true;
+  loading('daftar-berita', true);
   try {
     const result = await source.list('berita', { search: $('news-search').value.trim(), category: $('news-filter').value, status: $('news-status').value, page: newsPage });
     if (source !== store || request !== newsRequest) return;
     newsCount = result.count || 0;
     if (newsPage > 1 && !result.data.length) { newsPage = Math.max(1, Math.ceil(newsCount / PAGE_SIZE)); return loadNews(); }
-    $('daftar-berita').innerHTML = result.data.map(row => newsRow(row)).join('') || empty('Belum ada cerita di sini.', 'Coba kata kunci lain atau buat berita baru.', '<button class="button compact" data-action="new-news">Tulis berita</button>');
+    list.innerHTML = result.data.map(row => newsRow(row)).join('') || empty('Belum ada cerita di sini.', 'Coba kata kunci lain atau buat berita baru.', '<button class="button compact" data-action="new-news">Buat postingan</button>');
     pagination('news', newsPage, newsCount);
   } catch { if (source === store && request === newsRequest) { failure('daftar-berita'); $('news-page-info').textContent = 'Gagal memuat'; } }
+  finally {
+    if (source === store && request === newsRequest) {
+      list.removeAttribute('aria-busy');
+      list.inert = false;
+    }
+  }
 }
 async function loadMedia() {
   if (!store) return;
   const source = store, type = mediaType, request = ++mediaRequest;
   $('media-prev').disabled = $('media-next').disabled = true;
-  loading('media-list');
+  $('media-page-info').textContent = 'Memuat galeri…';
+  const list = $('media-list');
+  list.setAttribute('aria-busy', 'true');
+  list.inert = true;
+  loading('media-list', list.dataset.type === type);
+  list.dataset.type = type;
   try {
     if (type === 'library') {
-      libraryRows = await loadPhotoLibrary();
+      const rows = await loadPhotoLibrary();
       if (source !== store || request !== mediaRequest) return;
       const folder = $('library-folder').value;
-      $('library-folder').innerHTML = '<option value="">Semua folder</option>' + [...new Set(libraryRows.map(row => row.folder))].sort((a, b) => a.localeCompare(b, 'id')).map(value => `<option value="${escape(value)}">${escape(value)}</option>`).join('');
-      $('library-folder').value = folder;
+      if (rows !== libraryRows) {
+        libraryRows = rows;
+        $('library-folder').innerHTML = '<option value="">Semua folder</option>' + [...new Set(rows.map(row => row.folder))].sort((a, b) => a.localeCompare(b, 'id')).map(value => `<option value="${escape(value)}">${escape(value)}</option>`).join('');
+        $('library-folder').value = folder;
+      }
       filteredLibrary = filterPhotoLibrary(libraryRows, $('library-search').value, folder, $('library-sort').value || 'folder');
       mediaCount = filteredLibrary.length;
       mediaPage = Math.min(mediaPage, Math.max(1, Math.ceil(mediaCount / LIBRARY_PAGE_SIZE)));
@@ -130,8 +156,15 @@ async function loadMedia() {
     $('media-list').innerHTML = result.data.length ? `<div class="media-grid">${result.data.map(mediaCard).join('')}</div>` : empty(`Belum ada ${type}.`, `Tambahkan dokumentasi ${type} kegiatan pesantren.`, '<button class="button compact" data-action="new-media">Tambah dokumentasi</button>');
     pagination('media', mediaPage, mediaCount);
   } catch { if (source === store && request === mediaRequest) { failure('media-list'); $('media-page-info').textContent = 'Gagal memuat'; } }
+  finally {
+    if (source === store && request === mediaRequest) {
+      list.removeAttribute('aria-busy');
+      list.inert = false;
+    }
+  }
 }
 function setMedia(type) {
+  if (type !== mediaType) $('media-count').textContent = '';
   mediaType = type;
   mediaPage = 1;
   for (const kind of ['library', 'foto', 'video']) { $(`tab-${kind}`).classList.toggle('selected', type === kind); $(`tab-${kind}`).setAttribute('aria-pressed', String(type === kind)); }
@@ -141,15 +174,18 @@ function setMedia(type) {
 function navigate(panel, focus = true) {
   if (panel === 'program') { requestedSitePage = 'program'; panel = 'halaman'; }
   if (!store || !labels[panel]) return;
+  if (panel === 'pengaturan' && currentRole !== 'admin') return;
   if (currentPanel === 'halaman' && panel !== 'halaman' && websiteManager?.dirty && !confirm('Ada perubahan halaman yang belum diterbitkan. Pindah menu? Teks tetap tersimpan di perangkat ini.')) return;
-  if (currentPanel !== panel) inboxPage = 1;
+  const changedPanel = currentPanel !== panel;
+  if (changedPanel) inboxPage = 1;
   currentPanel = panel;
   document.querySelectorAll('#admin-nav [data-panel]').forEach(button => {
     const active = button.dataset.panel === panel;
     button.classList.toggle('active', active);
     if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
   });
-  for (const id of ['overview', 'berita', 'galeri', 'halaman', 'upcoming']) $(`panel-${id}`).hidden = id !== (['overview', 'berita', 'galeri', 'halaman'].includes(panel) ? panel : 'upcoming');
+  const pages = ['overview', 'berita', 'galeri', 'halaman', 'pengaturan'];
+  for (const id of [...pages, 'upcoming']) $(`panel-${id}`).hidden = id !== (pages.includes(panel) ? panel : 'upcoming');
   $('breadcrumb-current').textContent = labels[panel];
   $('submission-surface').hidden = true;
   $('upcoming-card').hidden = false;
@@ -158,13 +194,28 @@ function navigate(panel, focus = true) {
   else if (panel === 'berita') loadNews();
   else if (panel === 'galeri') loadMedia();
   else if (panel === 'halaman') loadWebsiteManager();
+  else if (panel === 'pengaturan') {
+    const host = $('panel-pengaturan'), source = store;
+    if (!settingsMount) settingsMount = Promise.all([import('./pondok-settings-admin.js'), isDemo ? null : getClient()])
+      .then(([{ mountPondokSettings }, client]) => {
+        if (source === store) return mountPondokSettings({ host, client, demo: isDemo, notify: toast });
+      })
+      .catch(() => { if (source === store) { settingsMount = null; toast('Pengaturan belum dapat dibuka. Coba lagi.', true); } });
+  }
   else {
     $('upcoming-title').textContent = labels[panel];
     if (['pendaftaran', 'kontak', 'donasi'].includes(panel) && currentRole === 'admin') { $('upcoming-card').hidden = true; $('submission-surface').hidden = false; loadInbox(); }
     else $('upcoming-description').textContent = panel === 'program' ? 'Informasi program masih dikelola melalui halaman website.' : 'Kotak masuk berisi data pribadi dan hanya dapat dibuka oleh admin pondok.';
   }
-  if (focus) $('workspace-main').focus({ preventScroll: true });
+  if (focus) {
+    $('workspace-main').focus({ preventScroll: true });
+    if (changedPanel) window.scrollTo?.({ top: 0, behavior: 'instant' });
+  }
 }
+$('jump-to-menu').addEventListener('click', () => {
+  document.querySelector('#admin-nav [aria-current="page"]')?.focus({ preventScroll: true });
+  window.scrollTo({ top: 0, behavior: 'instant' });
+});
 async function loadWebsiteManager() {
   if (currentRole !== 'admin') { $('website-manager').innerHTML = empty('Khusus admin pondok.', 'Penulis dapat menyiapkan postingan melalui menu Berita.'); return; }
   if (websiteManager) { if (requestedSitePage) { const page = requestedSitePage; requestedSitePage = null; websiteManager.open(page); } return; }
@@ -240,7 +291,7 @@ function updateCounters() {
   $('title-count').textContent = `${$('judul').value.length}/180`;
   $('word-count').textContent = `${$('isi').value.trim().split(/\s+/).filter(Boolean).length} kata`;
 }
-function openEditor(type = 'berita', row = null) {
+function openEditor(type = 'berita', row = null, preset = '') {
   editorType = type; editedRow = row; dirty = false;
   $('editor-form').reset(); resetPreview();
   processedImage = null; driveSelection = null; imageProcessing = false; ++imageSequence;
@@ -248,11 +299,14 @@ function openEditor(type = 'berita', row = null) {
   activeDraftKey = type === 'berita' ? draftKey(currentUser, isDemo, row?.id) : '';
   draftStored = false; $('autosave-status').textContent = '';
   $('editor-message').textContent = '';
-  $('editor-title').textContent = `${row ? 'Edit' : type === 'berita' ? 'Tulis' : 'Tambah'} ${type}`;
-  $('save-btn').textContent = type === 'berita' ? currentRole === 'admin' ? 'Terbitkan berita' : 'Simpan draft' : `Simpan ${type}`;
+  $('editor-message').dataset.state = '';
+  $('editor-title').textContent = type === 'berita' ? row ? 'Edit postingan' : 'Buat postingan' : `${row ? 'Edit' : 'Tambah'} ${type}`;
+  $('editor-dialog').dataset.editorType = type;
+  $('save-btn').textContent = type === 'berita' ? currentRole === 'admin' ? 'Terbitkan' : 'Simpan draft' : `Simpan ${type}`;
   $('draft-btn').hidden = type !== 'berita' || currentRole !== 'admin';
   $('caption-field').hidden = type === 'video';
   $('kategori').innerHTML = categories[type].map(category => `<option>${category}</option>`).join('');
+  if (preset) $('kategori').value = preset;
   $('body-field').hidden = type !== 'berita';
   $('isi').disabled = type !== 'berita'; $('isi').required = type === 'berita';
   $('image-field').hidden = type === 'video'; $('gambar').disabled = type === 'video';
@@ -280,6 +334,7 @@ function openEditor(type = 'berita', row = null) {
   }
   updateCounters();
   $('editor-dialog').showModal();
+  $('editor-dialog').scrollTop = 0;
 }
 function closeEditor() {
   if (saving) return;
@@ -288,7 +343,10 @@ function closeEditor() {
   $('editor-dialog').close();
 }
 $('editor-dialog').addEventListener('cancel', event => { event.preventDefault(); closeEditor(); });
-$('editor-dialog').addEventListener('close', () => { clearTimeout(draftTimer); ++imageSequence; dirty = false; resetPreview(); processedImage = null; });
+$('editor-dialog').addEventListener('close', () => {
+  if ($('editor-dialog').dataset.drivePickerSuspended === 'true') return;
+  clearTimeout(draftTimer); ++imageSequence; dirty = false; resetPreview(); processedImage = null;
+});
 $('editor-close').addEventListener('click', closeEditor);
 $('editor-cancel').addEventListener('click', closeEditor);
 function persistDraft() {
@@ -304,7 +362,7 @@ $('editor-form').addEventListener('input', () => { dirty = true; draftStored = f
 $('gambar').addEventListener('change', async () => {
   driveSelection = null;
   $('gambar').required = editorType === 'foto' && !editedRow;
-  dirty = true; resetPreview(); $('editor-message').textContent = '';
+  dirty = true; resetPreview(); $('editor-message').textContent = ''; $('editor-message').dataset.state = 'info';
   const file = $('gambar').files[0];
   const sequence = ++imageSequence;
   processedImage = null;
@@ -316,14 +374,15 @@ $('gambar').addEventListener('change', async () => {
     if (sequence !== imageSequence) return;
     processedImage = result;
     previewUrl = URL.createObjectURL(result.file); $('image-preview').src = previewUrl; $('image-preview').hidden = false;
-    $('editor-message').textContent = result.note;
-  } catch (error) { if (sequence === imageSequence) { $('editor-message').textContent = error.message; $('gambar').value = ''; } }
+    $('editor-message').textContent = 'Foto siap dipakai.';
+  } catch (error) { if (sequence === imageSequence) { $('editor-message').dataset.state = ''; $('editor-message').textContent = error.message; $('gambar').value = ''; } }
   finally { if (sequence === imageSequence) { imageProcessing = false; $('save-btn').disabled = $('draft-btn').disabled = false; } }
 });
 function useDrivePhoto(photo) {
   resetPreview(); processedImage = null; driveSelection = photo; dirty = true;
   $('gambar').value = ''; $('gambar').required = false;
   $('image-preview').src = photo.full; $('image-preview').hidden = false;
+  $('editor-message').dataset.state = 'info';
   $('editor-message').textContent = isDemo ? 'Foto lokal dipilih untuk demo.' : `Foto Drive dipilih: ${photo.filename}`;
 }
 $('drive-pick').addEventListener('click', async () => {
@@ -354,10 +413,13 @@ $('import-legacy-photos').addEventListener('click',async()=>{
   finally{button.disabled=false;button.textContent='Salin foto lama';}
 });
 $('preview-btn').addEventListener('click', () => {
-  const image = safeImage(previewUrl || editedRow?.gambar_url);
-  $('preview-content').innerHTML = `${image ? `<figure><img src="${image}" alt="Pratinjau foto berita" /><figcaption>${escape($('image-caption').value)}</figcaption></figure>` : ''}<span class="category">${escape($('kategori').value)}</span><h1 id="preview-title">${escape($('judul').value.trim() || 'Judul berita Anda')}</h1>${renderBody($('isi').value)}`;
+  $('preview-content').innerHTML = postPreview($('judul').value.trim() || 'Judul berita Anda', $('kategori').value, $('isi').value, previewUrl || driveSelection?.full || editedRow?.gambar_url, $('image-caption').value);
   $('preview-dialog').showModal();
 });
+function postPreview(title, category, body, src, caption) {
+  const image = safeImage(src);
+  return `<div class="preview-post-author"><span class="post-avatar"><img src="/brand/an-nahl.png" alt="" width="678" height="366"></span><strong>Pondok An-Nahl</strong><span class="category">${escape(category)}</span></div>${image ? `<figure><img src="${image}" alt="${escape(caption || title)}" />${caption ? `<figcaption>${escape(caption)}</figcaption>` : ''}</figure>` : ''}<h1 id="preview-title">${escape(title)}</h1>${renderBody(body)}`;
+}
 $('preview-close').addEventListener('click', () => $('preview-dialog').close());
 $('preview-content').addEventListener('click', event => {
   const button = event.target.closest('[data-revision]');
@@ -426,18 +488,23 @@ async function submitContent(event, status = 'published') {
   event.preventDefault();
   if (saving || imageProcessing || !store) return;
   $('editor-message').textContent = '';
+  $('editor-message').dataset.state = '';
   const values = { judul: $('judul').value.trim(), kategori: $('kategori').value };
   if (!values.judul) { $('editor-message').textContent = 'Judul belum diisi.'; return; }
   if (editorType === 'berita') { values.isi = $('isi').value.trim(); if (!values.isi && currentRole === 'admin' && status === 'published') { $('editor-message').textContent = 'Tuliskan isi berita sebelum menerbitkan.'; return; } }
   if (editorType !== 'video') values.caption = $('image-caption').value.trim();
   if (editorType === 'berita') values.status = currentRole === 'admin' ? status : 'draft';
   if (editorType === 'video') { values.youtube_id = youtubeId($('video-link').value); if (!values.youtube_id) { $('editor-message').textContent = 'Gunakan link YouTube yang valid.'; return; } }
-  const button = $('save-btn'), previousText = button.textContent;
+  const button = event.currentTarget === $('draft-btn') ? $('draft-btn') : $('save-btn');
+  const previousText = button.textContent;
   if (editorType === 'berita') persistDraft();
-  saving = true; button.disabled = true; button.textContent = 'Menyimpan…';
+  saving = true;
   const source = store;
   const controls = [...$('editor-form').elements].map(control => [control, control.disabled]);
   controls.forEach(([control]) => { control.disabled = true; });
+  button.textContent = 'Menyimpan…';
+  $('editor-message').dataset.state = 'info';
+  $('editor-message').textContent = 'Menyimpan postingan…';
   try {
     await source.put(editorType, values, processedImage?.file || $('gambar').files[0], editedRow, { thumbnail: processedImage?.thumbnail, original:$('gambar').files[0], drivePhoto:driveSelection, onProgress:message=>{ $('editor-message').textContent=message; } });
     clearTimeout(draftTimer);
@@ -446,7 +513,10 @@ async function submitContent(event, status = 'published') {
     toast(isDemo ? 'Tersimpan di ruang demo. Tidak diterbitkan ke website.' : 'Konten berhasil disimpan.');
     if (currentPanel === 'overview') loadSummary();
     else { loadSummary(); if (currentPanel === 'berita') loadNews(); if (currentPanel === 'galeri') loadMedia(); }
-  } catch (error) { $('editor-message').textContent = `Gagal menyimpan. ${error.message}`; }
+  } catch (error) {
+    $('editor-message').dataset.state = '';
+    $('editor-message').textContent = `Gagal menyimpan. ${error.message}`;
+  }
   finally {
     saving = false;
     controls.forEach(([control, disabled]) => { control.disabled = disabled; });
@@ -464,9 +534,13 @@ $('draft-btn').addEventListener('click', async event => {
 $('dashboard-view').addEventListener('click', async event => {
   const button = event.target.closest('button');
   if (!button || !store) return;
-  if (button.dataset.panel) return navigate(button.dataset.panel);
+  if (button.dataset.panel) {
+    if (button.dataset.panel !== currentPanel) navigate(button.dataset.panel);
+    return;
+  }
   if (button.dataset.go) { if (button.dataset.kind) setMedia(button.dataset.kind); return navigate(button.dataset.go); }
   if (button.dataset.action === 'new-news') return openEditor('berita');
+  if (button.dataset.action === 'new-extracurricular') return openEditor('berita', null, 'Ekskul');
   if (['new-photo', 'new-video'].includes(button.dataset.action)) { if (currentRole === 'admin') { setMedia(button.dataset.action === 'new-photo' ? 'foto' : 'video'); navigate('galeri'); openEditor(mediaType); } return; }
   if (button.dataset.localPhoto) { showLibraryImage(button.dataset.localPhoto); return; }
   if (button.dataset.action === 'new-media' || button.id === 'add-media') { if (currentRole === 'admin') openEditor(mediaType === 'library' ? 'foto' : mediaType); return; }
@@ -481,7 +555,7 @@ $('dashboard-view').addEventListener('click', async event => {
     if (source !== store) return;
     if (button.dataset.edit) openEditor(button.dataset.type, row);
     else if (button.dataset.view) {
-      $('preview-content').innerHTML = `${row.gambar_url ? `<img src="${safeImage(row.gambar_url)}" alt="${escape(row.caption || row.judul)}" />` : ''}<h1 id="preview-title">${escape(row.judul)}</h1><p class="muted">${escape(row.kategori)} · ${formatDate(row.dibuat_pada)}</p>${renderBody(row.isi)}`;
+      $('preview-content').innerHTML = postPreview(row.judul, row.kategori, row.isi, row.gambar_url || row.thumbnail_url, row.caption);
       $('preview-dialog').showModal();
     }
     else if (button.dataset.history) {
@@ -511,10 +585,17 @@ async function loadInbox() {
     $('inbox-prev').disabled = $('inbox-next').disabled = true;
     $('inbox-page-info').textContent = 'Rekap dikelola melalui Google Sheets';
     loading('submission-list');
-    let available = false, reason = '';
-    try { await getGoogleFormToken(); available = true; } catch (error) { reason = error.message; }
-    if (source !== store || request !== inboxRequest) return;
-    $('submission-list').innerHTML = `<div class="google-recap"><span class="eyebrow">REKAP PONDOK</span><h2>${kind === 'pendaftaran' ? 'Pendaftaran santri' : 'Konfirmasi donasi'}</h2><div class="form-readiness ${available ? 'ready' : 'not-ready'}" role="status"><strong>${available ? 'Penerima formulir tersedia' : 'Formulir belum siap menerima kiriman'}</strong><p>${available ? 'Periksa satu kiriman uji di rekap untuk memastikan isian dan lampirannya sudah masuk.' : escape(reason || 'Penghubung penyimpanan belum tersambung. Kiriman baru belum dapat disimpan.')}</p><button class="text-link" data-action="refresh">Periksa lagi</button></div><p>Rekap disediakan di Google Sheets akun pondok. Lampiran kiriman yang berhasil disimpan dapat dibuka melalui tautan pada rekap.</p><a class="button" href="${RECAP_URL}" target="_blank" rel="noopener noreferrer">Edit / hapus rekap di Google Sheets ↗</a>${kind === 'donasi' ? `<a class="button secondary recap-download" href="${RECAP_URL.replace(/\/edit$/, '/export?format=xlsx')}" target="_blank" rel="noopener noreferrer">Unduh laporan rekap (.xlsx) ↓</a>` : ''}<small>${kind === 'donasi' ? 'File Excel berisi rekap pendaftaran dan donasi. Akses unduh tetap memerlukan izin akun Google pondok. ' : ''}Masuk dengan akun pondok yang memiliki akses. ${kind === 'donasi' ? 'Pengurus tetap perlu mencocokkan bukti dengan transfer yang diterima.' : 'Gunakan rekap untuk mencatat tindak lanjut pendaftaran.'}</small></div>`;
+    let available = false, reason = '', period;
+    try {
+      if (kind === 'pendaftaran') period = await getRegistrationStatus();
+      else await getGoogleFormToken();
+      available = true;
+    } catch (error) { reason = error.message; }
+    if (source !== store || currentPanel !== kind || request !== inboxRequest) return;
+    const headline = period
+      ? { open:'Pendaftaran sedang dibuka', upcoming:'Pendaftaran belum dibuka', closed:'Pendaftaran sudah ditutup', unscheduled:'Jadwal belum diatur' }[period.state]
+      : available ? 'Formulir bisa dibuka' : 'Formulir belum siap menerima kiriman';
+    $('submission-list').innerHTML = `<div class="google-recap"><span class="eyebrow">REKAP PONDOK</span><h2>${kind === 'pendaftaran' ? 'Pendaftaran santri' : 'Konfirmasi donasi'}</h2><div class="form-readiness ${available && (!period || period.state === 'open') ? 'ready' : 'not-ready'}" role="status"><strong>${headline}</strong><p>${available ? (period && period.state !== 'open' ? 'Formulir tidak menerima kiriman di luar jadwal.' : 'Periksa kiriman di rekap untuk memastikan isian dan lampirannya sudah masuk.') : escape(reason || 'Penghubung penyimpanan belum tersambung. Kiriman baru belum dapat disimpan.')}</p><button class="text-link" data-action="refresh">Periksa lagi</button>${kind === 'pendaftaran' ? '<button class="text-link" data-go="pengaturan">Atur jadwal</button>' : ''}</div><p>Rekap disediakan di Google Sheets akun pondok. Lampiran kiriman yang berhasil disimpan dapat dibuka melalui tautan pada rekap.</p><a class="button" href="${RECAP_URL}" target="_blank" rel="noopener noreferrer">Edit / hapus rekap di Google Sheets ↗</a>${kind === 'donasi' ? `<a class="button secondary recap-download" href="${RECAP_URL.replace(/\/edit$/, '/export?format=xlsx')}" target="_blank" rel="noopener noreferrer">Unduh laporan rekap (.xlsx) ↓</a>` : ''}<small>${kind === 'donasi' ? 'File Excel berisi rekap pendaftaran dan donasi. Akses unduh tetap memerlukan izin akun Google pondok. ' : ''}Masuk dengan akun pondok yang memiliki akses. ${kind === 'donasi' ? 'Pengurus tetap perlu mencocokkan bukti dengan transfer yang diterima.' : 'Gunakan rekap untuk mencatat tindak lanjut pendaftaran.'}</small></div>`;
     return;
   }
   loading('submission-list'); $('inbox-prev').disabled = $('inbox-next').disabled = true;
@@ -537,7 +618,11 @@ $('submission-list').addEventListener('click', async event => {
 });
 $('inbox-prev').addEventListener('click', () => { if (inboxPage > 1) { inboxPage--; loadInbox(); } });
 $('inbox-next').addEventListener('click', () => { if (inboxPage * PAGE_SIZE < inboxCount) { inboxPage++; loadInbox(); } });
-for (const type of ['library', 'foto', 'video']) $(`tab-${type}`).addEventListener('click', () => { setMedia(type); loadMedia(); });
+for (const type of ['library', 'foto', 'video']) $(`tab-${type}`).addEventListener('click', () => {
+  if (type === mediaType) return;
+  setMedia(type);
+  loadMedia();
+});
 $('news-prev').addEventListener('click', () => { if (newsPage > 1) { newsPage--; loadNews(); } });
 $('news-next').addEventListener('click', () => { if (newsPage * PAGE_SIZE < newsCount) { newsPage++; loadNews(); } });
 $('media-prev').addEventListener('click', () => { if (mediaPage > 1) { mediaPage--; loadMedia(); } });

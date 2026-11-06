@@ -7,8 +7,9 @@ const id = '11111111-2222-4333-8444-555555555555';
 const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 test('attachments enforce file type, per-file size, count, and total size', () => {
-  for (const files of [[{name:'test.exe',size:10}], [{name:'test.pdf',size:0}], [{name:'test.pdf',size:2097153}], Array.from({length:4}, () => ({name:'test.pdf',size:1})), Array.from({length:3}, () => ({name:'test.pdf',size:2*1024*1024}))]) assert.throws(() => validateAttachments(files));
+  for (const files of [[{name:'test.exe',size:10}], [{name:'test.pdf',size:0}], [{name:'test.pdf',size:10*1024*1024+1}], Array.from({length:4}, () => ({name:'test.pdf',size:1})), Array.from({length:3}, () => ({name:'test.pdf',size:6*1024*1024}))]) assert.throws(() => validateAttachments(files));
   assert.doesNotThrow(() => validateAttachments([{name:'Dokumen.DOCX',size:100}, {name:'Foto.jpg',size:100}]));
+  assert.doesNotThrow(() => validateAttachments([{name:'Berkas.pdf',size:10*1024*1024}, {name:'Foto.jpg',size:5*1024*1024}]));
 });
 
 test('file encoding preserves every byte and content hash for reliable retries', async () => {

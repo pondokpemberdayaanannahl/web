@@ -17,7 +17,11 @@ Supabase tetap melayani berita, galeri editorial, akun pengurus, dan kontak. Pen
 
 ## Lampiran dan pengiriman
 
-Maksimal **3 berkas, 2 MB per berkas, 5 MB total**. Format: JPG/JPEG, PNG, WebP, PDF, DOCX, XLSX, PPTX. Server memeriksa isi berkas. Paket Office terenkripsi atau dengan makro, arsip biasa, executable, HTML, dan SVG tidak diterima.
+Maksimal **3 berkas, 10 MB per berkas, 15 MB total**. Format: JPG/JPEG, PNG, WebP, PDF, DOCX, XLSX, PPTX. Server memeriksa isi berkas. Paket Office terenkripsi atau dengan makro, arsip biasa, executable, HTML, dan SVG tidak diterima.
+
+Untuk rilis ini, perbarui penerima Apps Script dan buat versi baru pada deployment yang ada. Jalankan `setupGoogleForms` untuk mengganti judul kolom lama **Program** menjadi **Jenjang** pada tab **Pendaftaran**; isian lama tidak diubah. Pada hosting, pastikan batas badan permintaan minimal 21 MiB (PHP `post_max_size=24M`, `memory_limit=192M`) dan uji kiriman dengan lampiran di atas batas lama sebelum membuka periode. Batas yang tertera adalah batas aplikasi; lihat juga [kuota Apps Script](https://developers.google.com/apps-script/guides/services/quotas).
+
+Terapkan migrasi `202611040001_pondok_settings.sql` di Supabase sebelum merilis website. Isi `supabase_url` dan `supabase_anon_key` di konfigurasi PHP formulir privat dengan URL proyek dan kunci publik. PHP membaca pengaturan setiap kali pendaftaran dikirim. Jika jadwal belum diatur atau tidak dapat dibaca, kiriman pendaftaran ditolak. Setelah deploy, isi periode melalui **Pengaturan → Jadwal pendaftaran**. Tanggal terakhir termasuk sampai pukul 23.59 WIB.
 
 Formulir menampilkan nama/ukuran lampiran, pilihan mengosongkan, proses pengiriman, dan hasil yang jelas. Isian dipertahankan saat gagal. Pesan sukses hanya muncul setelah Google mengonfirmasi ID kiriman yang sama. Retry tanpa mengubah isian dari halaman yang sama memakai ID dan hash yang sama; reload halaman tidak menjamin ID sebelumnya tetap dipakai.
 

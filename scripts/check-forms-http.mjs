@@ -1,4 +1,4 @@
-// Real PHP HTTP integration against a local mock of Google only.
+// Real PHP HTTP integration against local mocks of Google and Supabase.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
@@ -7,8 +7,15 @@ import { mkdirSync,mkdtempSync,writeFileSync,readFileSync,readdirSync,realpathSy
 import { resolve,sep } from 'node:path';
 const workspace=resolve('.'), base=resolve('.backend-backups');mkdirSync(base,{recursive:true});
 const folder=mkdtempSync(resolve(base,'forms-http-')), secret='a'.repeat(64), origin='http://127.0.0.1:5173';
-let mode='ok', php, log='', requests=[];
-const mock=createServer(async(req,res)=>{let raw='';for await(const chunk of req)raw+=chunk;const envelope=JSON.parse(raw);
+let mode='ok', php, log='', requests=[], settingsDown=false;
+const settings={opens_on:'2020-01-01',closes_on:'2099-12-31',revision:1,levels:[{title:'Jenjang Uji',description:'Data sintetis'}]};
+const mock=createServer(async(req,res)=>{
+  if(req.url.startsWith('/rest/v1/pondok_settings?')){
+    assert.equal(req.headers.apikey,'test-public-key-123456');
+    res.writeHead(settingsDown ? 503 : 200,{'Content-Type':'application/json'});
+    res.end(JSON.stringify(settingsDown ? {error:'unavailable'} : [settings])); return;
+  }
+  let raw='';for await(const chunk of req)raw+=chunk;const envelope=JSON.parse(raw);
   assert.equal(envelope.signature,createHmac('sha256',secret).update('annahl.forms.v1:'+envelope.data).digest('hex'));
   const record=JSON.parse(envelope.data);requests.push(record);
   if(mode==='redirect'){res.writeHead(302,{Location:'https://another.example/never-follow'});res.end();return;}
@@ -19,7 +26,8 @@ const listen=server=>new Promise((ok,no)=>{server.once('error',no);server.listen
 try {
   await listen(mock);const mockPort=mock.address().port;
   const probe=createServer();await listen(probe);const phpPort=probe.address().port;await new Promise(ok=>probe.close(ok));
-  const config={apps_script_url:`http://127.0.0.1:${mockPort}/exec`,shared_secret:secret,allowed_origins:[origin],rate_limit_directory:resolve(folder,'rates')};
+  const config={apps_script_url:`http://127.0.0.1:${mockPort}/exec`,shared_secret:secret,allowed_origins:[origin],
+    supabase_url:`http://127.0.0.1:${mockPort}`,supabase_anon_key:'test-public-key-123456',rate_limit_directory:resolve(folder,'rates')};
   const configFile=resolve(folder,'config.php');writeFileSync(configFile,`<?php return json_decode(base64_decode('${Buffer.from(JSON.stringify(config)).toString('base64')}'),true);`);
   php=spawn(process.env.PHP_BINARY||'php',['-S',`127.0.0.1:${phpPort}`,'-t',resolve('public')],{cwd:workspace,env:{...process.env,ANNAHL_FORMS_CONFIG:configFile,ANNAHL_FORMS_TEST_MODE:'1'},stdio:['ignore','ignore','pipe'],windowsHide:true});
   php.stderr.on('data',data=>{log+=data.toString();});
@@ -41,6 +49,19 @@ try {
   response=await post({...input,website:'spam'});assert.equal(response.status,422);
   response=await post({...input,files:[{name:'bad.exe',data:bytes.toString('base64')}]});assert.equal(response.status,422);
   assert.equal(requests.length,2,'Rejected submissions must not reach Google');
+  const registration={...input,kind:'pendaftaran',payload:{nama:'UJI LOKAL',tempatLahir:'Bogor',tanggalLahir:'2014-04-10',jenisKelamin:'Perempuan',asalSekolah:'Sekolah Uji',jenjang:'Jenjang Uji',namaWali:'Wali Uji',noWA:'00000000000',email:'',alamat:'Alamat Uji'}};
+  response=await fetch(endpoint+'?kind=pendaftaran',{headers});assert.equal(response.status,200);
+  assert.equal((await response.json()).registration.state,'open');
+  response=await post({...registration,payload:{...registration.payload,jenjang:'Jenjang palsu'}});assert.equal(response.status,422);
+  const large=Buffer.alloc(8*1024*1024, 'x');large.write('%PDF-1.4');
+  response=await post({...registration,files:[{name:'besar.pdf',data:large.toString('base64')}]});assert.equal(response.status,200);
+  assert.equal(requests.at(-1).payload.jenjang,'Jenjang Uji');assert.equal(requests.at(-1).files[0].bytes,large.length);
+  settings.closes_on='2020-01-01';
+  response=await fetch(endpoint+'?kind=pendaftaran',{headers});assert.equal((await response.json()).registration.state,'closed');
+  response=await post(registration);assert.equal(response.status,409);
+  settingsDown=true;
+  response=await post(registration);assert.equal(response.status,503);
+  assert.equal(requests.length,3,'Closed dates and missing settings must never forward to Google, even with a fresh token');
   for(const state of ['wrong','html','redirect']){mode=state;response=await post();assert.equal(response.status,502);assert.equal((await response.json()).ok,false);}
   for(const file of readdirSync(resolve(folder,'rates'))){const contents=readFileSync(resolve(folder,'rates',file),'utf8');assert.ok(!contents.includes(id)&&!contents.includes('UJI LOKAL')&&!contents.includes('uji.pdf'));}
   console.log('PASS: real PHP HTTP -> signed Google mock; exact receipts; retry ID; CSRF/origin/honeypot; file sniffing; redirect isolation; no stored form bodies.');

@@ -1,16 +1,17 @@
 export const GOOGLE_FORM_ENDPOINT = '/api/forms.php';
 export const RECAP_URL = 'https://docs.google.com/spreadsheets/d/1GJJDb0AEv4a3yugzQpv2hMhU1ke9g_zIbsNGQMNlmg8/edit';
 const extensions = /\.(jpe?g|png|webp|pdf|docx|xlsx|pptx)$/i;
+export const ATTACHMENT_HELP = 'Foto, PDF, DOCX, XLSX, atau PPTX. Maksimal 3 berkas, 10 MB per berkas dan 15 MB total.';
 
 export function validateAttachments(files) {
   if (files.length > 3) throw new Error('Pilih paling banyak 3 berkas.');
   let total = 0;
   for (const file of files) {
     if (!extensions.test(file.name) || file.name.length > 180) throw new Error('Gunakan JPG, PNG, WebP, PDF, DOCX, XLSX, atau PPTX.');
-    if (!file.size || file.size > 2 * 1024 * 1024) throw new Error('Ukuran setiap berkas harus antara 1 byte dan 2 MB.');
+    if (!file.size || file.size > 10 * 1024 * 1024) throw new Error('Ukuran setiap berkas harus antara 1 byte dan 10 MB.');
     total += file.size;
   }
-  if (total > 5 * 1024 * 1024) throw new Error('Total lampiran maksimal 5 MB.');
+  if (total > 15 * 1024 * 1024) throw new Error('Total lampiran maksimal 15 MB.');
 }
 
 export async function encodeAttachments(files) {
@@ -41,6 +42,13 @@ export async function getGoogleFormToken(transport = fetch) {
   return result.token;
 }
 
+export async function getRegistrationStatus(transport = fetch) {
+  const response = await transport(`${GOOGLE_FORM_ENDPOINT}?kind=pendaftaran`, { credentials: 'same-origin', redirect: 'error', cache: 'no-store', headers: { 'X-Annahl-Form': '1' }, signal: AbortSignal.timeout(12000) });
+  const { registration } = await readResponse(response);
+  if (!Array.isArray(registration?.levels) || !['open','closed','upcoming','unscheduled'].includes(registration.state)) throw new Error('Jadwal belum tersedia.');
+  return registration;
+}
+
 export async function sendGoogleSubmission(kind, payload, id, files, token, website = '', transport = fetch) {
   if (!['pendaftaran', 'donasi'].includes(kind)) throw new Error('Jenis formulir tidak tersedia.');
   if (!payload.nama?.trim() || payload.nama.trim().length < 2) throw new Error('Isi nama minimal dua karakter.');
@@ -57,7 +65,7 @@ export async function sendGoogleSubmission(kind, payload, id, files, token, webs
   } finally { clearTimeout(timer); }
 }
 
-export function bindGoogleSubmission(form, kind, collect, successMessage) {
+export function bindGoogleSubmission(form, kind, collect, successMessage, { canSubmit, onSuccess, onError } = {}) {
   const button = form.querySelector('[type="submit"]');
   const notification = form.querySelector('[role="status"]');
   const fileInput = form.querySelector('[data-form-files]');
@@ -84,7 +92,7 @@ export function bindGoogleSubmission(form, kind, collect, successMessage) {
   fileInput?.addEventListener('change', showFiles);
   clearFiles?.addEventListener('click', () => { fileInput.value = ''; showFiles(); fileInput.focus(); });
   form.addEventListener('submit', async event => {
-    event.preventDefault(); if (busy) return;
+    event.preventDefault(); if (busy || (canSubmit && !canSubmit())) return;
     const previous = button.innerHTML, controls = [...form.elements].map(control => [control, control.disabled]);
     busy = true; controls.forEach(([control]) => { control.disabled = true; }); button.textContent = 'Menyiapkan kiriman…'; notification.textContent = '';
     try {
@@ -97,10 +105,12 @@ export function bindGoogleSubmission(form, kind, collect, successMessage) {
       await sendGoogleSubmission(kind, values, id, files, token, form.querySelector('[data-website]')?.value || '');
       notification.dataset.state = 'success'; notification.textContent = successMessage;
       form.reset(); showFiles(); id = ''; lastSignature = '';
+      onSuccess?.();
     } catch (error) {
       if (error.status === 403) { token = ''; tokenPromise = Promise.resolve(null); }
       notification.dataset.state = 'error';
       notification.textContent = error.name === 'AbortError' ? 'Belum menerima konfirmasi penyimpanan. Isian tetap ada; silakan kirim lagi.' : error.message || 'Belum berhasil mengirim. Isian tetap ada; coba lagi.';
+      onError?.(error);
     } finally { busy = false; controls.forEach(([control, disabled]) => { control.disabled = disabled; }); button.innerHTML = previous; }
   });
 }

@@ -13,7 +13,7 @@ export function Navbar() {
         <div class="navbar-menu">
           <a href="#/" class="navbar-link active">Beranda</a>
           <a href="#/tentang" class="navbar-link">Tentang</a>
-          <a href="#/program" class="navbar-link">Program</a>
+          <a href="#/jenjang" class="navbar-link">Jenjang</a>
           <a href="#/pendaftaran" class="navbar-link">Pendaftaran</a>
           <a href="#/berita" class="navbar-link">Berita</a>
           <a href="#/galeri" class="navbar-link">Galeri</a>
@@ -37,7 +37,7 @@ export function Navbar() {
     <div class="mobile-drawer" id="mobile-drawer" aria-label="Navigasi mobile" inert>
       <a href="#/" class="navbar-link active">Beranda</a>
       <a href="#/tentang" class="navbar-link">Tentang</a>
-      <a href="#/program" class="navbar-link">Program</a>
+      <a href="#/jenjang" class="navbar-link">Jenjang</a>
       <a href="#/pendaftaran" class="navbar-link">Pendaftaran</a>
       <a href="#/berita" class="navbar-link">Berita</a>
       <a href="#/galeri" class="navbar-link">Galeri</a>

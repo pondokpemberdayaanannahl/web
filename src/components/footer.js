@@ -4,8 +4,10 @@
 
 import { socialIcon } from './social-icon.js';
 import { pondokContact } from '../data/pondok.js';
+import { tiktokUrl } from '../pondok-settings.js';
 
-export function Footer() {
+export function Footer(settings = {}) {
+  const tiktok = tiktokUrl(settings.tiktok);
   return `
     <footer class="footer">
       <div class="container">
@@ -24,7 +26,7 @@ export function Footer() {
             <div class="footer-links">
               <a href="#/" class="footer-link">Beranda</a>
               <a href="#/tentang" class="footer-link">Tentang Kami</a>
-              <a href="#/program" class="footer-link">Program</a>
+              <a href="#/jenjang" class="footer-link">Jenjang</a>
               <a href="#/pendaftaran" class="footer-link">Pendaftaran</a>
               <a href="#/berita" class="footer-link">Berita</a>
               <a href="#/galeri" class="footer-link">Galeri</a>
@@ -63,6 +65,7 @@ export function Footer() {
               <a href="https://youtube.com/@ppuan-nahl4784?si=iWzGJO98qyJwW8HN" class="footer-social-link" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
                 ${socialIcon('youtube')}
               </a>
+              ${tiktok ? `<a href="${tiktok}" data-content-ignore class="footer-social-link" aria-label="TikTok" target="_blank" rel="noopener noreferrer">${socialIcon('tiktok')}</a>` : ''}
             </div>
           </div>
         </div>

@@ -3,7 +3,7 @@
 export const SITE_PAGES = [
   { id: 'beranda', title: 'Beranda', path: '/', description: 'Sampul, pengenalan, program, angka pondok, dan ajakan.' },
   { id: 'tentang', title: 'Tentang pondok', path: '/tentang', description: 'Visi misi, sejarah, pengasuh, dan nilai pondok.' },
-  { id: 'program', title: 'Program pendidikan', path: '/program', description: 'Program unggulan, keterampilan, dan jadwal kegiatan.' },
+  { id: 'program', title: 'Jenjang pendidikan', path: '/jenjang', description: 'Program unggulan, keterampilan, dan jadwal kegiatan. Daftar jenjang di menu Pengaturan.' },
   { id: 'pendaftaran', title: 'Informasi pendaftaran', path: '/pendaftaran', description: 'Alur, persyaratan, biaya, dan pertanyaan umum.' },
   { id: 'donasi', title: 'Informasi donasi', path: '/donasi', description: 'Program bantuan, rekening, dan informasi pembayaran.' },
   { id: 'kontak', title: 'Kontak & lokasi', path: '/kontak', description: 'Alamat, nomor telepon, email, media sosial, dan peta.' },
@@ -12,7 +12,7 @@ export const SITE_PAGES = [
   { id: 'global', title: 'Menu, footer & WhatsApp', path: '/', description: 'Identitas, kontak di kaki halaman, tautan sosial, dan tombol WhatsApp.' },
 ];
 export const blankSiteContent = () => ({ version: 1, values: {}, hidden: [] });
-const excluded = 'script,style,form,dialog,button,input,textarea,select,option,[aria-hidden="true"],.sr-only,#news-grid,#beranda-news-grid,#home-stories-grid,#home-stories-status,#photo-grid,#video-grid,#video-status,#gallery-status,#news-status,.news-filters,.gallery-filters,#lightbox,#article-modal';
+const excluded = 'script,style,form,dialog,button,input,textarea,select,option,[data-content-ignore],[aria-hidden="true"],.sr-only,#news-grid,#beranda-news-grid,#home-stories-grid,#home-stories-status,#photo-grid,#video-grid,#video-status,#gallery-status,#news-status,.news-filters,.gallery-filters,#lightbox,#article-modal';
 const hash = text => { let result = 2166136261; for (const c of text) result = Math.imul(result ^ c.charCodeAt(0), 16777619); return (result >>> 0).toString(36); };
 
 export function contentUrl(value, kind = 'link') {

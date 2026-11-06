@@ -3,6 +3,8 @@
 // ═══════════════════════════════════════════
 
 import { photos } from '../data/photos.js';
+import { leadership } from '../data/leadership.js';
+import { escapeHtml } from '../content-format.js';
 
 export function Tentang() {
   return `
@@ -80,21 +82,21 @@ export function Tentang() {
 
     <!-- Profil Pengasuh -->
     <section class="section" style="background: var(--neutral-50)">
-      <div class="container">
+      <div class="container leadership-grid">
         <div class="section-header">
           <span class="section-label reveal">PENGASUH</span>
           <h2 class="section-title reveal reveal-delay-1">Profil Pimpinan Pesantren</h2>
         </div>
-        <div style="max-width: 600px; margin: 0 auto; text-align: center" class="reveal reveal-delay-2">
+        ${leadership.map(profile => `<div class="leadership-card reveal reveal-delay-2">
           <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 0 auto var(--space-lg); box-shadow: var(--shadow-lg)">
-            <img data-fixed-photo="founder" src="${photos.tentang.pengasuh}" alt="KH. Muhammad Ridwan" style="width:100%; height:100%; object-fit:cover" loading="lazy" />
+            <img data-fixed-photo="${escapeHtml(profile.id)}" src="${escapeHtml(profile.image)}" alt="${escapeHtml(profile.name)}" style="width:100%; height:100%; object-fit:cover" loading="lazy" />
           </div>
-          <h3 style="font-family: var(--font-heading); font-size: 28px; margin-bottom: var(--space-sm)">KH. Muhammad Ridwan, Lc., M.A.</h3>
-          <span class="badge" style="margin-bottom: var(--space-lg)">Pengasuh & Pendiri</span>
+          <h3 style="font-family: var(--font-heading); font-size: 28px; margin-bottom: var(--space-sm)">${escapeHtml(profile.name)}</h3>
+          <span class="badge" style="margin-bottom: var(--space-lg)">${escapeHtml(profile.role)}</span>
           <p style="color: var(--neutral-700)">
-            Lulusan Universitas Al-Azhar, Kairo. Hafidz 30 juz bersanad. Berpengalaman lebih dari 20 tahun dalam pendidikan Islam dan pemberdayaan masyarakat. Aktif sebagai dai dan motivator pendidikan Islam di tingkat nasional.
+            ${escapeHtml(profile.bio)}
           </p>
-        </div>
+        </div>`).join('')}
       </div>
     </section>
 

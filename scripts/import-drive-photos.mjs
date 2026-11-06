@@ -1,4 +1,4 @@
-// Copies originals and existing optimized renditions. Never deletes source files.
+// Uploads one HD website file per photo. Source files stay in the local collection.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, realpathSync, statSync, renameSync } from 'node:fs';
 import { resolve, sep, basename, extname } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -8,8 +8,8 @@ const args = new Set(process.argv.slice(2));
 const root = realpathSync('.');
 const rows = JSON.parse(readFileSync('src/data/photo-library.json','utf8')).photos;
 const pathWithin = path => { const full=realpathSync(resolve(root,path)); if (!full.startsWith(root+sep)) throw Error('Foto harus berada di folder proyek.'); return full; };
-const targets = rows.map(row=>({...row,original:pathWithin('picture/'+row.path),fullPath:pathWithin('public'+row.full),thumbnailPath:pathWithin('public'+row.thumbnail)}));
-const bytes = targets.reduce((sum,row)=>sum+statSync(row.original).size+statSync(row.fullPath).size+statSync(row.thumbnailPath).size,0);
+const targets = rows.map(row=>({...row,original:pathWithin('picture/'+row.path),fullPath:pathWithin('public'+row.full)}));
+const bytes = targets.reduce((sum,row)=>sum+statSync(row.fullPath).size,0);
 if (!args.has('--upload') && !args.has('--setup') && !args.has('--status') && !args.has('--verify-image') && !args.has('--verify-all')) {
   console.log(JSON.stringify({photos:targets.length,originalBytes:targets.reduce((s,row)=>s+statSync(row.original).size,0),totalBytes:bytes,mode:'dry-run',sourceFilesRemoved:0},null,2));
   process.exit(0);
@@ -42,18 +42,18 @@ if (!(limit>0)) throw Error('Batas batch tidak valid.');
 let copied=0;
 const pending=targets.map((row,index)=>({row,index})).filter(({row})=>!report.photos[row.id]?.complete).slice(0,limit);
 async function copyPhoto({row,index}) {
-  let assetId,receipt;
-  for(const [variant,path] of [['original',row.original],['full',row.fullPath],['thumbnail',row.thumbnailPath]]) {
-    const buffer=readFileSync(path),sha256=createHash('sha256').update(buffer).digest('hex');
-    if(variant==='original')assetId=photoAssetId(sha256);
-    const ext=extname(path).toLowerCase();const mime={'.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.heic':'image/heic','.heif':'image/heif','.webp':'image/webp'}[ext];
-    if(!mime)throw Error('Format foto tidak didukung: '+row.filename);
-    const part={name:basename(path),mime,bytes:buffer.length,sha256,data:buffer.toString('base64')};
-    receipt=await request('upload',{assetId,variant,name:row.filename,folder:row.folder,file:part});
-    if(receipt.asset?.id!==assetId || receipt.sha256!==sha256 || receipt.variant!==variant)throw Error('Tanda terima foto tidak cocok. Pengiriman dihentikan.');
-    if(variant==='original' && receipt.asset.complete)break;
-  }
-  if(!receipt.asset.complete)throw Error('Tiga versi foto belum dikonfirmasi.');
+  if (ready.layout !== 'single-file') throw Error('Perbarui deployment Apps Script sebelum mengunggah foto dengan penyimpanan satu file.');
+  const sourceSha256 = createHash('sha256').update(readFileSync(row.original)).digest('hex');
+  const assetId = photoAssetId(sourceSha256);
+  const buffer = readFileSync(row.fullPath);
+  const sha256 = createHash('sha256').update(buffer).digest('hex');
+  const mime = {'.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp'}[extname(row.fullPath).toLowerCase()];
+  if (!mime) throw Error('Format foto tidak didukung: '+row.filename);
+  const part = {name:basename(row.fullPath),mime,bytes:buffer.length,sha256,data:buffer.toString('base64')};
+  const receipt = await request('upload',{assetId,variant:'full',sourceSha256,name:row.filename,folder:row.folder,file:part});
+  const reused = receipt.reused === true && receipt.sourceSha256 === sourceSha256 && /^[a-f0-9]{64}$/.test(receipt.sha256 || '');
+  if (receipt.asset?.id !== assetId || (!reused && receipt.sha256 !== sha256) || receipt.variant !== 'full') throw Error('Tanda terima foto tidak cocok. Pengiriman dihentikan.');
+  if(!receipt.asset.complete)throw Error('Foto belum dikonfirmasi.');
   report.photos[row.id]={path:row.path,assetId,complete:true,copiedAt:new Date().toISOString(),originalUrl:receipt.asset.originalUrl};
   report.completed=Object.keys(report.photos).length;report.total=targets.length;report.folderUrl=ready.folderUrl;
   writeFileSync(reportPath+'.tmp',JSON.stringify(report,null,2)+'\n');renameSync(reportPath+'.tmp',reportPath);copied++;

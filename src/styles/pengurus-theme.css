@@ -1,0 +1,37 @@
+@font-face {
+  font-family: 'DM Sans';
+  src: url('/fonts/dm-sans-latin.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Lora';
+  src: url('/fonts/lora-latin.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+}
+:root {
+  --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --serif: 'Lora', Georgia, 'Times New Roman', serif;
+  --green: #166534;
+  --green-hover: #104e2c;
+  --green-soft: #edf5ee;
+  --green-softer: #f5f8f4;
+  --green-wash: #e0eee1;
+  --green-soft-hover: #e3efe4;
+  --green-border: #c7dccb;
+  --green-focus: #43865e;
+  --green-muted: #c8e3d1;
+  --forest: #123b2a;
+  --forest-deep: #0b2d20;
+  --honey-soft: #fbefcf;
+  --honey-ink: #79551f;
+  --canvas: #f7f7ef;
+  --ink: #162c22;
+  --muted: #51655a;
+  --line: #dce6dc;
+  font-family: var(--sans);
+}
+h1 { font-weight: 650; letter-spacing: -.035em; }

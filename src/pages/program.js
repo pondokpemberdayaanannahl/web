@@ -4,8 +4,9 @@
 
 import { photos } from '../data/photos.js';
 import { programPesantren, programUnggulan, ekstrakurikuler } from '../data/pondok.js';
+import { jenjangCards } from '../pondok-settings.js';
 
-export function Program() {
+export function Program(settings = {}) {
   return `
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
@@ -14,8 +15,15 @@ export function Program() {
       <div class="hero-pattern"></div>
       <div class="hero-content">
         <span class="section-label" style="color: var(--green-300)">PROGRAM</span>
-        <h1 style="font-size: 44px">Program Pesantren</h1>
+        <h1 style="font-size: 44px">Jenjang Pendidikan</h1>
         <p class="hero-subtitle">Kurikulum terpadu yang memadukan pendidikan agama, akademik, dan keterampilan hidup.</p>
+      </div>
+    </section>
+
+    <section class="section" data-content-key="education-levels">
+      <div class="container">
+        <div class="section-header"><span class="section-label">JENJANG</span><h2 class="section-title">Pilih jenjang pendidikan</h2></div>
+        <div data-content-ignore>${jenjangCards(settings.levels)}</div>
       </div>
     </section>
 

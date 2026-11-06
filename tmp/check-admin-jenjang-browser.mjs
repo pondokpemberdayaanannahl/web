@@ -1,0 +1,112 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { mkdir } from 'node:fs/promises';
+import { photos } from '../src/data/photos.js';
+const require=createRequire(import.meta.url);
+const runtime='C:/Users/kamik/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright';
+const {chromium}=require(runtime), {expect}=require(runtime+'/test.js');
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+const base='http://127.0.0.1:5173', output='tmp/admin-jenjang-browser';
+await mkdir(output,{recursive:true});
+async function noOverflow(page) {
+  const overflow = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth }));
+  assert.ok(overflow.document <= overflow.viewport, JSON.stringify(overflow));
+}
+try {
+  for (const width of [1440,390,320]) {
+    const context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'});
+    const page=await context.newPage(), errors=[];
+    page.on('pageerror',e=>errors.push(e.message));
+    await page.goto(base+'/login.html');
+    await page.locator('#username').fill('admin');
+    await page.locator('#password').fill('123');
+    await page.locator('#login-btn').click();
+    await expect(page.locator('.recent-post')).toHaveCount(3);
+    await noOverflow(page);
+    await page.screenshot({path:`${output}/ringkasan-${width}.png`});
+    await page.locator('#admin-nav [data-panel="berita"]').click();
+    await page.getByRole('button',{name:'Buat postingan Ekskul'}).click();
+    await expect(page.locator('#kategori')).toHaveValue('Ekskul');
+    await page.locator('#gambar').setInputFiles(`public${decodeURI(photos.program.pemberdayaan)}`);
+    await expect(page.locator('#image-preview')).toBeVisible();
+    await page.locator('#judul').fill('Belajar merawat ternak');
+    await page.locator('#isi').fill('Hari ini santri belajar menyiapkan pakan bersama.');
+    await page.locator('#editor-dialog .dialog-header').scrollIntoViewIfNeeded();
+    await page.screenshot({path:`${output}/editor-${width}.png`});
+    await page.locator('#preview-btn').click();
+    await expect(page.locator('#preview-title')).toHaveText('Belajar merawat ternak');
+    await expect(page.locator('#preview-content figure img')).toBeVisible();
+    await page.locator('#preview-close').click();
+    await page.locator('#save-btn').click();
+    await expect(page.locator('#editor-dialog')).toBeHidden();
+    await page.locator('#news-filter').selectOption('Ekskul');
+    await expect(page.locator('#daftar-berita .post-card h3')).toHaveText('Belajar merawat ternak');
+    await page.locator('#admin-nav [data-panel="pengaturan"]').click();
+    await expect(page.locator('[data-level-title]')).toHaveCount(2);
+    await page.getByRole('button',{name:'Tambah jenjang'}).click();
+    await page.locator('[data-level-title]').last().fill('Jenjang Baru');
+    await page.locator('[data-level-description]').last().fill('Kartu ringkas untuk wali.');
+    await page.locator('[data-remove-level]').nth(1).click();
+    await page.locator('#setting-opens').fill('2026-11-01');
+    await page.locator('#setting-closes').fill('2026-12-30');
+    await page.locator('#setting-tiktok').fill('@pondok_uji');
+    await page.getByRole('button',{name:'Simpan pengaturan'}).click();
+    await expect(page.locator('[data-settings-message]')).toHaveText('Pengaturan tersimpan di demo.');
+    const saved=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('annahl-demo-settings-v1')));
+    assert.deepEqual(saved.levels.map(item=>item.title),['SMP','Jenjang Baru']);
+    await noOverflow(page);
+    await page.screenshot({path:`${output}/pengaturan-${width}.png`});
+    let state='open', received=null, revision=1;
+    await page.route('**/api/forms.php*',async route=>{
+      const request=route.request();
+      if(request.method()==='POST'){
+        received=request.postDataJSON();
+        return route.fulfill({json:{ok:true,id:received.id,kind:received.kind}});
+      }
+      const now=Math.floor(Date.now()/1000);
+      return route.fulfill({json:{ok:true,token:'test',registration:{...saved,revision,state,serverTime:now,opensAt:now-500,closesAt:now+300}}});
+    });
+    await page.goto(base+'/#/pendaftaran');
+    const form=page.locator('#registration-form');
+    await expect(form).toBeVisible();
+    await noOverflow(page);
+    await page.locator('.registration-period-box').evaluate(el=>scrollTo(0,scrollY+el.getBoundingClientRect().top-100));
+    await page.screenshot({path:`${output}/pendaftaran-${width}.png`});
+    await page.getByRole('button',{name:'Lanjut',exact:true}).click();
+    await expect(form.locator('progress')).toHaveAttribute('value','1');
+    await form.getByRole('radio',{name:/Jenjang Baru/}).check();
+    await form.getByLabel('Nama Lengkap').fill('Santri Demo');
+    await form.getByLabel('Tempat Lahir').fill('Bogor');
+    await form.getByLabel('Tanggal Lahir').fill('2013-05-04');
+    await form.getByLabel('Jenis Kelamin').selectOption('Perempuan');
+    await form.getByLabel('Asal Sekolah').fill('Sekolah Demo');
+    await page.getByRole('button',{name:'Lanjut',exact:true}).click();
+    await expect(form.locator('progress')).toHaveAttribute('value','2');
+    await form.getByLabel('Nama Orang Tua / Wali').fill('Wali Demo');
+    await form.getByLabel('No. WhatsApp').fill('000000000000');
+    await form.getByLabel('Alamat Lengkap').fill('Alamat demo');
+    await page.getByRole('button',{name:'Lanjut',exact:true}).click();
+    await expect(form.locator('progress')).toHaveAttribute('value','3');
+    await page.getByRole('button',{name:'Kembali',exact:true}).click();
+    await expect(form.getByLabel('Nama Orang Tua / Wali')).toHaveValue('Wali Demo');
+    await page.getByRole('button',{name:'Lanjut',exact:true}).click();
+    await page.getByRole('button',{name:'Kirim Pendaftaran'}).click();
+    await expect(page.locator('#registration-receipt')).toContainText('Pendaftaran diterima');
+    assert.equal(received.payload.jenjang,'Jenjang Baru');
+    assert.ok(!('program' in received.payload));
+    state='closed'; revision++;
+    await page.reload();
+    await expect(page.locator('#registration-period')).toContainText('sudah ditutup');
+    await expect(form).toBeHidden();
+    await noOverflow(page);
+    await page.goto(base+'/#/berita');
+    await expect(page.locator('.news-filter[data-filter="Ekskul"]')).toBeVisible();
+    await page.locator('.news-filter[data-filter="Ekskul"]').click();
+    await expect(page.locator('.news-filter[data-filter="Ekskul"]')).toHaveAttribute('aria-pressed','true');
+    assert.deepEqual(errors,[],`JavaScript errors at ${width}px`);
+    await context.close();
+    console.log(`PASS: ${width}px, admin demo posting + preview + Ekskul, settings CRUD, registration steps and closed state.`);
+  }
+} finally {
+  await browser.close();
+}

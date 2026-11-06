@@ -5,6 +5,7 @@ import { initDonationPayment } from '../donation-payment.js';
 
 import { photos } from '../data/photos.js';
 import { bindSubmission } from '../form-submission.js';
+import { ATTACHMENT_HELP } from '../google-forms.js';
 
 export function Donasi() {
   return `
@@ -123,7 +124,7 @@ export function Donasi() {
             </div>
             <div class="form-group attachment-box">
               <label class="form-label" for="donor-files">Bukti transfer <span>(opsional)</span></label>
-              <p id="donor-files-help" class="attachment-help">Foto, PDF, DOCX, XLSX, atau PPTX. Maksimal 3 berkas, 2 MB per berkas dan 5 MB total.</p>
+              <p id="donor-files-help" class="attachment-help">${ATTACHMENT_HELP}</p>
               <input id="donor-files" data-form-files type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.docx,.xlsx,.pptx" aria-describedby="donor-files-help donor-files-feedback" />
               <ul data-file-list class="attachment-list"></ul>
               <p id="donor-files-feedback" data-file-feedback class="attachment-feedback" aria-live="polite"></p>

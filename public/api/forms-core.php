@@ -8,6 +8,59 @@ final class AnnahlFormError extends RuntimeException {
 
 function annahl_fail(int $status, string $message): never { throw new AnnahlFormError($status, $message); }
 
+const ANNAHL_FILE_LIMIT = 10 * 1024 * 1024;
+const ANNAHL_TOTAL_LIMIT = 15 * 1024 * 1024;
+const ANNAHL_BODY_LIMIT = 21 * 1024 * 1024;
+
+function annahl_registration_settings(array $config): array {
+    $url = $config['supabase_url'] ?? '';
+    $key = $config['supabase_anon_key'] ?? '';
+    $test = PHP_SAPI === 'cli-server' && getenv('ANNAHL_FORMS_TEST_MODE') === '1';
+    if (!function_exists('curl_init') || (!preg_match('~^https://[a-z0-9]{20}\.supabase\.co$~D', $url)
+        && !($test && preg_match('~^http://127\.0\.0\.1:\d+$~D', $url))) || !is_string($key) ||
+        !preg_match('/^[A-Za-z0-9._-]{20,800}$/D', $key) || str_starts_with($key, 'sb_secret_')) {
+        annahl_fail(503, 'Jadwal pendaftaran belum dapat dimuat.');
+    }
+    $headers = ['apikey: ' . $key, 'Accept: application/json', 'Cache-Control: no-cache'];
+    if (!str_starts_with($key, 'sb_publishable_')) {
+        $claims = explode('.', $key)[1] ?? '';
+        $decoded = json_decode((string)base64_decode(strtr($claims, '-_', '+/'), true), true);
+        if (!$test && ($decoded['role'] ?? '') !== 'anon') annahl_fail(503, 'Jadwal pendaftaran belum dapat dimuat.');
+        $headers[] = 'Authorization: Bearer ' . $key;
+    }
+    $curl = curl_init($url . '/rest/v1/pondok_settings?id=eq.1&select=opens_on,closes_on,levels,revision&limit=1');
+    $body = '';
+    curl_setopt_array($curl, [CURLOPT_FOLLOWLOCATION=>false, CURLOPT_CONNECTTIMEOUT=>4, CURLOPT_TIMEOUT=>8,
+        CURLOPT_HTTPHEADER=>$headers, CURLOPT_WRITEFUNCTION=>static function($handle, string $part) use (&$body): int {
+            if (strlen($body) + strlen($part) > 32000) return 0;
+            $body .= $part; return strlen($part);
+        }]);
+    if (!empty($config['curl_ca_file'])) curl_setopt($curl, CURLOPT_CAINFO, $config['curl_ca_file']);
+    $ok = curl_exec($curl); $status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE); curl_close($curl);
+    $settings = json_decode($body, true)[0] ?? null;
+    if (!$ok || $status !== 200 || !is_array($settings) || !is_array($settings['levels'] ?? null) ||
+        !is_int($settings['revision'] ?? null)) annahl_fail(503, 'Jadwal pendaftaran belum dapat dimuat.');
+    return $settings;
+}
+
+function annahl_registration_status(array $settings, ?int $now = null): array {
+    $now ??= time();
+    $tz = new DateTimeZone('Asia/Jakarta');
+    $start = !empty($settings['opens_on']) ? DateTimeImmutable::createFromFormat('!Y-m-d', $settings['opens_on'], $tz) : null;
+    $end = !empty($settings['closes_on']) ? DateTimeImmutable::createFromFormat('!Y-m-d', $settings['closes_on'], $tz) : null;
+    $opens = $start ? $start->getTimestamp() : null;
+    $closes = $end ? $end->modify('+1 day')->getTimestamp() : null;
+    $state = !$opens || !$closes || empty($settings['levels']) ? 'unscheduled'
+        : ($now < $opens ? 'upcoming' : ($now >= $closes ? 'closed' : 'open'));
+    return $settings + ['state'=>$state, 'serverTime'=>$now, 'opensAt'=>$opens, 'closesAt'=>$closes];
+}
+
+function annahl_require_open(array $settings, ?int $now = null): void {
+    if (annahl_registration_status($settings, $now)['state'] !== 'open') {
+        annahl_fail(409, 'Pendaftaran tidak sedang dibuka. Periksa jadwal atau hubungi pengurus.');
+    }
+}
+
 function annahl_config(): array {
     $file = getenv('ANNAHL_FORMS_CONFIG') ?: dirname(__DIR__, 2) . '/annahl-private/forms-config.php';
     $path = realpath($file);
@@ -100,14 +153,14 @@ function annahl_files(mixed $input): array {
     $result = []; $total = 0;
     $office = ['docx' => ['word/document.xml', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'], 'xlsx' => ['xl/workbook.xml', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'], 'pptx' => ['ppt/presentation.xml', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']];
     foreach ($input as $file) {
-        if (!is_array($file) || !is_string($file['data'] ?? null) || strlen($file['data']) > 2800000) annahl_fail(422, 'Berkas tidak valid atau melebihi 2 MB.');
+        if (!is_array($file) || !is_string($file['data'] ?? null) || strlen($file['data']) > 4 * intdiv(ANNAHL_FILE_LIMIT + 2, 3)) annahl_fail(422, 'Berkas tidak valid atau melebihi 10 MB.');
         $name = annahl_text($file, 'name', 1, 180);
         $name = preg_replace('~[/\\\\\x00-\x1f\x7f]~u', '_', $name);
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $bytes = base64_decode($file['data'], true);
-        if ($bytes === false || strlen($bytes) < 1 || strlen($bytes) > 2 * 1024 * 1024) annahl_fail(422, 'Ukuran setiap berkas harus antara 1 byte dan 2 MB.');
+        if ($bytes === false || strlen($bytes) < 1 || strlen($bytes) > ANNAHL_FILE_LIMIT) annahl_fail(422, 'Ukuran setiap berkas harus antara 1 byte dan 10 MB.');
         $total += strlen($bytes);
-        if ($total > 5 * 1024 * 1024) annahl_fail(422, 'Total lampiran maksimal 5 MB.');
+        if ($total > ANNAHL_TOTAL_LIMIT) annahl_fail(422, 'Total lampiran maksimal 15 MB.');
         $mime = null;
         if (in_array($ext, ['jpg','jpeg','png','webp'], true)) {
             $image = @getimagesizefromstring($bytes);
@@ -121,7 +174,7 @@ function annahl_files(mixed $input): array {
     return $result;
 }
 
-function annahl_submission(array $input): array {
+function annahl_submission(array $input, ?array $settings = null): array {
     $id = $input['id'] ?? '';
     $kind = $input['kind'] ?? '';
     if (!is_string($id) || !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iD', $id) || !in_array($kind, ['pendaftaran','donasi'], true)) annahl_fail(422, 'Jenis atau ID kiriman tidak valid.');
@@ -129,15 +182,15 @@ function annahl_submission(array $input): array {
     if (!is_array($fields) || strlen(json_encode($fields)) > 18000) annahl_fail(422, 'Isian formulir terlalu panjang.');
     $payload = ['nama'=>annahl_text($fields, 'nama', 2, 180)];
     if ($kind === 'pendaftaran') {
-        foreach (['tempatLahir','tanggalLahir','jenisKelamin','asalSekolah','program','namaWali','noWA'] as $key) $payload[$key] = annahl_text($fields, $key, 1, 180);
+        if ($settings === null) annahl_fail(503, 'Jadwal pendaftaran belum dapat dimuat.');
+        annahl_require_open($settings);
+        foreach (['tempatLahir','tanggalLahir','jenisKelamin','asalSekolah','jenjang','namaWali','noWA'] as $key) $payload[$key] = annahl_text($fields, $key, 1, 180);
         $payload['email'] = annahl_text($fields, 'email', 0, 254);
         $payload['alamat'] = annahl_text($fields, 'alamat', 2, 2000);
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $payload['tanggalLahir']);
         if (!$date || $date->format('Y-m-d') !== $payload['tanggalLahir'] || $payload['tanggalLahir'] > (new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta')))->format('Y-m-d')) annahl_fail(422, 'Periksa tanggal lahir.');
         if (!preg_match('/^\+?[\d\s()-]{8,24}$/D', $payload['noWA']) || ($payload['email'] !== '' && !filter_var($payload['email'], FILTER_VALIDATE_EMAIL))) annahl_fail(422, 'Periksa nomor WhatsApp dan email.');
-        // Keep previous choices accepted for forms already open during a release.
-        $programs = ['Program Tahfidz Quran','Pendidikan Madrasah Muhadloroh','Pendidikan Formal (SMP/SMA)','Tarbiyah Akhlak Islamiyah',"Tahfidz Al-Qur'an",'Pendidikan Formal + Tahfidz','Pemberdayaan Ummat'];
-        if (!in_array($payload['jenisKelamin'], ['Laki-laki','Perempuan'], true) || !in_array($payload['program'], $programs, true)) annahl_fail(422, 'Pilih jenis kelamin dan program yang tersedia.');
+        if (!in_array($payload['jenisKelamin'], ['Laki-laki','Perempuan'], true) || !in_array($payload['jenjang'], array_column($settings['levels'], 'title'), true)) annahl_fail(422, 'Pilih jenis kelamin dan jenjang yang tersedia.');
     } else {
         $payload['jumlah'] = annahl_text($fields, 'jumlah', 1, 12);
         $payload['metode'] = annahl_text($fields, 'metode', 1, 100);
@@ -153,7 +206,7 @@ function annahl_forward(array $config, array $record): array {
     if (!function_exists('curl_init')) annahl_fail(503, 'Sambungan formulir belum siap.');
     $record['version'] = 1; $record['issuedAt'] = time();
     $data = json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-    $body = json_encode(['data'=>$data, 'signature'=>hash_hmac('sha256', 'annahl.forms.v1:' . $data, $config['shared_secret'])], JSON_THROW_ON_ERROR);
+    $body = json_encode(['data'=>$data, 'signature'=>hash_hmac('sha256', 'annahl.forms.v1:' . $data, $config['shared_secret'])], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
     $url = $config['apps_script_url']; $method = 'POST';
     for ($hop = 0; $hop < 3; $hop++) {
         $location = '';

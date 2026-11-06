@@ -5,8 +5,8 @@ const ANNAHL_SPREADSHEET = '1GJJDb0AEv4a3yugzQpv2hMhU1ke9g_zIbsNGQMNlmg8';
 const ANNAHL_FORMS = {
   pendaftaran: {
     name: 'Pendaftaran',
-    headers: ['ID Kiriman','Diterima','Status','Nama Santri','Tempat Lahir','Tanggal Lahir','Jenis Kelamin','Asal Sekolah','Program','Nama Wali','WhatsApp','Email','Alamat'],
-    fields: ['nama','tempatLahir','tanggalLahir','jenisKelamin','asalSekolah','program','namaWali','noWA','email','alamat'],
+    headers: ['ID Kiriman','Diterima','Status','Nama Santri','Tempat Lahir','Tanggal Lahir','Jenis Kelamin','Asal Sekolah','Jenjang','Nama Wali','WhatsApp','Email','Alamat'],
+    fields: ['nama','tempatLahir','tanggalLahir','jenisKelamin','asalSekolah','jenjang','namaWali','noWA','email','alamat'],
   },
   donasi: {
     name: 'Konfirmasi Donasi',
@@ -48,10 +48,13 @@ function formsFolder_(config) {
   if (formsPrivate_(config.folderId).mimeType !== 'application/vnd.google-apps.folder') throw formsError_('not_ready');
   return config.folderId;
 }
+function formsHeaderMatches_(schema, expected, value) {
+  return value === expected || (schema.name === 'Pendaftaran' && expected === 'Jenjang' && value === 'Program');
+}
 function formsSheet_(book, schema) {
   const sheet = book.getSheetByName(schema.name);
   const expected = schema.headers.concat(ANNAHL_EXTRA_COLUMNS);
-  if (!sheet || sheet.getLastRow() < 1 || sheet.getRange(1,1,1,expected.length).getValues()[0].some(function(value,index) { return value !== expected[index]; })) throw formsError_('sheet_schema');
+  if (!sheet || sheet.getLastRow() < 1 || sheet.getRange(1,1,1,expected.length).getValues()[0].some(function(value,index) { return !formsHeaderMatches_(schema, expected[index], value); })) throw formsError_('sheet_schema');
   return sheet;
 }
 
@@ -61,7 +64,7 @@ function setupGoogleForms() {
   // Check existing source columns before creating folders or extending sheets.
   Object.keys(ANNAHL_FORMS).forEach(function(kind) {
     const schema = ANNAHL_FORMS[kind], sheet = book.getSheetByName(schema.name);
-    if (!sheet || sheet.getRange(1,1,1,schema.headers.length).getValues()[0].some(function(value,index) { return value !== schema.headers[index]; })) throw formsError_('sheet_schema');
+    if (!sheet || sheet.getRange(1,1,1,schema.headers.length).getValues()[0].some(function(value,index) { return !formsHeaderMatches_(schema, schema.headers[index], value); })) throw formsError_('sheet_schema');
   });
   if (!config.folderId) {
     const folder = Drive.Files.create({name:'An-Nahl - Berkas Pendaftaran dan Donasi',mimeType:'application/vnd.google-apps.folder',appProperties:{annahl:'forms-root'}});
@@ -72,6 +75,7 @@ function setupGoogleForms() {
   formsFolder_(config);
   Object.keys(ANNAHL_FORMS).forEach(function(kind) {
     const schema = ANNAHL_FORMS[kind], sheet = book.getSheetByName(schema.name), base = schema.headers.length;
+    if (kind === 'pendaftaran') sheet.getRange(1,9).setValue('Jenjang');
     if (sheet.getRange(1,base+1,1,3).getValues()[0].some(function(value,index) { return value !== ANNAHL_EXTRA_COLUMNS[index]; })) {
       // Insert rather than overwrite any existing staff-note columns.
       sheet.insertColumnsAfter(base,3);
@@ -102,8 +106,9 @@ function formsValidate_(record) {
   const schema = ANNAHL_FORMS[record.kind];
   if (record.version !== 1 || !schema || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(record.id || '') ||
       !Number.isInteger(record.issuedAt) || Math.abs(Date.now()/1000-record.issuedAt) > 600 || !record.payload || typeof record.payload !== 'object' || Array.isArray(record.payload)) throw formsError_('invalid');
-  if (Object.keys(record.payload).some(function(key) { return schema.fields.indexOf(key) < 0; }) || JSON.stringify(record.payload).length > 18000) throw formsError_('invalid');
-  schema.fields.forEach(function(key) { if (typeof record.payload[key] !== 'string' || record.payload[key].length > 3000) throw formsError_('invalid'); });
+  const fields = schema.fields.map(function(key) { return key === 'jenjang' && record.payload.jenjang === undefined ? 'program' : key; });
+  if (Object.keys(record.payload).some(function(key) { return fields.indexOf(key) < 0; }) || JSON.stringify(record.payload).length > 18000) throw formsError_('invalid');
+  fields.forEach(function(key) { if (typeof record.payload[key] !== 'string' || record.payload[key].length > 3000) throw formsError_('invalid'); });
   if (record.payload.nama.trim().length < 2 || record.payload.nama.length > 180) throw formsError_('invalid');
   if (record.kind === 'donasi' && !/^[1-9]\d{0,11}$/.test(record.payload.jumlah)) throw formsError_('invalid');
   if (record.kind === 'pendaftaran' && (!record.payload.namaWali.trim() || !/^\+?[\d\s()-]{8,24}$/.test(record.payload.noWA))) throw formsError_('invalid');
@@ -111,12 +116,13 @@ function formsValidate_(record) {
   const types = ['image/jpeg','image/png','image/webp','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.openxmlformats-officedocument.presentationml.presentation'];
   let total = 0;
   record.files.forEach(function(file) {
-    if (!file || typeof file.name !== 'string' || file.name.length < 1 || file.name.length > 180 || /[\/\\\x00-\x1f]/.test(file.name) || types.indexOf(file.mime) < 0 || !Number.isInteger(file.bytes) || file.bytes < 1 || file.bytes > 2097152 || !/^[a-f0-9]{64}$/.test(file.sha256 || '') || typeof file.data !== 'string' || file.data.length > 2800000) throw formsError_('invalid');
+    if (!file || typeof file.name !== 'string' || file.name.length < 1 || file.name.length > 180 || /[\/\\\x00-\x1f]/.test(file.name) || types.indexOf(file.mime) < 0 || !Number.isInteger(file.bytes) || file.bytes < 1 || file.bytes > 10 * 1024 * 1024 || !/^[a-f0-9]{64}$/.test(file.sha256 || '') || typeof file.data !== 'string' || file.data.length > 4 * Math.ceil(file.bytes / 3)) throw formsError_('invalid');
+    total += file.bytes;
+    if (total > 15 * 1024 * 1024) throw formsError_('invalid');
     const bytes = Utilities.base64Decode(file.data);
     if (bytes.length !== file.bytes || formsDigest_(bytes) !== file.sha256) throw formsError_('invalid');
-    file.decoded = bytes; total += bytes.length;
+    file.decoded = bytes;
   });
-  if (total > 5242880) throw formsError_('invalid');
   return formsDigest_(JSON.stringify({kind:record.kind,payload:record.payload,files:record.files.map(function(file) { return {name:file.name,mime:file.mime,bytes:file.bytes,sha256:file.sha256}; })}));
 }
 
@@ -160,6 +166,7 @@ function formsSave_(record, hash, config) {
   if (formsExisting_(sheet,record.id,hash,width)) return;
   const folder = formsUpload_(root,record,hash);
   const values = [record.id,new Date(),'baru'].concat(schema.fields.map(function(field) {
+    if (field === 'jenjang' && record.payload.jenjang === undefined) return formsLiteral_(record.payload.program);
     if (field === 'jumlah') return Number(record.payload[field]);
     if (field === 'tanggalLahir' && /^\d{4}-\d{2}-\d{2}$/.test(record.payload[field])) return new Date(record.payload[field]+'T00:00:00+07:00');
     return formsLiteral_(record.payload[field]);
@@ -182,7 +189,7 @@ function doPost(event) {
     if (typeof text !== 'string' || text.length > 29000000) throw formsError_('invalid');
     const envelope = JSON.parse(text), config = formsConfig_();
     if (envelope.scope === 'media') return mediaEnvelope_(envelope,config);
-    if (text.length > 7500000) throw formsError_('invalid');
+    if (text.length > 21 * 1024 * 1024) throw formsError_('invalid');
     if (typeof envelope.data !== 'string' || !/^[a-f0-9]{64}$/.test(envelope.signature || '')) throw formsError_('denied');
     const expected = formsHex_(Utilities.computeHmacSha256Signature('annahl.forms.v1:'+envelope.data,config.secret));
     let different = 0;

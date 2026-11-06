@@ -79,6 +79,35 @@ function media_cache_store(array $config, string $id, string $variant, array $im
     file_put_contents($temp,json_encode($image,JSON_THROW_ON_ERROR),LOCK_EX); chmod($temp,0600);
     if (!@rename($temp,$config['media_cache_directory'].'/'.$id.'-'.$variant.'.json')) @unlink($temp);
 }
+function media_thumbnail(array $image): array {
+    if (($image['mime'] ?? '') === 'image/gif' || !function_exists('imagecreatefromstring')) return $image;
+    $bytes = base64_decode($image['data'] ?? '', true);
+    $dimensions = $bytes === false ? false : @getimagesizefromstring($bytes);
+    if (!$dimensions || $dimensions[0] * $dimensions[1] > 40000000) annahl_fail(502, 'Dimensi foto tidak sesuai.');
+    $scale = min(1, 480 / max($dimensions[0], $dimensions[1]));
+    if ($scale === 1) return $image;
+    $source = @imagecreatefromstring($bytes);
+    if (!$source) return $image;
+    $width = max(1, (int)round($dimensions[0] * $scale));
+    $height = max(1, (int)round($dimensions[1] * $scale));
+    $preview = imagecreatetruecolor($width, $height);
+    imagealphablending($preview, false);
+    imagesavealpha($preview, true);
+    imagecopyresampled($preview, $source, 0, 0, 0, 0, $width, $height, $dimensions[0], $dimensions[1]);
+    ob_start();
+    $mime = 'image/png';
+    if (function_exists('imagewebp')) {
+        $mime = 'image/webp';
+        imagewebp($preview, null, 82);
+    } else {
+        imagepng($preview);
+    }
+    $encoded = ob_get_clean();
+    imagedestroy($source);
+    imagedestroy($preview);
+    if (!is_string($encoded) || $encoded === '') return $image;
+    return ['mime'=>$mime, 'data'=>base64_encode($encoded), 'sha256'=>hash('sha256',$encoded)];
+}
 function media_row(array $config, array $row): array {
     $id = media_id($row['id'] ?? null);
     $url = static fn(string $variant): string => '/api/media-image.php?id='.$id.'&size='.$variant.'&key='.media_key($config, $id, $variant);

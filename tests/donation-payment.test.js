@@ -6,10 +6,11 @@ import { parseHTML } from 'linkedom';
 import { photos } from '../src/data/photos.js';
 import { initDonationPayment } from '../src/donation-payment.js';
 import { categoryCards } from '../src/components/category-cards.js';
+import { ATTACHMENT_HELP } from '../src/google-forms.js';
 
 function fixture() {
   const source = readFileSync(new URL('../src/pages/donasi.js', import.meta.url), 'utf8').replace(/^import .*;$/gm, '').replace('export function', 'function');
-  const context = { photos, window: {} };
+  const context = { photos, ATTACHMENT_HELP, window: {} };
   vm.runInNewContext(source, context);
   const { document, window } = parseHTML(`<html><body>${context.Donasi()}</body></html>`);
   // LinkeDOM omits the native HTMLSelectElement value setter.
@@ -49,7 +50,8 @@ test('published QRIS image is displayed while missing QRIS is not replaced with 
 test('each news and gallery category has an optimized local image and accessible selection state', () => {
   for (const kind of ['news', 'gallery']) {
     const { document } = parseHTML(categoryCards(kind));
-    assert.equal(document.querySelectorAll('.category-card img').length, 4);
+    assert.equal(document.querySelectorAll('.category-card img').length, kind === 'news' ? 5 : 4);
+    if (kind === 'news') assert.ok(document.querySelector('[data-filter="Ekskul"]'));
     assert.equal(document.querySelectorAll('[aria-pressed="true"]').length, 1);
     for (const image of document.querySelectorAll('img')) assert.match(image.getAttribute('src'), /\/media\/.*-480\.jpg$/);
   }

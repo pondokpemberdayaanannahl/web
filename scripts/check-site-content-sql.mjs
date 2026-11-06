@@ -45,5 +45,27 @@ try {
   assert.equal((await db.query('select count(*)::int as n from public.site_content_history')).rows[0].n,1);
   await db.exec('reset role'); await db.exec(migration);
   assert.equal((await db.query('select count(*)::int as n from public.site_content')).rows[0].n,2);
+  await db.exec(readFileSync('supabase/migrations/202611040001_pondok_settings.sql','utf8'));
+  const levels = [{ title: 'Jenjang Uji', description: 'Kartu singkat' }];
+  const update = (rev, start, end, items = levels, tiktok = '') =>
+    db.query('select public.save_pondok_settings($1,$2,$3,$4,$5) as settings',[rev,start,end,JSON.stringify(items),tiktok]);
+  await db.exec('set role anon');
+  assert.equal((await db.query('select opens_on from public.pondok_settings')).rows[0].opens_on,null);
+  await assert.rejects(update(1,null,null), /permission denied/);
+  await db.exec("set role authenticated; select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',false)");
+  await assert.rejects(update(1,null,null), /Hanya admin/);
+  await assert.rejects(db.query("update public.pondok_settings set opens_on=current_date"), /permission denied/);
+  await db.exec("select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',false)");
+  await assert.rejects(update(1,'2026-11-04',null), /check constraint/);
+  await assert.rejects(update(1,'2026-11-05','2026-11-04'), /check constraint/);
+  await assert.rejects(update(1,'2026-11-04','2026-11-04',[]), /check constraint/);
+  await assert.rejects(update(1,null,null,[...levels,...levels]), /check constraint/);
+  await assert.rejects(update(1,null,null,levels,'javascript:alert(1)'), /check constraint/);
+  const saved = (await update(1,'2026-11-04','2026-11-04',levels,'pondok_uji')).rows[0].settings;
+  assert.equal(saved.revision,2);
+  await assert.rejects(update(1,null,null), /diubah/);
+  await db.exec('set role anon');
+  const visible = (await db.query('select levels,tiktok from public.pondok_settings')).rows[0];
+  assert.deepEqual(visible.levels,levels); assert.equal(visible.tiktok,'pondok_uji');
   console.log('PASS (local PostgreSQL): admin-only saves, private drafts, public published content, atomic revisions, history privacy, invalid payload rejection, and repeatable migration. No remote database contacted.');
 } finally { await db.close(); }

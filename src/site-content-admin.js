@@ -47,7 +47,9 @@ export function mountWebsiteManager({ host, client, demo, userId, role, notify }
       <dialog class="cms-picker-dialog" id="cms-picker" aria-labelledby="cms-picker-title"><div class="dialog-header"><div><span class="eyebrow">DOKUMENTASI PONDOK</span><h2 id="cms-picker-title">Pilih foto</h2></div><button class="icon-button" data-cms-action="close-picker" aria-label="Tutup pilihan foto">×</button></div><div class="cms-picker-body"><input id="cms-photo-search" type="search" placeholder="Cari kegiatan atau nama foto…" aria-label="Cari foto pondok" /><div id="cms-photo-grid" class="cms-photo-grid"></div><div class="cms-picker-pagination"><button class="button secondary compact" data-cms-action="photo-prev">← Sebelumnya</button><span id="cms-photo-page"></span><button class="button secondary compact" data-cms-action="photo-next">Berikutnya →</button></div></div></dialog>`;
     cards();
     $('#cms-fields-form').addEventListener('submit', event => { event.preventDefault(); $('#cms-editor').close(); cards(); });
-    $('#cms-editor').addEventListener('close', cards);
+    $('#cms-editor').addEventListener('close', () => {
+      if ($('#cms-editor').dataset.drivePickerSuspended !== 'true') cards();
+    });
     $('#cms-photo-search').addEventListener('input', () => { libraryPage = 0; photoGrid(); });
   }
   async function open(id) {

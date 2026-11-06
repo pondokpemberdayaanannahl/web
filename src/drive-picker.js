@@ -1,8 +1,10 @@
 import { createDriveMedia } from './drive-media.js';
 import { escapeHtml as esc } from './content-format.js';
 import { loadPhotoLibrary } from './photo-library.js';
+import { googlePickerConfigured, selectNativeDrivePhoto } from './google-drive-picker.js';
 
 export async function selectDrivePhoto({client,demo=false}) {
+  if (!demo && googlePickerConfigured()) return selectNativeDrivePhoto(client);
   const dialog = document.createElement('dialog'); dialog.className = 'drive-picker';
   dialog.setAttribute('aria-labelledby','drive-picker-title');
   dialog.innerHTML = `<div class="dialog-header"><div><span class="eyebrow">FOTO PONDOK</span><h2 id="drive-picker-title">${demo ? 'Pratinjau perpustakaan foto' : 'Ambil foto dari Drive'}</h2></div><button type="button" class="icon-button" data-drive-close aria-label="Tutup pilihan foto">×</button></div><div class="drive-picker-body"><p class="muted">${demo ? 'Mode demo memakai foto lokal. Tidak ada foto yang dikirim ke Google.' : 'Pilih foto yang sudah tersimpan di perpustakaan akun pondok.'}</p><div class="drive-picker-tools"><input type="search" placeholder="Cari foto atau kegiatan…" aria-label="Cari foto Drive" /><button type="button" class="button secondary" data-drive-search>Cari</button></div><p data-drive-status role="status"></p><div class="drive-photo-grid"></div><div class="pagination"><span data-drive-page></span><div><button type="button" class="button secondary compact" data-drive-prev>← Sebelumnya</button><button type="button" class="button secondary compact" data-drive-next>Berikutnya →</button></div></div><a data-drive-folder class="text-link" target="_blank" rel="noopener noreferrer" hidden>Buka folder di Google Drive ↗</a></div>`;
@@ -26,7 +28,7 @@ export async function selectDrivePhoto({client,demo=false}) {
         const link=$('[data-drive-folder]');link.href=reply.folderUrl;link.hidden=false;
       }
       if (closed || request!==sequence) return;
-      $('.drive-photo-grid').innerHTML=photos.map(row=>`<button type="button" data-drive-photo="${esc(row.id)}"><img src="${esc(row.thumbnail)}" alt="" loading="lazy" decoding="async" /><span>${esc(row.filename)}</span><small>${esc(row.folder)}</small></button>`).join('');
+      $('.drive-photo-grid').innerHTML=photos.map(row=>`<button type="button" data-drive-photo="${esc(row.id)}"><img src="${esc(row.thumbnail)}" alt="" loading="lazy" decoding="async" /><span>${esc(row.filename)}</span></button>`).join('');
       $('[data-drive-status]').textContent=photos.length ? 'Klik foto untuk menggunakannya.' : 'Belum ada foto yang cocok. Unggah foto atau gunakan kata kunci lain.';
       $('[data-drive-page]').textContent=`Halaman ${previous.length+1}`;
       $('[data-drive-prev]').disabled=!previous.length;$('[data-drive-next]').disabled=!next;

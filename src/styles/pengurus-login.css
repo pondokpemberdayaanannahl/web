@@ -1,0 +1,105 @@
+.login-page { padding: 12px; background: var(--forest-deep); }
+.login-scene {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: calc(100svh - 24px);
+  border: 1px solid #fff3;
+  border-radius: 25px;
+  overflow: hidden;
+  background: var(--forest) url('/brand/pengurus-landscape.svg') center / cover no-repeat;
+}
+.login-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: clamp(12px,2vw,24px) clamp(16px,4vw,56px);
+}
+.login-brand, .login-nav {
+  display: flex;
+  align-items: center;
+  background: #f9faf0de;
+  border: 1px solid #fff9;
+  border-radius: 13px;
+  color: var(--forest-deep);
+}
+.login-brand {
+  gap: 10px;
+  padding: 5px 11px 5px 8px;
+  font-weight: 700;
+  font-size: 13px;
+}
+.login-brand img { display: block; width: 76px; height: auto; }
+.login-nav { gap: 4px; padding: 4px; font-weight: 600; }
+.login-nav > * { padding: 8px 12px; border-radius: 8px; white-space: nowrap; }
+.login-nav a:hover { background: var(--green-wash); }
+.login-nav [aria-current] { background: var(--forest); color: white; }
+.login-stage { display: grid; place-items: center; padding: 18px 20px 30px; }
+.login-glass {
+  width: min(100%, 460px);
+  padding: clamp(24px,3.3vw,44px);
+  border: 1px solid #fffc;
+  border-radius: 24px;
+  background: #f7fbf3f7;
+  box-shadow: 0 22px 70px #092a1c42, inset 0 1px 0 #fff;
+}
+@supports (backdrop-filter: blur(10px)) {
+  .login-glass {
+    background: linear-gradient(155deg,#fffdf3ee,#e9f4e5d9);
+    backdrop-filter: blur(16px);
+  }
+}
+.login-heading { text-align: center; }
+.login-kicker {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 24px;
+  background: var(--honey-soft);
+  color: var(--honey-ink);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .13em;
+}
+.login-heading h1 { font-size: clamp(29px,4vw,42px); margin: 13px 0 9px; line-height: 1.16; color: var(--forest-deep); }
+.login-heading p { color: var(--muted); font-size: 14px; }
+.login-glass form { margin-top: 24px; }
+.login-glass label { margin: 16px 0 6px; font-weight: 700; }
+.login-glass input {
+  min-height: 48px;
+  border-radius: 10px;
+  border-color: #8fab99;
+  background: #ffffffd9;
+  font-size: 16px;
+}
+.login-glass .password-toggle { font-size: 13px; font-weight: 700; }
+.login-glass .button.full { min-height: 48px; font-size: 14px; border-radius: 10px; }
+.login-glass .form-message { margin: 10px 0; }
+.login-glass .form-message:empty { min-height: 0; margin: 0; }
+.login-glass .form-message:empty + .button { margin-top: 18px; }
+.login-glass .login-help { margin: 20px 0 0; padding-top: 16px; border-top: 1px solid var(--green-border); text-align: center; }
+.login-glass .setup-account-email { overflow-wrap: anywhere; }
+.login-glass .field-meta { color: var(--muted); font-size: 12px; }
+.login-glass #setup-cancel { display: block; margin: 8px auto 0; min-height: 40px; }
+.login-footer {
+  justify-self: center;
+  padding: 6px 13px;
+  margin: 0 12px 18px;
+  border-radius: 30px;
+  background: #0b2d20e6;
+  color: #f7f7ef;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: .035em;
+}
+@media (max-width: 620px) {
+  .login-page { padding: 6px; }
+  .login-scene { min-height: calc(100svh - 12px); border-radius: 17px; }
+  .login-header { gap: 8px; padding: 10px; }
+  .login-brand { gap: 5px; padding: 6px; font-size: 11px; }
+  .login-brand img { width: 52px; }
+  .login-nav { gap: 0; font-size: 12px; }
+  .login-nav > * { padding-inline: 8px; }
+  .login-nav .login-nav-extra { display: none; }
+  .login-stage { padding: 16px 11px 24px; }
+  .login-glass { padding: 22px 18px; border-radius: 18px; }
+}

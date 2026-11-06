@@ -9,6 +9,7 @@ export class Router {
     this.renderTimer = null;
     this.renderSequence = 0;
     this.observers = [];
+    this.cleanup = null;
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     window.addEventListener('hashchange', () => this.handleRoute());
   }
@@ -18,7 +19,8 @@ export class Router {
   }
 
   handleRoute() {
-    const hash = window.location.hash.slice(1) || '/';
+    const requested = window.location.hash.slice(1) || '/';
+    const hash = requested === '/program' ? '/jenjang' : requested;
     const route = this.routes.find(r => r.path === hash) || this.routes.find(r => r.path === '/');
     
     if (route && route !== this.currentPage) {
@@ -28,6 +30,8 @@ export class Router {
   }
 
   render(route) {
+    this.cleanup?.();
+    this.cleanup = null;
     const sequence = ++this.renderSequence;
     const app = document.getElementById('page-content');
     if (!app) return;
@@ -85,7 +89,7 @@ export class Router {
       if (route.path === '/' && window.initBerandaNews) {
         window.initBerandaNews();
       }
-      if (route.path === '/pendaftaran') window.initPendaftaran?.();
+      if (route.path === '/pendaftaran') this.cleanup = window.initPendaftaran?.();
       if (route.path === '/kontak') window.initKontak?.();
       if (route.path === '/donasi') window.initDonasi?.();
       // Close any open modals
@@ -96,7 +100,7 @@ export class Router {
       const titles = {
         '/': 'Pondok Pesantren Pemberdayaan Ummat An-Nahl — Membentuk Generasi Qur\'ani',
         '/tentang': 'Tentang Kami — Pesantren An-Nahl',
-        '/program': 'Program Pendidikan — Pesantren An-Nahl',
+        '/jenjang': 'Jenjang Pendidikan — Pesantren An-Nahl',
         '/pendaftaran': 'Pendaftaran Santri Baru — Pesantren An-Nahl',
         '/berita': 'Berita & Kegiatan — Pesantren An-Nahl',
         '/galeri': 'Galeri Foto & Video — Pesantren An-Nahl',

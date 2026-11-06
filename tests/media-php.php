@@ -12,4 +12,16 @@ $png=base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8
 $file=media_validate_file(['file'=>['name'=>'foto.png','data'=>base64_encode($png)]],'full');
 media_assert($file['mime']==='image/png' && $file['sha256']===hash('sha256',$png));
 try{media_validate_file(['file'=>['name'=>'fake.png','data'=>base64_encode('<script>bad</script>')]],'full');throw new RuntimeException('Non-image accepted');}catch(AnnahlFormError $error){media_assert($error->status===422);}
+if (function_exists('imagecreatetruecolor')) {
+    $large = imagecreatetruecolor(1600,800);
+    ob_start(); imagepng($large); $bytes = ob_get_clean(); imagedestroy($large);
+    $image = ['mime'=>'image/png','data'=>base64_encode($bytes),'sha256'=>hash('sha256',$bytes)];
+    $preview = media_thumbnail($image);
+    $dimensions = getimagesizefromstring(base64_decode($preview['data']));
+    media_assert($dimensions[0] === 480 && $dimensions[1] === 240);
+    media_assert(hash('sha256',base64_decode($preview['data'])) === $preview['sha256']);
+    media_assert(media_thumbnail($preview) === $preview);
+    media_assert(getimagesizefromstring($bytes)[0] === 1600);
+}
+
 echo "Media ID, signed image capabilities, hashing, and raster validation passed.\n";

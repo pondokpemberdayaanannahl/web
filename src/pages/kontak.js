@@ -6,8 +6,10 @@ import { socialIcon } from '../components/social-icon.js';
 import { photos } from '../data/photos.js';
 import { bindSubmission } from '../form-submission.js';
 import { pondokContact, pondokMapUrl, pondokMapEmbed } from '../data/pondok.js';
+import { tiktokUrl } from '../pondok-settings.js';
 
-export function Kontak() {
+export function Kontak(settings = {}) {
+  const tiktok = tiktokUrl(settings.tiktok);
   return `
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
@@ -91,6 +93,7 @@ export function Kontak() {
                 <a href="https://youtube.com/@ppuan-nahl4784?si=iWzGJO98qyJwW8HN" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--green-50);color:var(--green-700);transition:all 0.3s ease" onmouseover="this.style.background='var(--green-800)';this.style.color='white'" onmouseout="this.style.background='var(--green-50)';this.style.color='var(--green-700)'" target="_blank" rel="noopener noreferrer" aria-label="youtube">
                   ${socialIcon('youtube')}
                 </a>
+                ${tiktok ? `<a href="${tiktok}" data-content-ignore class="contact-social-link" aria-label="TikTok" target="_blank" rel="noopener noreferrer">${socialIcon('tiktok')}</a>` : ''}
               </div>
             </div>
           </div>

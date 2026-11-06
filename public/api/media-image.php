@@ -13,6 +13,11 @@ try {
         annahl_rate($config,annahl_ip_tag($config,$_SERVER),'media-image',600);
         $reply = media_forward($config,['action'=>'image','actor'=>'website','assetId'=>$id,'variant'=>$variant]);
         $image = ['mime'=>$reply['mime'] ?? '', 'data'=>$reply['data'] ?? '', 'sha256'=>$reply['sha256'] ?? ''];
+        if ($variant === 'thumbnail') {
+            $source = base64_decode($image['data'],true);
+            if ($source === false || !hash_equals($image['sha256'],hash('sha256',$source))) annahl_fail(502,'Foto belum dapat dimuat.');
+            $image = media_thumbnail($image);
+        }
     }
     if (!in_array($image['mime'] ?? '',['image/jpeg','image/png','image/webp','image/gif'],true) || !is_string($image['data'] ?? null) || strlen($image['data']) > 2800000) annahl_fail(502,'Format foto tidak sesuai.');
     $bytes = base64_decode($image['data'],true);

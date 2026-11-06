@@ -1,7 +1,7 @@
 import { photos, galleryImages, photoThumbnail } from '../data/photos.js';
 
 export function categoryCards(type) {
-  const news = { Akademik: photos.program.formal, Keagamaan: photos.program.tahfidz, Sosial: photos.berita.baktiSosial, Pengumuman: photos.berita.pendaftaran };
+  const news = { Akademik: photos.program.formal, Keagamaan: photos.program.tahfidz, Sosial: photos.berita.baktiSosial, Pengumuman: photos.berita.pendaftaran, Ekskul: photos.program.pemberdayaan };
   const images = type === 'news' ? news : Object.fromEntries(['Akademik','Ibadah','Acara','Fasilitas'].map(category => [category, galleryImages.find(image => image.category === category).src]));
   return `<div class="category-filters ${type === 'news' ? 'news-filters' : 'gallery-filters'}" role="group" aria-label="Kategori ${type === 'news' ? 'berita' : 'foto'}">
     <button class="category-all ${type}-filter" data-filter="Semua" aria-pressed="true">Semua ${type === 'news' ? 'berita' : 'foto'} <span aria-hidden="true">↗</span></button>

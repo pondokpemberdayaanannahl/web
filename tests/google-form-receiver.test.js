@@ -59,6 +59,18 @@ test('confirmed rows preserve numeric amounts, escape formulas, and contain only
   assert.equal(uploaded.owners[0].emailAddress,owner);
 });
 
+test('registration writes the new Jenjang field without changing the previous sheet layout',()=>{
+  for (const header of ['Jenjang','Program']) {
+    const app=fixture(), data=record(), sheet=app.sheets.Pendaftaran;
+    sheet.rows[0][8]=header;
+    data.kind='pendaftaran';
+    data.payload={nama:'Data Uji',tempatLahir:'Bogor',tanggalLahir:'2013-04-01',jenisKelamin:'Laki-laki',asalSekolah:'Sekolah Uji',jenjang:'Jenjang Baru',namaWali:'Wali Uji',noWA:'000000000000',email:'',alamat:'Alamat Uji'};
+    assert.equal(app.call(data).ok,true);
+    assert.equal(sheet.rows[1][8],'Jenjang Baru');
+    assert.equal(sheet.rows[1][10],'000000000000');
+  }
+});
+
 test('same-ID retries are acknowledged once; changed content cannot overwrite the original',()=>{
   const app=fixture(), data=record(['%PDF-1.4 test']);
   assert.equal(app.call(data).ok,true); const count=app.files.size;
