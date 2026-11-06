@@ -4,7 +4,7 @@ export const SITE_PAGES = [
   { id: 'beranda', title: 'Beranda', path: '/', description: 'Sampul, pengenalan, program, angka pondok, dan ajakan.' },
   { id: 'tentang', title: 'Tentang pondok', path: '/tentang', description: 'Visi misi, sejarah, pengasuh, dan nilai pondok.' },
   { id: 'program', title: 'Jenjang pendidikan', path: '/jenjang', description: 'Program unggulan, keterampilan, dan jadwal kegiatan. Daftar jenjang di menu Pengaturan.' },
-  { id: 'pendaftaran', title: 'Informasi pendaftaran', path: '/pendaftaran', description: 'Alur, persyaratan, biaya, dan pertanyaan umum.' },
+  { id: 'pendaftaran', title: 'Informasi pendaftaran', path: '/pendaftaran', description: 'Persyaratan santri putra, program beasiswa, dan pertanyaan umum. Jadwal di menu Pendaftaran.' },
   { id: 'donasi', title: 'Informasi donasi', path: '/donasi', description: 'Program bantuan, rekening, dan informasi pembayaran.' },
   { id: 'kontak', title: 'Kontak & lokasi', path: '/kontak', description: 'Alamat, nomor telepon, email, media sosial, dan peta.' },
   { id: 'berita', title: 'Halaman berita', path: '/berita', description: 'Judul dan pengantar halaman. Postingannya ada di menu Berita.' },

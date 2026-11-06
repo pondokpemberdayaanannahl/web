@@ -1,0 +1,30 @@
+PEMBARUAN PENDAFTARAN AN-NAHL — 6 NOVEMBER 2026
+
+SUDAH DIKERJAKAN
+- Halaman pendaftaran khusus santri putra melalui program beasiswa.
+- Blok biaya, SPP, dan rekening pendaftaran dihapus. Setelah jadwal langsung ke syarat.
+- Formulir memilih jenjang pendidikan, seperti SD, SMP, atau SMA.
+- Popup pengurus mengatur tahun penerimaan, tanggal pendaftaran, seleksi, pengumuman, dan informasi tambahan.
+- Tab rekap mengikuti tahun, misalnya Pendaftaran 2027. Mengedit tanggal mempertahankan tab dan datanya.
+- Formulir terkunci di luar tanggal pendaftaran dan selama tab rekap belum terkonfirmasi.
+- Penghubung Apps Script sudah diperbarui ke versi 5 pada deployment yang sama.
+- Unggah satu file foto ke Drive berhasil diuji dan berkas hasil baca cocok.
+- Skema pengaturan penerimaan di Supabase sudah diaktifkan. Tanggal nyata belum ditetapkan.
+
+UNGGAH MANUAL KE HOSTINGER
+1. Cadangkan isi public_html yang sekarang.
+2. Unggah An-Nahl-Hostinger-Pendaftaran-2026-11-06.zip ke public_html lalu ekstrak.
+3. Isi ZIP langsung dimulai dari index.html, admin.html, login.html, assets, dan api. Tidak ada folder dist pembungkus.
+4. Ganti berkas website yang sama. Paket tidak menyertakan konfigurasi privat.
+5. Konfigurasi annahl-private yang sudah berfungsi tetap berada di luar public_html.
+
+MEMULAI PENERIMAAN
+1. Masuk menggunakan akun pengurus asli yang memiliki peran admin.
+2. Buka menu Pendaftaran, lalu Buka penerimaan baru.
+3. Isi tahun penerimaan dan tanggal yang sebenarnya. Seleksi dan pengumuman boleh menyusul.
+4. Simpan. Sistem menyiapkan tab Google Sheets berdasarkan tahun dan baru membuka formulir setelah tab siap.
+5. Untuk mengoreksi tanggal, gunakan Ubah jadwal pada periode yang sama.
+6. Pilihan jenjang dapat ditambah, diubah, atau dihapus melalui Pengaturan.
+
+Mode demo hanya menyimpan pratinjau di browser dan tidak membuat tab Google Sheets nyata.
+Tidak ada postingan berita atau data pendaftaran contoh yang diterbitkan saat pengujian.

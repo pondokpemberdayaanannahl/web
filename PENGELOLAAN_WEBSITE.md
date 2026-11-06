@@ -82,8 +82,10 @@ Google nyata atau penyimpanan CMS pada Supabase produksi yang diuji.
 1. Pilih halaman pada menu **Isi website**.
 2. Klik **Edit bagian** pada kartu yang ingin diperbarui.
 3. Isi teks atau pilih foto, lalu klik **Selesai mengedit**.
-4. Pilih **Pratinjau** untuk meninjau tampilan desktop atau ponsel. Pratinjau
-   tidak menjalankan formulir; foto baru yang belum disimpan belum tampil.
+4. Pilih **Pratinjau** dari toolbar halaman atau langsung di jendela **Edit bagian**
+   untuk meninjau tampilan desktop atau ponsel. Teks dan foto baru yang belum
+   disimpan sudah bisa ditinjau. Menutup pratinjau mengembalikan Anda ke editor;
+   pratinjau tidak mengirim formulir atau menerbitkan perubahan.
 5. Pilih **Simpan draft** jika belum selesai. Pilih **Terbitkan perubahan**
    jika sudah siap. Muat ulang website publik untuk melihat versi terbaru.
 
@@ -199,3 +201,52 @@ lain. Berkas asli proyek tidak dihapus setelah dicadangkan ke Drive.
 
 Pemasangan penghubung foto pada Hostinger memerlukan media-config.php di
 folder privat yang sama dengan forms-config.php. Ikuti DRIVE_MEDIA_SETUP.md.
+## Pembaruan 31 Oktober 2026
+
+- Beranda menambahkan **Cerita kami** setelah Tentang Kami dan sebelum Program Kami.
+  Bagian ini menampilkan maksimal empat konten terbaru dari gabungan berita terbit,
+  foto unggahan, dan video YouTube, diurutkan menurut tanggal dibuat. Berita draft
+  dan arsip tidak ditampilkan. Klik kartu untuk membaca, melihat foto, atau menonton.
+  Koleksi Foto folder tidak masuk urutan ini karena bukan postingan bertanggal.
+- Halaman Pendaftaran menampilkan rekening biaya pendaftaran **dummy**:
+  Bank Pondok (contoh), `0000 0000 0000`, atas nama Pondok Pesantren An-Nahl.
+  Jangan digunakan untuk transfer. Ganti rincian dan keterangan dummy melalui
+  **Isi website → Informasi pendaftaran → bagian Syarat Pendaftaran**, lalu
+  pratinjau dan terbitkan setelah nomor resmi tersedia.
+- **Edit bagian → Pratinjau** menampilkan perubahan yang sedang dikerjakan,
+  termasuk foto dari perangkat sebelum penyimpanan. Foto sementara hanya berada
+  di memori pratinjau; tetap perlu Simpan draft/Terbitkan untuk menyimpannya ke layanan.
+
+### Foto founder
+
+Foto Pengasuh & Pendiri pada halaman Tentang memakai aset lokal yang ditentukan
+di `src/data/photos.js` (`photos.tentang.pengasuh`). Foto ini disertakan saat build
+dan tidak menggunakan pemilih Drive. Penggantian foto dilakukan melalui pembaruan
+file website; nama, jabatan, keterangan, dan teks profil tetap bisa diedit melalui
+Isi website. Pengaturan foto lama dari CMS diabaikan khusus foto ini.
+
+### Program dan kontak pondok — 31 Oktober 2026
+
+Informasi awal program dan kontak memakai `src/data/pondok.js`: empat program
+pesantren, empat program unggulan, 14 ekstrakurikuler, alamat Gunung Picung,
+Pamijahan, Bogor, dan nomor aktif 0857-2000-0265. Beranda dan halaman Program
+menampilkan daftar yang sama. Nomor telepon pada Kontak/footer serta tombol
+WhatsApp menggunakan nomor aktif tersebut.
+
+Peta dan tombol Google Maps menggunakan pencarian berdasarkan alamat lengkap
+yang diberikan pondok, bukan koordinat lokasi Bandung pada versi awal. Hasil
+pencarian/pin ditentukan oleh Google Maps. Alamat yang ditampilkan tetap mengikuti
+alamat pondok. Nomor kontak tidak otomatis dijadikan nomor penerima e-wallet.
+
+Formulir pendaftaran menawarkan empat program terbaru. Pasang hasil build beserta
+`api/forms-core.php` yang baru dalam rilis yang sama agar validasi server menerima
+pilihan baru. Pilihan lama masih diterima server untuk formulir yang sudah terlanjur
+dibuka sebelum pembaruan, dan tidak ditampilkan lagi sebagai pilihan baru.
+
+### Pengaturan jenjang, jadwal, dan TikTok
+
+- Masuk sebagai admin, lalu buka **Pengaturan**. Di **Pilihan jenjang**, gunakan **Tambah jenjang**, edit nama/deskripsi, atau tekan **Hapus**. Tekan **Simpan pengaturan** untuk menerapkan perubahan di halaman Jenjang dan formulir.
+- Isi tanggal buka dan tutup pada **Jadwal pendaftaran**. Formulir tersedia dari pukul 00.00 WIB pada tanggal buka hingga akhir tanggal tutup. Kosongkan kedua tanggal untuk menutup sekarang. Halaman informasi tetap bisa dibaca.
+- Isi **Username atau tautan profil TikTok** dengan akun resmi. Jika dikosongkan, tombol TikTok tidak tampil di footer atau halaman Kontak.
+- Dari **Berita → Buat postingan Ekskul**, pilih foto sampul, tulis judul dan caption, lalu buka **Pratinjau** sebelum menerbitkan. Pengunjung dapat menyaringnya dengan tab **Ekskul**.
+

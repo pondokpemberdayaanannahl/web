@@ -1,0 +1,54 @@
+.admission-timeline { padding:clamp(20px,3vw,32px); background:var(--white,#fff); border:1px solid var(--green-100,#d7e8db); border-radius:22px; color:var(--neutral-800,#24352b); }
+.admission-timeline-heading { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px; margin-bottom:22px; }
+.admission-kicker { display:block; margin-bottom:8px; color:var(--green-700,#166534); font-size:11px; letter-spacing:1.5px; font-weight:750; }
+.admission-timeline-heading h3 { font-size:clamp(20px,2.5vw,26px); line-height:1.4; margin:0; }
+.admission-policy { border-radius:20px; padding:7px 12px; background:var(--green-50,#edf5ee); color:var(--green-800,#166534); font-size:12px; font-weight:650; }
+.admission-timeline progress { display:block; width:100%; height:8px; border:0; border-radius:10px; overflow:hidden; background:#e7ede8; accent-color:#166534; margin:0 0 26px; }
+.admission-timeline progress::-webkit-progress-bar { background:#e7ede8; }
+.admission-timeline progress::-webkit-progress-value { background:#166534; }
+.admission-stages { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; list-style:none; padding:0; margin:0; }
+.admission-stages li { min-width:0; padding:18px; border:1px solid #e3ebe5; border-radius:16px; }
+.admission-stages li[data-stage-state="current"] { border-color:#62a377; background:#f1f8f2; }
+.admission-stages li[data-stage-state="complete"] { border-color:#bad6c2; }
+.admission-stage-number { display:grid; place-items:center; width:34px; height:34px; margin-bottom:14px; border-radius:50%; background:#edf5ee; color:#166534; font-size:12px; font-weight:750; }
+.admission-stages [data-stage-state="current"] .admission-stage-number,.admission-stages [data-stage-state="complete"] .admission-stage-number { background:#166534; color:#fff; }
+.admission-stage-state { color:#66776b; font-size:11px; font-weight:650; }
+.admission-stages h4 { font-size:18px; margin:5px 0 8px; }
+.admission-stages p { color:#627167; font-size:13px; line-height:1.65; margin:8px 0 0; }
+.admission-stages .admission-stage-date { color:#244f32; font-weight:650; }
+.admission-timeline-note { margin:20px 0 0; color:#627167; font-size:12px; line-height:1.6; }
+.admission-information { margin-top:20px; padding:16px 18px; background:#f4f7f2; border-radius:12px; font-size:14px; }
+.admission-information p { white-space:pre-line; margin:8px 0 0; line-height:1.7; }
+.admission-requirements { max-width:1000px; }
+.admission-requirements-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px 32px; padding:clamp(20px,4vw,36px); background:white; border:1px solid #dbe9dd; border-radius:20px; }
+.admission-admin-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; margin-top:20px; }
+.admission-admin-grid h2 { margin-bottom:10px; }
+.admission-admin-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+.admission-management-note { margin:20px 0; font-size:13px; color:#657568; }
+.admission-dialog { width:min(720px,calc(100% - 24px)); max-height:calc(100dvh - 24px); padding:0; overflow:auto; border:0; border-radius:20px; background:#fff; color:#263e2e; }
+.admission-dialog::backdrop { background:rgba(15,35,23,.5); backdrop-filter:blur(4px); }
+.admission-dialog fieldset { border:0; min-width:0; margin:0; padding:0; }
+.admission-dialog-body { padding:24px; }
+.admission-dialog-body h3 { margin:26px 0 14px; font-size:17px; }
+.admission-dialog-body label { display:block; margin:12px 0 7px; font-size:13px; font-weight:650; }
+.admission-dialog-body :is(input,textarea) { display:block; width:100%; min-width:0; padding:11px 12px; border:1px solid #d3e0d6; border-radius:9px; font:inherit; font-size:14px; background:#fff; color:#263e2e; }
+.admission-dialog-body :is(input,textarea):focus { outline:2px solid #2a7845; outline-offset:2px; }
+.admission-dialog-body input[readonly] { background:#f4f6f4; }
+.admission-dialog-body .settings-dates { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.admission-dialog-body .muted { font-size:12px; line-height:1.65; margin:10px 0; }
+.admission-policy-note { border-radius:10px; background:#edf5ee; color:#245234; font-size:13px; padding:14px 16px; line-height:1.65; margin:0 0 18px; }
+.admission-dialog .dialog-footer { flex-wrap:wrap; }
+.admission-dialog .form-message { flex:1 1 100%; font-size:13px; color:#9c3326; }
+@media(max-width:850px) { .admission-admin-grid { grid-template-columns:1fr; } }
+@media(max-width:720px) {
+  .admission-stages { grid-template-columns:1fr; gap:12px; }
+  .admission-stages li { display:flex; gap:14px; padding:16px; }
+  .admission-stage-number { flex:0 0 34px; margin:0; }
+  .admission-requirements-list { grid-template-columns:1fr; gap:18px; }
+}
+@media(max-width:470px) {
+  .admission-dialog-body { padding:18px; }
+  .admission-dialog-body .settings-dates { grid-template-columns:1fr; gap:0; }
+  .admission-dialog-body :is(input,textarea) { font-size:16px; }
+  .admission-admin-actions .button { width:100%; text-align:center; }
+}

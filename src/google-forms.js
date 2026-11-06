@@ -45,7 +45,7 @@ export async function getGoogleFormToken(transport = fetch) {
 export async function getRegistrationStatus(transport = fetch) {
   const response = await transport(`${GOOGLE_FORM_ENDPOINT}?kind=pendaftaran`, { credentials: 'same-origin', redirect: 'error', cache: 'no-store', headers: { 'X-Annahl-Form': '1' }, signal: AbortSignal.timeout(12000) });
   const { registration } = await readResponse(response);
-  if (!Array.isArray(registration?.levels) || !['open','closed','upcoming','unscheduled'].includes(registration.state)) throw new Error('Jadwal belum tersedia.');
+  if (!Array.isArray(registration?.levels) || !['open','closed','upcoming','unscheduled','preparing'].includes(registration.state)) throw new Error('Jadwal belum tersedia.');
   return registration;
 }
 

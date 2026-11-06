@@ -62,6 +62,7 @@ function media_forward(array $config, array $record): array {
         if ($code === 'conflict') annahl_fail(409, 'Foto dengan ID ini berbeda. Pilih ulang foto sebelum mencoba lagi.');
         if ($code === 'missing') annahl_fail(404, 'Foto belum tersedia.');
         if ($code === 'busy') annahl_fail(503, 'Drive sedang memproses foto lain. Coba lagi sebentar.');
+        if ($record['action'] === 'registration-period') annahl_fail(503,'Penghubung rekap tahunan belum aktif. Pengelola perlu memperbarui deployment Apps Script.');
         annahl_fail(503, 'Penghubung foto Drive belum siap. Perbarui deployment Rekap An-Nahl dan jalankan setupWebsiteMedia.');
     }
     return $reply;

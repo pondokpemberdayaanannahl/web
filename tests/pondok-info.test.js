@@ -1,3 +1,4 @@
+import { registrationTimelineHtml } from '../src/registration-period.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -14,7 +15,7 @@ import {ATTACHMENT_HELP} from '../src/google-forms.js';
 
 function markup(file,component){
  const {document}=parseHTML('<html><body></body></html>');
- const context={...pondok,...images,socialIcon,jenjangCards,tiktokUrl,ATTACHMENT_HELP,window:{},document};
+ const context={ registrationTimelineHtml,...pondok,...images,socialIcon,jenjangCards,tiktokUrl,ATTACHMENT_HELP,window:{},document};
  const source=readFileSync(new URL(`../src/pages/${file}.js`,import.meta.url),'utf8').replace(/^import .*;\r?$/gm,'').replaceAll('export ','');
  vm.runInNewContext(source,context);return context[component]();
 }
@@ -38,7 +39,10 @@ test('home programs remain visible and registration starts locked while loading 
  assert.equal(registration.querySelector('#registration-form').hasAttribute('hidden'),true);
  assert.equal(registration.querySelectorAll('[data-registration-step]').length,3);
  assert.equal(registration.querySelectorAll('[data-jenjang] input').length,0);
- assert.match(registration.querySelector('.registration-bank a').href,/wa\.me\/6285720000265/);
+ assert.equal(registration.querySelector('.registration-bank'),null);
+ assert.equal(registration.querySelector('#reg-jenis-kelamin').value,'Laki-laki');
+ assert.equal(registration.querySelectorAll('#registration-timeline progress').length,1);
+ assert.doesNotMatch(registration.body?.textContent || registration.toString(),/Rp 350|SPP \/ Bulan/);
 });
 
 test('published levels render as compact cards; TikTok requires a valid configured handle',()=>{

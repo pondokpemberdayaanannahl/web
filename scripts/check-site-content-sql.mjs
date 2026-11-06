@@ -67,5 +67,25 @@ try {
   await db.exec('set role anon');
   const visible = (await db.query('select levels,tiktok from public.pondok_settings')).rows[0];
   assert.deepEqual(visible.levels,levels); assert.equal(visible.tiktok,'pondok_uji');
-  console.log('PASS (local PostgreSQL): admin-only saves, private drafts, public published content, atomic revisions, history privacy, invalid payload rejection, and repeatable migration. No remote database contacted.');
+  await db.exec('reset role');
+  await db.exec(readFileSync('supabase/migrations/202611060001_registration_periods.sql','utf8'));
+  const period={year:2027,selection_opens_on:'2026-11-10',selection_closes_on:'2026-11-12',announcement_on:'2026-11-15',information:'Bawa berkas.'};
+  const savePeriod=(rev,end='2026-11-03',details=period)=>db.query('select public.save_registration_period($1,$2,$3,$4) as settings',[rev,'2026-11-01',end,JSON.stringify(details)]);
+  const confirmPeriod=(year,sheet)=>db.query('select public.confirm_registration_sheet($1,$2) as settings',[year,sheet]);
+  await db.exec('set role anon');await assert.rejects(savePeriod(2),/permission denied/);
+  await db.exec("set role authenticated; select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',false)");
+  await assert.rejects(savePeriod(2),/Hanya admin/);await assert.rejects(confirmPeriod(2027,77),/Hanya admin/);
+  await db.exec("select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',false)");
+  const pending=(await savePeriod(2)).rows[0].settings;assert.equal(pending.registration.recap_ready,false);
+  const ready=(await confirmPeriod(2027,77)).rows[0].settings;assert.equal(ready.registration.recap_ready,true);
+  assert.equal((await confirmPeriod(2027,77)).rows[0].settings.revision,ready.revision,'Preparation retries do not increase revision');
+  const corrected=(await savePeriod(ready.revision,'2026-11-09')).rows[0].settings;
+  assert.equal(corrected.registration.recap_sheet_id,77);assert.equal(corrected.registration.recap_ready,true);
+  await assert.rejects(savePeriod(ready.revision),/diubah/);
+  await assert.rejects(savePeriod(corrected.revision,'2026-11-11'),/check constraint/);
+  await assert.rejects(savePeriod(corrected.revision,'2026-11-09',{...period,recap_ready:true}),/tidak sesuai/);
+  const next=(await savePeriod(corrected.revision,'2026-11-09',{...period,year:2028})).rows[0].settings;
+  assert.equal(next.registration.recap_ready,false);assert.equal(next.registration.recap_sheet_id,null);
+  await assert.rejects(confirmPeriod(2027,77),/berubah/);
+  console.log('PASS (local PostgreSQL): admin-only period changes, date ordering, conflict protection, same-year recap preservation, and pending new-year activation. No remote database contacted.');
 } finally { await db.close(); }

@@ -6,6 +6,7 @@
 import './styles/index.css';
 import './styles/components.css';
 import './styles/pages.css';
+import './styles/admission.css';
 
 import { Router } from './router.js';
 import { Navbar, initNavbar } from './components/navbar.js';

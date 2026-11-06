@@ -197,6 +197,15 @@ function mediaEnvelope_(envelope, config) {
   if (record.version !== 1 || !Number.isInteger(record.issuedAt) || Math.abs(Date.now()/1000-record.issuedAt) > 600 || !/^[\w-]{1,60}$/.test(record.actor || '') || !/^[a-f0-9-]{36}$/.test(record.id || '')) throw formsError_('invalid');
   const reply = function(data) { return formsJson_(Object.assign({ok:true,id:record.id,action:record.action},data)); };
   if (record.action === 'setup') return reply(setupWebsiteMedia());
+  if (record.action === 'registration-period') {
+    if (!Number.isInteger(record.year) || record.year < 2000 || record.year > 2099) throw formsError_('invalid');
+    const periodLock = LockService.getScriptLock();
+    if (!periodLock.tryLock(15000)) throw formsError_('busy');
+    try {
+      const sheet = formsPeriodSheet_(formsBook_(),record.year,true);
+      return reply({year:record.year,sheetId:sheet.getSheetId()});
+    } finally { periodLock.releaseLock(); }
+  }
   const root = mediaRoot_();
   if (record.action === 'status') return reply({ready:true,layout:'single-file',folderUrl:'https://drive.google.com/drive/folders/'+root});
   if (record.action === 'resolve') {

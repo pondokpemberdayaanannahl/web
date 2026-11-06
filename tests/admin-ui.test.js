@@ -33,7 +33,7 @@ function fixture(dev = true, restored = false) {
   const session = { getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value), removeItem: key => saved.delete(key) };
   const nav = [...html.matchAll(/class="nav-item[^"]*" data-panel="([^"]+)"/g)].map(([, panel]) => ({ ...element(panel), dataset: { panel } }));
   const context = {
-    ...data, ...format, ...editor, ...library, ...authFlow, RECAP_URL, loadPhotoLibrary: async () => libraryData, createDemoStore: () => data.createDemoStore(session),
+    ...data, ...format, ...editor, ...library, ...authFlow, RECAP_URL, mountRegistrationManager:async()=>({refresh(){}}), loadPhotoLibrary: async () => libraryData, createDemoStore: () => data.createDemoStore(session),
     env: { DEV: dev, VITE_DUMMY_LOGIN_ENABLED: 'true', VITE_DUMMY_USERNAME: 'admin', VITE_DUMMY_PASSWORD: '123', VITE_SUPABASE_ANON_KEY: 'local-preview-only' },
     document: { getElementById: $, querySelectorAll: () => nav },
     sessionStorage: session, localStorage: session, location: { origin: 'http://localhost:5173', href: 'http://localhost:5173/admin.html', search: '', hash: '', replace(value) { context.redirected = value; } }, window: { addEventListener() {} },
@@ -109,9 +109,8 @@ test('restores local session, switches gallery tabs, and shows honest upcoming s
   assert.equal(ui.$('add-media').textContent, '＋ Tambah video');
   assert.match(ui.$('media-list').innerHTML, /Belum ada video/);
   await ui.click({ dataset: { panel: 'pendaftaran' } });
-  assert.equal(ui.$('panel-upcoming').hidden, false);
-  assert.equal(ui.$('submission-surface').hidden, false);
-  assert.match(ui.$('submission-list').innerHTML, /tidak menerima kiriman/);
+  assert.equal(ui.$('panel-pendaftaran').hidden, false);
+  assert.equal(ui.$('submission-surface').hidden, true);
 });
 
 test('admin guard redirects visitors and rejects production demo sessions', async () => {

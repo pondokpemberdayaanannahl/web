@@ -112,6 +112,7 @@ function formsValidate_(record) {
   if (record.payload.nama.trim().length < 2 || record.payload.nama.length > 180) throw formsError_('invalid');
   if (record.kind === 'donasi' && !/^[1-9]\d{0,11}$/.test(record.payload.jumlah)) throw formsError_('invalid');
   if (record.kind === 'pendaftaran' && (!record.payload.namaWali.trim() || !/^\+?[\d\s()-]{8,24}$/.test(record.payload.noWA))) throw formsError_('invalid');
+  if (record.periodYear !== undefined && (record.kind !== 'pendaftaran' || !Number.isInteger(record.periodYear) || record.periodYear < 2000 || record.periodYear > 2099)) throw formsError_('invalid');
   if (!Array.isArray(record.files) || record.files.length > 3) throw formsError_('invalid');
   const types = ['image/jpeg','image/png','image/webp','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.openxmlformats-officedocument.presentationml.presentation'];
   let total = 0;
@@ -123,7 +124,9 @@ function formsValidate_(record) {
     if (bytes.length !== file.bytes || formsDigest_(bytes) !== file.sha256) throw formsError_('invalid');
     file.decoded = bytes;
   });
-  return formsDigest_(JSON.stringify({kind:record.kind,payload:record.payload,files:record.files.map(function(file) { return {name:file.name,mime:file.mime,bytes:file.bytes,sha256:file.sha256}; })}));
+  const hashData = {kind:record.kind,payload:record.payload,files:record.files.map(function(file) { return {name:file.name,mime:file.mime,bytes:file.bytes,sha256:file.sha256}; })};
+  if (record.periodYear !== undefined) hashData.periodYear = record.periodYear;
+  return formsDigest_(JSON.stringify(hashData));
 }
 
 function formsExisting_(sheet, id, hash, width) {
@@ -161,8 +164,29 @@ function formsUpload_(root, record, hash) {
   return folder.id;
 }
 
+function formsPeriodSheet_(book, year, create) {
+  if (!Number.isInteger(year) || year < 2000 || year > 2099) throw formsError_('invalid');
+  const schema = Object.assign({},ANNAHL_FORMS.pendaftaran,{name:'Pendaftaran '+year});
+  let sheet = book.getSheetByName(schema.name);
+  if (!sheet && create) sheet = book.insertSheet(schema.name);
+  if (!sheet) throw formsError_('sheet_schema');
+  const headers = schema.headers.concat(ANNAHL_EXTRA_COLUMNS);
+  // A failed header write can safely resume on the same empty tab.
+  if (create && sheet.getLastRow() === 0) sheet.getRange(1,1,1,headers.length).setValues([headers]);
+  formsSheet_(book,schema);
+  if (create) {
+    sheet.getRange(1,1,1,headers.length).setBackground('#c6dfbc').setFontWeight('bold').setWrap(true).setVerticalAlignment('middle');
+    sheet.setFrozenRows(1); sheet.setRowHeight(1,48); sheet.setColumnWidths(1,headers.length-2,160); sheet.setColumnWidth(1,280); sheet.setColumnWidth(schema.headers.length+1,280);
+    sheet.hideColumns(schema.headers.length+2,2);
+    if (!sheet.getFilter()) sheet.getRange(1,1,sheet.getMaxRows(),schema.headers.length+1).createFilter();
+    book.setSpreadsheetTimeZone('Asia/Jakarta'); SpreadsheetApp.flush();
+  }
+  return sheet;
+}
+
 function formsSave_(record, hash, config) {
-  const root = formsFolder_(config), schema = ANNAHL_FORMS[record.kind], sheet = formsSheet_(formsBook_(),schema), width = schema.headers.length;
+  const root = formsFolder_(config), schema = ANNAHL_FORMS[record.kind], book = formsBook_();
+  const sheet = record.kind === 'pendaftaran' && record.periodYear !== undefined ? formsPeriodSheet_(book,record.periodYear,false) : formsSheet_(book,schema), width = schema.headers.length;
   if (formsExisting_(sheet,record.id,hash,width)) return;
   const folder = formsUpload_(root,record,hash);
   const values = [record.id,new Date(),'baru'].concat(schema.fields.map(function(field) {

@@ -41,7 +41,7 @@ if (process.argv.includes('--env')) {
     }
   }
   await inspect(root);
-  for (const name of ['index.html', 'admin.html', 'login.html', '.htaccess', 'api/forms.php', 'api/forms-core.php', 'api/media.php', 'api/media-image.php', 'api/media-core.php', 'api/login.php', 'api/login-core.php']) {
+  for (const name of ['index.html', 'admin.html', 'login.html', '.htaccess', 'api/forms.php', 'api/forms-core.php', 'api/registration.php', 'api/media.php', 'api/media-image.php', 'api/media-core.php', 'api/login.php', 'api/login-core.php']) {
     if (!(await stat(resolve(root, name))).isFile()) fail(`Build belum lengkap: ${name}`);
   }
   for (const name of ['index.html', 'admin.html', 'login.html']) {

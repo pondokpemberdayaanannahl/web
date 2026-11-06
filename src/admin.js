@@ -7,7 +7,9 @@ import { demoEnabled, demoUser, backendConfigured, getClient, authorizedUser, lo
 import { RECAP_URL, getGoogleFormToken, getRegistrationStatus } from './google-forms.js';
 import './styles/admin-content.css';
 import './styles/admin-dashboard.css';
+import './styles/admission.css';
 import { selectDrivePhoto } from './drive-picker.js';
+import { mountRegistrationManager } from './registration-admin.js';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -28,8 +30,8 @@ let historyRows = [], historyTarget = null;
 let inboxPage = 1, inboxCount = 0, inboxRequest = 0;
 let libraryRows = [], filteredLibrary = [], libraryImageIndex = -1, librarySearchTimer;
 let websiteManager = null, websiteManagerLoading = null, requestedSitePage = null;
-let settingsMount = null;
-const labels = { overview: 'Ringkasan', berita: 'Postingan berita', galeri: 'Galeri', halaman: 'Isi website', pendaftaran: 'Rekap pendaftaran', pengaturan: 'Pengaturan', donasi: 'Rekap donasi', kontak: 'Pesan masuk' };
+let settingsMount = null, settingsManager = null, registrationManager = null, registrationMount = null;
+const labels = { overview: 'Ringkasan', berita: 'Postingan berita', galeri: 'Galeri', halaman: 'Isi website', pendaftaran: 'Pendaftaran', pengaturan: 'Pengaturan', donasi: 'Rekap donasi', kontak: 'Pesan masuk' };
 const categories = { berita: ['Akademik', 'Keagamaan', 'Sosial', 'Pengumuman', 'Ekskul'], foto: ['Akademik', 'Ibadah', 'Acara', 'Fasilitas'], video: ['Profil', 'Acara', 'Kegiatan'] };
 
 function toast(message, error = false) {
@@ -174,7 +176,7 @@ function setMedia(type) {
 function navigate(panel, focus = true) {
   if (panel === 'program') { requestedSitePage = 'program'; panel = 'halaman'; }
   if (!store || !labels[panel]) return;
-  if (panel === 'pengaturan' && currentRole !== 'admin') return;
+  if (['pengaturan','pendaftaran'].includes(panel) && currentRole !== 'admin') return;
   if (currentPanel === 'halaman' && panel !== 'halaman' && websiteManager?.dirty && !confirm('Ada perubahan halaman yang belum diterbitkan. Pindah menu? Teks tetap tersimpan di perangkat ini.')) return;
   const changedPanel = currentPanel !== panel;
   if (changedPanel) inboxPage = 1;
@@ -184,7 +186,7 @@ function navigate(panel, focus = true) {
     button.classList.toggle('active', active);
     if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
   });
-  const pages = ['overview', 'berita', 'galeri', 'halaman', 'pengaturan'];
+  const pages = ['overview', 'berita', 'galeri', 'halaman', 'pengaturan', 'pendaftaran'];
   for (const id of [...pages, 'upcoming']) $(`panel-${id}`).hidden = id !== (pages.includes(panel) ? panel : 'upcoming');
   $('breadcrumb-current').textContent = labels[panel];
   $('submission-surface').hidden = true;
@@ -194,13 +196,23 @@ function navigate(panel, focus = true) {
   else if (panel === 'berita') loadNews();
   else if (panel === 'galeri') loadMedia();
   else if (panel === 'halaman') loadWebsiteManager();
+  else if (panel === 'pendaftaran') {
+    const source = store;
+    if (registrationManager) registrationManager.refresh();
+    else if (!registrationMount) registrationMount = (async () => {
+      const client = isDemo ? null : await getClient();
+      if (source === store) registrationManager = await mountRegistrationManager({ host:$('registration-manager'), client, demo:isDemo, notify:toast });
+    })().catch(() => { if (source === store) $('registration-manager').innerHTML = empty('Pendaftaran belum dapat dimuat.', 'Muat ulang halaman lalu coba lagi.'); }).finally(() => { registrationMount=null; });
+  }
   else if (panel === 'pengaturan') {
     const host = $('panel-pengaturan'), source = store;
-    if (!settingsMount) settingsMount = Promise.all([import('./pondok-settings-admin.js'), isDemo ? null : getClient()])
-      .then(([{ mountPondokSettings }, client]) => {
-        if (source === store) return mountPondokSettings({ host, client, demo: isDemo, notify: toast });
+    if (settingsManager) settingsManager.refresh();
+    else if (!settingsMount) settingsMount = Promise.all([import('./pondok-settings-admin.js'), isDemo ? null : getClient()])
+      .then(async ([{ mountPondokSettings }, client]) => {
+        if (source === store) settingsManager = await mountPondokSettings({ host, client, demo: isDemo, notify: toast });
       })
-      .catch(() => { if (source === store) { settingsMount = null; toast('Pengaturan belum dapat dibuka. Coba lagi.', true); } });
+      .catch(() => { if (source === store) toast('Pengaturan belum dapat dibuka. Coba lagi.', true); })
+      .finally(() => { settingsMount = null; });
   }
   else {
     $('upcoming-title').textContent = labels[panel];

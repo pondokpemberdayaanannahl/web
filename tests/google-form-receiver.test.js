@@ -11,18 +11,18 @@ function record(files = []) { return {id,version:1,issuedAt:Math.floor(Date.now(
 
 function fixture() {
   const files = new Map(), properties = {ANNAHL_SPREADSHEET_ID:sheetId,ANNAHL_SHEETS_SECRET:'a'.repeat(64),ANNAHL_UPLOADS_FOLDER_ID:'root-12345678901234567890123'};
-  const sheets = {}; let serial=0, failUpload=-1, failSheet=false, locked=false, releases=0;
+  const sheets = {}; let serial=0, sheetSerial=100, failUpload=-1, failSheet=false, locked=false, releases=0;
   const ownerPermissions=[{type:'user',role:'owner',emailAddress:owner}];
   files.set(properties.ANNAHL_UPLOADS_FOLDER_ID,{id:properties.ANNAHL_UPLOADS_FOLDER_ID,mimeType:'application/vnd.google-apps.folder',parents:[],appProperties:{},ownedByMe:true,owners:[{emailAddress:owner}],permissions:ownerPermissions});
   function sheet(headers) {
-    const rows=[headers];
-    return {rows,getLastRow:()=>rows.length,getMaxRows:()=>1000,
+    const rows=headers ? [headers] : [], gid=sheetSerial++;
+    return {rows,getSheetId:()=>gid,getLastRow:()=>rows.length,getMaxRows:()=>1000,setFrozenRows(){},setRowHeight(){},setColumnWidths(){},setColumnWidth(){},hideColumns(){},getFilter:()=>null,
       getRange(row,column,height=1,width=1) { return {getValues:()=>Array.from({length:height},(_,r)=>Array.from({length:width},(_,c)=>rows[row-1+r]?.[column-1+c]??'')),getValue:()=>rows[row-1]?.[column-1],
-        setValues(values) { if(failSheet) throw new Error('Simulated write failure'); values.forEach((valuesRow,r)=>{rows[row-1+r] ||= []; valuesRow.forEach((value,c)=>{rows[row-1+r][column-1+c]=value;});}); return this; },setNumberFormat(){return this;}}; }};
+        setValues(values) { if(failSheet) throw new Error('Simulated write failure'); values.forEach((valuesRow,r)=>{rows[row-1+r] ||= []; valuesRow.forEach((value,c)=>{rows[row-1+r][column-1+c]=value;});}); return this; },setNumberFormat(){return this;},setBackground(){return this;},setFontWeight(){return this;},setWrap(){return this;},setVerticalAlignment(){return this;},createFilter(){return this;}}; }};
   }
   const context = {
     Date,Map,console:{info(){}},PropertiesService:{getScriptProperties:()=>({getProperties:()=>({...properties}),setProperty:(key,value)=>{properties[key]=value;}})},
-    SpreadsheetApp:{openById:actual=>{assert.equal(actual,sheetId);return {getSheetByName:name=>sheets[name]};},flush(){}},
+    SpreadsheetApp:{openById:actual=>{assert.equal(actual,sheetId);return {getSheetByName:name=>sheets[name],insertSheet:name=>{assert.ok(!sheets[name]);return sheets[name]=sheet();},setSpreadsheetTimeZone(){}};},flush(){}},
     ContentService:{MimeType:{JSON:'json'},createTextOutput:value=>({value,setMimeType(){return this;}})},
     LockService:{getScriptLock:()=>({tryLock:()=>!locked,releaseLock(){releases++;}})},
     Utilities:{DigestAlgorithm:{SHA_256:'sha256'},computeDigest:(algorithm,value)=>[...createHash('sha256').update(typeof value==='string'?Buffer.from(value):Buffer.from(value)).digest()],
@@ -34,11 +34,37 @@ function fixture() {
       Permissions:{list:fileId=>({permissions:files.get(fileId).permissions})}},
   };
   vm.runInNewContext(source,context);
+  vm.runInNewContext(fs.readFileSync(new URL('../integrations/google-sheets/Media.gs',import.meta.url),'utf8'),context);
   const schemas=vm.runInNewContext('ANNAHL_FORMS',context);
   for(const schema of Object.values(schemas)) sheets[schema.name]=sheet([...schema.headers,'Lampiran (Drive)','Hash Kiriman','Folder Berkas']);
   const call=(data,mutate)=>{ const text=JSON.stringify(data), envelope={data:text,signature:createHmac('sha256',properties.ANNAHL_SHEETS_SECRET).update('annahl.forms.v1:'+text).digest('hex')}; mutate?.(envelope); return JSON.parse(context.doPost({postData:{contents:JSON.stringify(envelope)}}).value); };
-  return {context,properties,files,sheets,call,failUpload:index=>{failUpload=index;},failSheet:state=>{failSheet=state;},lock:()=>{locked=true;},releases:()=>releases};
+  const prepare=year=>{
+    const data=JSON.stringify({version:1,issuedAt:Math.floor(Date.now()/1000),id,actor:id,action:'registration-period',year});
+    const envelope={scope:'media',data,signature:createHmac('sha256',properties.ANNAHL_SHEETS_SECRET).update('annahl.media.v1:'+data).digest('hex')};
+    return JSON.parse(context.doPost({postData:{contents:JSON.stringify(envelope)}}).value);
+  };
+  return {context,properties,files,sheets,call,prepare,failUpload:index=>{failUpload=index;},failSheet:state=>{failSheet=state;},lock:()=>{locked=true;},releases:()=>releases};
 }
+
+test('annual recap creation is idempotent and submissions stay in their own year',()=>{
+  const app=fixture();
+  const first=app.prepare(2027);assert.equal(first.ok,true);assert.equal(first.year,2027);
+  assert.equal(app.prepare(2027).sheetId,first.sheetId);assert.equal(Object.keys(app.sheets).length,3);
+  const data={...record(),kind:'pendaftaran',periodYear:2027,payload:{nama:'Santri Uji',tempatLahir:'Bogor',tanggalLahir:'2013-01-01',jenisKelamin:'Laki-laki',asalSekolah:'Sekolah Uji',jenjang:'SD',namaWali:'Wali',noWA:'0000000000',email:'',alamat:'Alamat Uji'}};
+  assert.equal(app.call(data).ok,true);assert.equal(app.call(data).ok,true);
+  assert.equal(app.sheets['Pendaftaran 2027'].rows.length,2);assert.equal(app.sheets.Pendaftaran.rows.length,1);
+  app.prepare(2028);assert.equal(app.call({...data,periodYear:2028}).ok,true);
+  assert.equal(app.sheets['Pendaftaran 2027'].rows.length,2);assert.equal(app.sheets['Pendaftaran 2028'].rows.length,2);
+  assert.equal(app.prepare('../2029').code,'invalid');
+});
+
+test('an interrupted annual header write resumes the same tab and never overwrites an incompatible sheet',()=>{
+  const app=fixture();app.failSheet(true);assert.equal(app.prepare(2027).ok,false);
+  assert.ok(app.sheets['Pendaftaran 2027']);app.failSheet(false);
+  assert.equal(app.prepare(2027).ok,true);assert.equal(Object.keys(app.sheets).length,3);
+  app.sheets['Pendaftaran 2027'].rows[0][0]='Catatan pengurus';
+  assert.equal(app.prepare(2027).code,'sheet_schema');assert.equal(app.sheets['Pendaftaran 2027'].rows[0][0],'Catatan pengurus');
+});
 
 test('receiver requires valid signature and fresh request before touching storage',()=>{
   const app=fixture();

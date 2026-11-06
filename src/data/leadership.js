@@ -1,12 +1,24 @@
-import { photos } from './photos.js';
-
-// Add the other profiles here when the pondok supplies names, roles and portraits.
+// Set each image to its local portrait URL once the pondok supplies the photos.
 export const leadership = [
   {
     id: 'founder',
-    name: 'KH. Muhammad Ridwan, Lc., M.A.',
-    role: 'Pengasuh & Pendiri',
-    image: photos.tentang.pengasuh,
-    bio: 'Lulusan Universitas Al-Azhar, Kairo. Hafidz 30 juz bersanad. Berpengalaman lebih dari 20 tahun dalam pendidikan Islam dan pemberdayaan masyarakat. Aktif sebagai dai dan motivator pendidikan Islam di tingkat nasional.',
+    name: 'KH. Mahfudz Noor Fawwaz',
+    role: 'Pengasuh Pesantren',
+    initials: 'MNF',
+    image: '/images/leadership/kh-mahfudz-noor-fawwaz.png',
+  },
+  {
+    id: 'agus-thoha-noor-fawwaz',
+    name: 'Abah Agus Thoha Noor Fawwaz, S.Pd., M.M.',
+    role: 'Pengurus / tokoh pimpinan keluarga besar pesantren',
+    initials: 'AT',
+    image: '/images/leadership/abah-agus-thoha-noor-fawwaz-white.png',
+  },
+  {
+    id: 'rahmat-abu-bakar',
+    name: 'Rahmat Abu Bakar',
+    role: 'Pembina / pengasuh umum pesantren',
+    initials: 'RAB',
+    image: '/images/leadership/rahmat-abu-bakar.jpg',
   },
 ];

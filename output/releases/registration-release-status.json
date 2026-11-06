@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-06",
+  "local_url": "http://127.0.0.1:5173/#/pendaftaran",
+  "node_tests_passed": 120,
+  "php_validation_checks_passed": 33,
+  "php_http_integration": "passed with local Google and Supabase mocks",
+  "sql_permissions_and_revision_tests": "passed in local PostgreSQL",
+  "responsive_browser_widths": [
+    1440,
+    390,
+    320
+  ],
+  "apps_script_version": 5,
+  "live_media_layout": "single-file",
+  "live_photo_upload_and_readback": "passed",
+  "supabase_registration_schema": "activated",
+  "public_registration_api_status": 200,
+  "actual_registration_dates": "not set by user yet",
+  "actual_annual_tab_created_during_tests": false,
+  "hostinger_deployed": false,
+  "release_archive": "An-Nahl-Hostinger-Pendaftaran-2026-11-06.zip",
+  "release_files": 362,
+  "release_sha256": "e953c9948c1ddd2878850e4230def1df942b230e0a03b47211c745f994261362"
+}

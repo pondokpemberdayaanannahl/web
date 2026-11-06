@@ -2,25 +2,15 @@ import { escapeHtml } from './content-format.js';
 import { blankSettings, readPondokSettings, tiktokHandle } from './pondok-settings.js';
 
 const key = 'annahl-demo-settings-v1';
-const wib = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' });
-const todayWib = () => {
-  const parts = Object.fromEntries(wib.formatToParts().map(({ type, value }) => [type, value]));
-  return `${parts.year}-${parts.month}-${parts.day}`;
-};
-const min = '2000-01-01', max = '2099-12-31';
 
 export async function mountPondokSettings({ host, client, demo, notify }) {
   const $ = selector => host.querySelector(selector);
   const load = async () => demo ? JSON.parse(sessionStorage.getItem(key) || 'null') || blankSettings() : await readPondokSettings(client);
   const form = $('form'), list = $('[data-level-list]'), add = $('[data-add-level]');
-  const start = $('[name="opens_on"]'), end = $('[name="closes_on"]'), tiktok = $('[name="tiktok"]');
-  const status = $('[data-settings-status]'), message = $('[data-settings-message]'), retry = $('[data-settings-retry]');
+  const tiktok = $('[name="tiktok"]');
+  const message = $('[data-settings-message]'), retry = $('[data-settings-retry]');
   let settings, busy = false, serial = 0;
   const sync = () => {
-    const today = todayWib();
-    status.textContent = !start.value || !end.value ? 'Belum dijadwalkan' :
-      end.value < start.value ? 'Tanggal belum sesuai' :
-      today < start.value ? 'Akan dibuka' : today > end.value ? 'Sudah ditutup' : 'Sedang dibuka';
     add.disabled = list.children.length >= 20;
   };
   function addLevel(level = {}) {
@@ -34,7 +24,7 @@ export async function mountPondokSettings({ host, client, demo, notify }) {
     try {
       settings = await load();
       if (!settings) throw new Error('Pengaturan belum bisa dimuat. Hubungi pengelola teknis jika masalah berlanjut.');
-      start.value = settings.opens_on || ''; end.value = settings.closes_on || ''; tiktok.value = settings.tiktok || '';
+      tiktok.value = settings.tiktok || '';
       list.replaceChildren(); settings.levels.forEach(addLevel);
       sync(); form.hidden = false; message.textContent = '';
     } catch (error) { message.textContent = error.message; retry.hidden = false; }
@@ -57,9 +47,8 @@ export async function mountPondokSettings({ host, client, demo, notify }) {
         description: row.querySelector('[data-level-description]').value.trim(),
       }));
       if (levels.some(item => item.title.length < 2) || new Set(levels.map(item => item.title.toLocaleLowerCase('id'))).size !== levels.length) throw new Error('Isi nama jenjang yang berbeda, minimal dua karakter.');
-      if (!!start.value !== !!end.value || (start.value && (start.value < min || end.value > max || start.value > end.value))) throw new Error('Isi kedua tanggal dengan urutan yang benar, atau kosongkan keduanya untuk menutup pendaftaran.');
-      if (start.value && !levels.length) throw new Error('Tambahkan minimal satu jenjang untuk menjadwalkan pendaftaran.');
-      const values = { opens_on: start.value || null, closes_on: end.value || null, levels, tiktok: tiktokHandle(tiktok.value) };
+      if (settings.opens_on && !levels.length) throw new Error('Penerimaan yang terjadwal membutuhkan minimal satu jenjang.');
+      const values = { ...settings, levels, tiktok: tiktokHandle(tiktok.value) };
       busy = true; fieldset.disabled = true; message.textContent = 'Menyimpan pengaturan…';
       if (demo) {
         settings = { ...values, revision: settings.revision + 1 };
@@ -80,4 +69,5 @@ export async function mountPondokSettings({ host, client, demo, notify }) {
     finally { busy = false; fieldset.disabled = false; }
   });
   await refresh();
+  return { refresh };
 }

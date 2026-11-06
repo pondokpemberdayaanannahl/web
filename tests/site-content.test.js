@@ -1,3 +1,4 @@
+import { registrationTimelineHtml } from '../src/registration-period.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -21,7 +22,7 @@ test('content catalog covers the real public pages while excluding form controls
   const names = { beranda:'Beranda',tentang:'Tentang',program:'Program',pendaftaran:'Pendaftaran',donasi:'Donasi',kontak:'Kontak',berita:'Berita',galeri:'Galeri' };
   for (const [id, name] of Object.entries(names)) {
     const doc = document();
-    const context = { ...images, ...formatting, ...pondok, socialIcon, categoryCards, leadership, ATTACHMENT_HELP, jenjangCards, tiktokUrl, document: doc, window: {}, supabase: null, bindSubmission() {} };
+    const context = { registrationTimelineHtml, ...images, ...formatting, ...pondok, socialIcon, categoryCards, leadership, ATTACHMENT_HELP, jenjangCards, tiktokUrl, document: doc, window: {}, supabase: null, bindSubmission() {} };
     const code = readFileSync(new URL(`../src/pages/${id}.js`, import.meta.url), 'utf8').replace(/^import .*;\r?$/gm, '').replaceAll('export ', '');
     vm.runInNewContext(code, context);
     const html = context[name]();

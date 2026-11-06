@@ -33,7 +33,7 @@ create table public.pondok_settings (
       and opens_on >= date '2000-01-01' and closes_on <= date '2099-12-31' and jsonb_array_length(levels) > 0))
 );
 insert into public.pondok_settings(id, levels) values
-  (1, '[{"title":"SMP","description":"Untuk lulusan SD atau MI."},{"title":"SMA","description":"Untuk lulusan SMP atau MTs."}]');
+  (1, '[{"title":"SD","description":"Jenjang pendidikan dasar."},{"title":"SMP","description":"Untuk lulusan SD atau MI."},{"title":"SMA","description":"Untuk lulusan SMP atau MTs."}]');
 
 alter table public.pondok_settings enable row level security;
 revoke all on public.pondok_settings from public, anon, authenticated;

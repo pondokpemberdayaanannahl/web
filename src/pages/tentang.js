@@ -68,7 +68,7 @@ export function Tentang() {
         </div>
         <div style="max-width: 800px; margin: 0 auto">
           <p class="reveal" style="color: var(--neutral-700); margin-bottom: var(--space-lg); text-align: center">
-            Pondok Pesantren Pemberdayaan Ummat An-Nahl didirikan pada tahun 2011 oleh KH. Muhammad Ridwan dengan visi sederhana namun kuat: mencetak generasi muda Muslim yang tidak hanya menghafal Al-Qur'an, tetapi juga mampu menjadi agen perubahan di masyarakat.
+            Pondok Pesantren Pemberdayaan Ummat An-Nahl didirikan pada tahun 2011 dengan visi sederhana namun kuat: mencetak generasi muda Muslim yang tidak hanya menghafal Al-Qur'an, tetapi juga mampu menjadi agen perubahan di masyarakat.
           </p>
           <p class="reveal reveal-delay-1" style="color: var(--neutral-700); margin-bottom: var(--space-lg); text-align: center">
             Bermula dari sebuah musholla kecil dengan hanya 15 santri, saat ini An-Nahl telah berkembang menjadi lembaga pendidikan dengan lebih dari 500 santri, fasilitas modern, dan jaringan alumni yang tersebar di seluruh Indonesia.
@@ -80,23 +80,21 @@ export function Tentang() {
       </div>
     </section>
 
-    <!-- Profil Pengasuh -->
-    <section class="section" style="background: var(--neutral-50)">
+    <!-- Profil Pengasuh dan Pengurus -->
+    <section id="pimpinan-pesantren" class="section" style="background: var(--neutral-50)">
       <div class="container leadership-grid">
         <div class="section-header">
-          <span class="section-label reveal">PENGASUH</span>
+          <span class="section-label reveal">PENGASUH & PENGURUS</span>
           <h2 class="section-title reveal reveal-delay-1">Profil Pimpinan Pesantren</h2>
         </div>
-        ${leadership.map(profile => `<div class="leadership-card reveal reveal-delay-2">
-          <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 0 auto var(--space-lg); box-shadow: var(--shadow-lg)">
-            <img data-fixed-photo="${escapeHtml(profile.id)}" src="${escapeHtml(profile.image)}" alt="${escapeHtml(profile.name)}" style="width:100%; height:100%; object-fit:cover" loading="lazy" />
+        ${leadership.map((profile, index) => `<article class="leadership-card reveal reveal-delay-${index + 1}" aria-labelledby="leadership-${escapeHtml(profile.id)}">
+          <div class="leadership-portrait">
+            ${profile.image ? `<img data-fixed-photo="${escapeHtml(profile.id)}" src="${escapeHtml(profile.image)}" alt="${escapeHtml(profile.name)}" width="160" height="160" loading="lazy" decoding="async" />`
+              : `<div class="leadership-photo-placeholder" role="img" aria-label="Foto ${escapeHtml(profile.name)} belum tersedia" data-content-ignore><span aria-hidden="true">${escapeHtml(profile.initials)}</span><small aria-hidden="true">Foto segera hadir</small></div>`}
           </div>
-          <h3 style="font-family: var(--font-heading); font-size: 28px; margin-bottom: var(--space-sm)">${escapeHtml(profile.name)}</h3>
-          <span class="badge" style="margin-bottom: var(--space-lg)">${escapeHtml(profile.role)}</span>
-          <p style="color: var(--neutral-700)">
-            ${escapeHtml(profile.bio)}
-          </p>
-        </div>`).join('')}
+          <h3 id="leadership-${escapeHtml(profile.id)}" class="leadership-name">${escapeHtml(profile.name)}</h3>
+          <p class="leadership-role">${escapeHtml(profile.role)}</p>
+        </article>`).join('')}
       </div>
     </section>
 

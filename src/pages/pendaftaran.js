@@ -6,6 +6,7 @@ import { photos } from '../data/photos.js';
 import { ATTACHMENT_HELP, bindGoogleSubmission, getRegistrationStatus } from '../google-forms.js';
 import { pondokContact } from '../data/pondok.js';
 import { jenjangCards } from '../pondok-settings.js';
+import { demoSettings, demoRegistrationStatus, registrationTimelineHtml } from '../registration-period.js';
 
 export function initPendaftaran() {
   const form = document.getElementById('registration-form');
@@ -20,6 +21,8 @@ export function initPendaftaran() {
   const back = form.querySelector('[data-registration-back]');
   const submit = form.querySelector('[type="submit"]');
   const retry = document.getElementById('registration-retry');
+  const timeline = document.getElementById('registration-timeline');
+  let currentYear = null;
   const format = date => new Date(`${date}T00:00:00+07:00`).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric', timeZone:'Asia/Jakarta' });
   let step = 0, state = '', revision = null, timer, done = false, refreshing = false, disposed = false;
 
@@ -50,9 +53,12 @@ export function initPendaftaran() {
     clearTimeout(timer);
     refreshing = true;
     try {
-      const info = await getRegistrationStatus();
+      const local = demoSettings();
+      const info = local ? demoRegistrationStatus(local) : await getRegistrationStatus();
       if (disposed || done) return;
       state = info.state;
+      currentYear = info.registration?.year || null;
+      timeline.innerHTML = registrationTimelineHtml(info);
       if (revision !== info.revision) {
         const selected = levels.querySelector(':checked')?.value;
         levels.innerHTML = jenjangCards(info.levels, true);
@@ -67,6 +73,7 @@ export function initPendaftaran() {
         upcoming: 'Pendaftaran belum dibuka.',
         closed: 'Pendaftaran sudah ditutup.',
         unscheduled: 'Jadwal pendaftaran belum diumumkan.',
+        preparing: 'Pengurus sedang menyiapkan rekap penerimaan. Pendaftaran akan tersedia setelah rekap siap.',
       }[state] + period;
       status.dataset.state = state;
       form.hidden = state !== 'open';
@@ -94,14 +101,16 @@ export function initPendaftaran() {
   document.addEventListener('visibilitychange', resumed);
   showStep(0);
   bindGoogleSubmission(form, 'pendaftaran', () => ({
-    nama: document.getElementById('reg-nama').value.trim(), tempatLahir: document.getElementById('reg-tempat-lahir').value.trim(), tanggalLahir: document.getElementById('reg-tanggal-lahir').value,
+    registrationYear: String(currentYear || ''), nama: document.getElementById('reg-nama').value.trim(), tempatLahir: document.getElementById('reg-tempat-lahir').value.trim(), tanggalLahir: document.getElementById('reg-tanggal-lahir').value,
     jenisKelamin: document.getElementById('reg-jenis-kelamin').value, asalSekolah: document.getElementById('reg-asal-sekolah').value.trim(), jenjang: levels.querySelector(':checked').value,
     namaWali: document.getElementById('reg-nama-wali').value.trim(), noWA: document.getElementById('reg-no-wa').value.trim(), email: document.getElementById('reg-email').value.trim(), alamat: document.getElementById('reg-alamat').value.trim()
   }), '', {
     canSubmit() {
       if (state !== 'open' || done) return false;
       if (step < steps.length - 1) { advance(); return false; }
-      return steps.every((_, index) => validateStep(index));
+      if (!steps.every((_, index) => validateStep(index))) return false;
+      if (demoSettings()) { form.querySelector('.submission-status').textContent = 'Ini pratinjau demo. Isian belum dikirim ke Google Sheets.'; return false; }
+      return true;
     },
     onSuccess() {
       done = true; clearTimeout(timer); form.hidden = true;
@@ -116,7 +125,7 @@ export function initPendaftaran() {
 }
 window.initPendaftaran = initPendaftaran;
 
-export function Pendaftaran() {
+export function Pendaftaran(settings = {}) {
   return `
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
@@ -125,8 +134,8 @@ export function Pendaftaran() {
       <div class="hero-pattern"></div>
       <div class="hero-content">
         <span class="section-label" style="color: var(--green-300)">PENDAFTARAN</span>
-        <h1 style="font-size: 44px">Pendaftaran Santri Baru</h1>
-        <p class="hero-subtitle">Tahun Ajaran 2026/2027 — Kuota Terbatas</p>
+        <h1 style="font-size: 44px">Pendaftaran Santri Putra</h1>
+        <p class="hero-subtitle">Program Beasiswa Pesantren An-Nahl</p>
       </div>
     </section>
 
@@ -135,76 +144,30 @@ export function Pendaftaran() {
       <div class="container">
         <div class="section-header">
           <span class="section-label reveal">ALUR PENDAFTARAN</span>
-          <h2 class="section-title reveal reveal-delay-1">Langkah Mudah untuk Bergabung</h2>
+          <h2 class="section-title reveal reveal-delay-1">Ikuti Tahap Penerimaan Santri</h2>
         </div>
-        <ol class="registration-flow reveal" role="list" aria-label="Urutan alur pendaftaran">
-          ${[
-            { num: '01', title: 'Isi Formulir', desc: 'Pilih jenjang dan lengkapi data calon santri serta wali.' },
-            { num: '02', title: 'Kirim Berkas', desc: 'Lampirkan dokumen pendukung bila sudah siap.' },
-            { num: '03', title: 'Seleksi', desc: 'Tim kami akan meninjau berkas dan menjadwalkan tes seleksi.' },
-            { num: '04', title: 'Diterima', desc: 'Santri yang lolos seleksi akan menerima surat penerimaan resmi.' },
-          ].map(step => `
-            <li>
-              <span class="registration-flow-marker" aria-hidden="true">${step.num}</span>
-              <h3>${step.title}</h3>
-              <p>${step.desc}</p>
-            </li>
-          `).join('')}
-        </ol>
+        <div id="registration-timeline" data-content-ignore>${registrationTimelineHtml(settings)}</div>
       </div>
     </section>
 
     <!-- Persyaratan -->
     <section class="section" style="background: var(--green-50)">
-      <div class="container">
-        <div class="grid-2 registration-details">
-          <div>
-            <span class="section-label reveal">PERSYARATAN</span>
-            <h2 class="reveal reveal-delay-1" style="margin-bottom: var(--space-lg)">Syarat Pendaftaran</h2>
-            <div class="checklist reveal reveal-delay-2">
-              <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Beragama Islam</span></div>
-              <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Lulusan SD/MI atau SMP/MTs (sesuai jenjang)</span></div>
-              <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Sehat jasmani dan rohani</span></div>
-              <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Mendapat izin orang tua/wali</span></div>
-              <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Bersedia mengikuti seluruh program pesantren</span></div>
-              <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Fotokopi rapor terakhir</span></div>
-              <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Pas foto 3×4 (4 lembar)</span></div>
-              <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Fotokopi KK dan akta kelahiran</span></div>
-            </div>
-          </div>
-          <div class="reveal">
-            <div class="card registration-fees" style="background: var(--white)">
-              <div class="registration-fees-body" style="text-align:center; padding: var(--space-lg)">
-                <span class="section-label">BIAYA PENDIDIKAN</span>
-                <h3 style="font-family:var(--font-heading);font-size:28px;margin: var(--space-md) 0">Tahun Ajaran 2026/2027</h3>
-                <div style="margin: var(--space-xl) 0">
-                  <div style="display:flex;justify-content:space-between;padding:var(--space-md) 0;border-bottom:1px solid var(--neutral-200)">
-                    <span style="color:var(--neutral-700)">Biaya Pendaftaran</span>
-                    <strong>Rp 350.000</strong>
-                  </div>
-                  <div style="display:flex;justify-content:space-between;padding:var(--space-md) 0;border-bottom:1px solid var(--neutral-200)">
-                    <span style="color:var(--neutral-700)">Infaq Pembangunan</span>
-                    <strong>Rp 5.000.000</strong>
-                  </div>
-                  <div style="display:flex;justify-content:space-between;padding:var(--space-md) 0;border-bottom:1px solid var(--neutral-200)">
-                    <span style="color:var(--neutral-700)">SPP / Bulan</span>
-                    <strong>Rp 1.200.000</strong>
-                  </div>
-                  <div style="display:flex;justify-content:space-between;padding:var(--space-md) 0">
-                    <span style="color:var(--neutral-700)">Seragam & Kitab</span>
-                    <strong>Rp 1.500.000</strong>
-                  </div>
-                </div>
-                <p style="font-size:13px;color:var(--neutral-500)">* Tersedia program beasiswa untuk santri berprestasi dan dhuafa</p>
-                <div class="registration-bank" aria-labelledby="registration-bank-title">
-                  <h4 id="registration-bank-title">Rekening biaya pendaftaran</h4>
-                  <dl><div><dt>Bank</dt><dd>Bank Pondok (contoh)</dd></div><div><dt>Nomor rekening</dt><dd class="registration-account">0000 0000 0000</dd></div><div><dt>Atas nama</dt><dd>Pondok Pesantren An-Nahl</dd></div></dl>
-                  <p class="registration-bank-note">Rekening dummy untuk contoh tampilan. Jangan melakukan transfer ke nomor ini. Hubungi pengurus untuk informasi pembayaran yang berlaku.</p>
-                  <a href="https://wa.me/${pondokContact.whatsapp}" class="card-link" target="_blank" rel="noopener noreferrer">Hubungi pengurus: ${pondokContact.phone}</a>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div class="container admission-requirements">
+        <div class="section-header">
+          <span class="section-label reveal">PERSYARATAN</span>
+          <h2 class="reveal reveal-delay-1">Syarat Pendaftaran Santri Putra</h2>
+          <p class="section-subtitle reveal">Siapkan persyaratan berikut sebelum mengisi formulir.</p>
+        </div>
+        <div class="checklist admission-requirements-list reveal">
+          <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Calon santri putra</span></div>
+          <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Beragama Islam</span></div>
+          <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Memenuhi persyaratan jenjang yang dipilih</span></div>
+          <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Sehat jasmani dan rohani</span></div>
+          <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Mendapat izin orang tua atau wali</span></div>
+          <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Bersedia mengikuti kegiatan pendidikan pesantren</span></div>
+          <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Fotokopi rapor terakhir sesuai jenjang</span></div>
+          <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Pas foto 3×4 (4 lembar)</span></div>
+          <div class="checklist-item"><i data-lucide="circle-check" class="checklist-icon"></i><span>Fotokopi KK dan akta kelahiran</span></div>
         </div>
       </div>
     </section>
@@ -247,11 +210,7 @@ export function Pendaftaran() {
             </div>
             <div class="form-group">
               <label class="form-label" for="reg-jenis-kelamin">Jenis Kelamin *</label>
-              <select id="reg-jenis-kelamin" class="form-select" required>
-                <option value="">Pilih jenis kelamin</option>
-                <option>Laki-laki</option>
-                <option>Perempuan</option>
-              </select>
+              <input id="reg-jenis-kelamin" class="form-input" value="Laki-laki" readonly aria-describedby="reg-putra-note" /><small id="reg-putra-note">Penerimaan saat ini untuk santri putra.</small>
             </div>
             <div class="form-group">
               <label class="form-label" for="reg-asal-sekolah">Asal Sekolah *</label>
@@ -320,9 +279,9 @@ export function Pendaftaran() {
         </div>
         <div style="max-width: 700px; margin: 0 auto; display:flex;flex-direction:column;gap:var(--space-md)">
           ${[
-            ['Apakah pesantren menerima santri putra dan putri?', 'Ya, Pesantren An-Nahl menerima santri putra dan putri dengan asrama terpisah dan pengajar sesuai gender.'],
+            ['Siapa yang dapat mendaftar?', 'Penerimaan saat ini dibuka untuk calon santri putra sesuai jenjang yang tersedia.'],
             ['Bagaimana cara memilih jenjang?', 'Pilih jenjang yang tersedia pada tahap pertama formulir. Jika masih ragu, hubungi pengurus melalui WhatsApp.'],
-            ['Apakah tersedia beasiswa?', 'Ya, tersedia beasiswa penuh dan parsial untuk santri berprestasi dan dari keluarga kurang mampu. Hubungi kami untuk informasi lebih lanjut.'],
+            ['Apakah ada biaya pendaftaran atau pendidikan?', 'Tidak ada biaya pendaftaran maupun biaya pendidikan. Penerimaan ini melalui program beasiswa pesantren.'],
             ['Bolehkah orang tua berkunjung?', 'Orang tua dapat berkunjung setiap hari Ahad dan hari libur. Jadwal kunjungan akan diinformasikan lebih lanjut.'],
             ['Apakah santri boleh membawa HP?', 'Penggunaan gadget diatur oleh pesantren. Santri tidak diperkenankan membawa HP pribadi selama kegiatan belajar.'],
           ].map(([q, a], i) => `

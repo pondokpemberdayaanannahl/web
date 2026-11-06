@@ -1,13 +1,17 @@
 import { escapeHtml } from './content-format.js';
+import { demoSettings, registrationDefaults } from './registration-period.js';
 
 export const defaultLevels = [
+  { title: 'SD', description: 'Jenjang pendidikan dasar.' },
   { title: 'SMP', description: 'Untuk lulusan SD atau MI.' },
   { title: 'SMA', description: 'Untuk lulusan SMP atau MTs.' },
 ];
-export const blankSettings = () => ({ levels: structuredClone(defaultLevels), opens_on: null, closes_on: null, tiktok: '', revision: 1 });
-export const settingsColumns = 'levels,opens_on,closes_on,tiktok,revision';
+export const blankSettings = () => ({ levels: structuredClone(defaultLevels), opens_on: null, closes_on: null, tiktok: '', registration: registrationDefaults(), revision: 1 });
+export const settingsColumns = '*';
 
 export async function readPondokSettings(client) {
+  const local = demoSettings();
+  if (local) return local;
   if (!client) return null;
   const { data, error } = await client.from('pondok_settings').select(settingsColumns).eq('id', 1).single();
   return error ? null : data;

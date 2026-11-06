@@ -1,0 +1,41 @@
+[
+  {
+    "width": 1440,
+    "year": 2027,
+    "editedDeadline": "2026-11-09",
+    "sameAnnualRecap": true,
+    "noFeesSection": true,
+    "maleOnlyForm": true,
+    "levelSelection": "SD",
+    "submission": true,
+    "pendingRecapLocksForm": true,
+    "selectionProgress": true,
+    "pageErrors": []
+  },
+  {
+    "width": 390,
+    "year": 2027,
+    "editedDeadline": "2026-11-09",
+    "sameAnnualRecap": true,
+    "noFeesSection": true,
+    "maleOnlyForm": true,
+    "levelSelection": "SD",
+    "submission": true,
+    "pendingRecapLocksForm": true,
+    "selectionProgress": true,
+    "pageErrors": []
+  },
+  {
+    "width": 320,
+    "year": 2027,
+    "editedDeadline": "2026-11-09",
+    "sameAnnualRecap": true,
+    "noFeesSection": true,
+    "maleOnlyForm": true,
+    "levelSelection": "SD",
+    "submission": true,
+    "pendingRecapLocksForm": true,
+    "selectionProgress": true,
+    "pageErrors": []
+  }
+]

@@ -28,7 +28,7 @@ function annahl_registration_settings(array $config): array {
         if (!$test && ($decoded['role'] ?? '') !== 'anon') annahl_fail(503, 'Jadwal pendaftaran belum dapat dimuat.');
         $headers[] = 'Authorization: Bearer ' . $key;
     }
-    $curl = curl_init($url . '/rest/v1/pondok_settings?id=eq.1&select=opens_on,closes_on,levels,revision&limit=1');
+    $curl = curl_init($url . '/rest/v1/pondok_settings?id=eq.1&select=*&limit=1');
     $body = '';
     curl_setopt_array($curl, [CURLOPT_FOLLOWLOCATION=>false, CURLOPT_CONNECTTIMEOUT=>4, CURLOPT_TIMEOUT=>8,
         CURLOPT_HTTPHEADER=>$headers, CURLOPT_WRITEFUNCTION=>static function($handle, string $part) use (&$body): int {
@@ -50,8 +50,9 @@ function annahl_registration_status(array $settings, ?int $now = null): array {
     $end = !empty($settings['closes_on']) ? DateTimeImmutable::createFromFormat('!Y-m-d', $settings['closes_on'], $tz) : null;
     $opens = $start ? $start->getTimestamp() : null;
     $closes = $end ? $end->modify('+1 day')->getTimestamp() : null;
-    $state = !$opens || !$closes || empty($settings['levels']) ? 'unscheduled'
-        : ($now < $opens ? 'upcoming' : ($now >= $closes ? 'closed' : 'open'));
+    $registration = $settings['registration'] ?? [];
+    $state = !$opens || !$closes || empty($settings['levels']) || empty($registration['year']) ? 'unscheduled'
+        : (($registration['recap_ready'] ?? false) !== true ? 'preparing' : ($now < $opens ? 'upcoming' : ($now >= $closes ? 'closed' : 'open')));
     return $settings + ['state'=>$state, 'serverTime'=>$now, 'opensAt'=>$opens, 'closesAt'=>$closes];
 }
 
@@ -74,6 +75,17 @@ function annahl_config(): array {
     $test = PHP_SAPI === 'cli-server' && getenv('ANNAHL_FORMS_TEST_MODE') === '1';
     if (!preg_match('~^https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec$~D', $url)
         && !($test && preg_match('~^http://127\.0\.0\.1:\d+/exec$~D', $url))) annahl_fail(503, 'Sambungan formulir belum diaktifkan.');
+    // Older installations already keep these public Supabase values in the
+    // sibling photo config. Reuse only those values, never photo signing keys.
+    if (empty($config['supabase_url']) || empty($config['supabase_anon_key'])) {
+        $mediaPath=realpath(dirname($path).'/media-config.php');
+        if ($mediaPath && $mediaPath!==$path && (!$webRoot || !str_starts_with(str_replace('\\','/',$mediaPath),str_replace('\\','/',$webRoot).'/'))) {
+            $mediaSettings=(static function(string $file): mixed { return require $file; })($mediaPath);
+            if (is_array($mediaSettings)) foreach (['supabase_url','supabase_anon_key','curl_ca_file'] as $key) {
+                if (empty($config[$key]) && isset($mediaSettings[$key])) $config[$key]=$mediaSettings[$key];
+            }
+        }
+    }
     return $config;
 }
 
@@ -184,13 +196,15 @@ function annahl_submission(array $input, ?array $settings = null): array {
     if ($kind === 'pendaftaran') {
         if ($settings === null) annahl_fail(503, 'Jadwal pendaftaran belum dapat dimuat.');
         annahl_require_open($settings);
+        $year=annahl_text($fields,'registrationYear',4,4);
+        if ($year !== (string)($settings['registration']['year'] ?? '')) annahl_fail(409,'Periode penerimaan sudah berubah. Muat ulang jadwal sebelum mengirim.');
         foreach (['tempatLahir','tanggalLahir','jenisKelamin','asalSekolah','jenjang','namaWali','noWA'] as $key) $payload[$key] = annahl_text($fields, $key, 1, 180);
         $payload['email'] = annahl_text($fields, 'email', 0, 254);
         $payload['alamat'] = annahl_text($fields, 'alamat', 2, 2000);
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $payload['tanggalLahir']);
         if (!$date || $date->format('Y-m-d') !== $payload['tanggalLahir'] || $payload['tanggalLahir'] > (new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta')))->format('Y-m-d')) annahl_fail(422, 'Periksa tanggal lahir.');
         if (!preg_match('/^\+?[\d\s()-]{8,24}$/D', $payload['noWA']) || ($payload['email'] !== '' && !filter_var($payload['email'], FILTER_VALIDATE_EMAIL))) annahl_fail(422, 'Periksa nomor WhatsApp dan email.');
-        if (!in_array($payload['jenisKelamin'], ['Laki-laki','Perempuan'], true) || !in_array($payload['jenjang'], array_column($settings['levels'], 'title'), true)) annahl_fail(422, 'Pilih jenis kelamin dan jenjang yang tersedia.');
+        if ($payload['jenisKelamin'] !== 'Laki-laki' || !in_array($payload['jenjang'], array_column($settings['levels'], 'title'), true)) annahl_fail(422, 'Pendaftaran saat ini untuk santri putra. Pilih jenjang yang tersedia.');
     } else {
         $payload['jumlah'] = annahl_text($fields, 'jumlah', 1, 12);
         $payload['metode'] = annahl_text($fields, 'metode', 1, 100);
@@ -199,7 +213,7 @@ function annahl_submission(array $input, ?array $settings = null): array {
         if (!preg_match('/^[1-9]\d{0,11}$/D', $payload['jumlah'])) annahl_fail(422, 'Isi nominal donasi dengan angka yang valid.');
         if (!in_array($payload['metode'], ['Transfer Bank BSI','GoPay','OVO','DANA','QRIS'], true)) annahl_fail(422, 'Pilih metode pembayaran yang tersedia.');
     }
-    return ['id'=>strtolower($id), 'kind'=>$kind, 'payload'=>$payload, 'files'=>annahl_files($input['files'] ?? [])];
+    return ['id'=>strtolower($id), 'kind'=>$kind, 'payload'=>$payload, 'files'=>annahl_files($input['files'] ?? [])] + ($kind === 'pendaftaran' ? ['periodYear'=>(int)$year] : []);
 }
 
 function annahl_forward(array $config, array $record): array {

@@ -1,0 +1,42 @@
+[
+  {
+    "width": 1366,
+    "profiles": 3,
+    "columns": 3,
+    "suppliedPortraits": 3,
+    "photoPlaceholders": 0,
+    "noHorizontalOverflow": true,
+    "pageErrors": [],
+    "failedImages": []
+  },
+  {
+    "width": 768,
+    "profiles": 3,
+    "columns": 1,
+    "suppliedPortraits": 3,
+    "photoPlaceholders": 0,
+    "noHorizontalOverflow": true,
+    "pageErrors": [],
+    "failedImages": []
+  },
+  {
+    "width": 390,
+    "profiles": 3,
+    "columns": 1,
+    "suppliedPortraits": 3,
+    "photoPlaceholders": 0,
+    "noHorizontalOverflow": true,
+    "pageErrors": [],
+    "failedImages": []
+  },
+  {
+    "width": 320,
+    "profiles": 3,
+    "columns": 1,
+    "suppliedPortraits": 3,
+    "photoPlaceholders": 0,
+    "noHorizontalOverflow": true,
+    "pageErrors": [],
+    "failedImages": []
+  }
+]
