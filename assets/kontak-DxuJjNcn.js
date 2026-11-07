@@ -1,4 +1,4 @@
-import{f as e}from"./site-content-BKWZVrCp.js";import{r as t}from"./photos-BW6EAMCN.js";import{t as n}from"./social-icon-CS2bHoaL.js";import{i as r,n as i,r as a}from"./pondok-DvaK_7TO.js";import{t as o}from"./form-submission-yOwmBAi0.js";function s(o={}){let s=e(o.tiktok);return`
+import{f as e}from"./site-content-BkEmymUy.js";import{r as t}from"./photos-BW6EAMCN.js";import{t as n}from"./social-icon-CS2bHoaL.js";import{i as r,n as i,r as a}from"./pondok-ByAc9hJX.js";import{t as o}from"./form-submission-C4ijTKk7.js";function s(o={}){let s=e(o.tiktok);return`
     <!-- Page Header -->
     <section class="hero" style="min-height: 50vh">
       <div class="hero-bg" style="background-image: url('${t.hero.kontak}')"></div>
@@ -54,7 +54,7 @@ import{f as e}from"./site-content-BKWZVrCp.js";import{r as t}from"./photos-BW6EA
                 </div>
                 <div>
                   <strong style="display:block;margin-bottom:4px">Email</strong>
-                  <span style="color:var(--neutral-700);font-size:15px">info@annahl.id</span>
+                  <a href="mailto:${i.email}" style="color:var(--neutral-700);font-size:15px;overflow-wrap:anywhere">${i.email}</a>
                 </div>
               </div>
               <div style="display:flex;gap:var(--space-md);align-items:flex-start">

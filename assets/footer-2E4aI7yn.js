@@ -1,4 +1,4 @@
-import{f as e}from"./site-content-BKWZVrCp.js";import{t}from"./social-icon-CS2bHoaL.js";import{n}from"./pondok-DvaK_7TO.js";function r(r={}){let i=e(r.tiktok);return`
+import{f as e}from"./site-content-BkEmymUy.js";import{t}from"./social-icon-CS2bHoaL.js";import{n}from"./pondok-ByAc9hJX.js";function r(r={}){let i=e(r.tiktok);return`
     <footer class="footer">
       <div class="container">
         <div class="footer-grid">
@@ -38,7 +38,7 @@ import{f as e}from"./site-content-BKWZVrCp.js";import{t}from"./social-icon-CS2bH
             </div>
             <div class="footer-contact-item">
               <i data-lucide="mail" style="width:16px;height:16px"></i>
-              <span>info@annahl.id</span>
+              <a href="mailto:${n.email}">${n.email}</a>
             </div>
           </div>
 
