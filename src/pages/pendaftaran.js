@@ -3,16 +3,25 @@
 // ═══════════════════════════════════════════
 
 import { photos } from '../data/photos.js';
-import { ATTACHMENT_HELP, bindGoogleSubmission, getRegistrationStatus } from '../google-forms.js';
+import { REGISTRATION_ATTACHMENT_HELP, bindGoogleSubmission, getRegistrationStatus } from '../google-forms.js';
 import { pondokContact } from '../data/pondok.js';
 import { jenjangCards } from '../pondok-settings.js';
 import { demoSettings, demoRegistrationStatus, registrationTimelineHtml } from '../registration-period.js';
+
+const registrationDocuments = [
+  { id:'kk', label:'Kartu Keluarga', hint:'Foto atau pindai Kartu Keluarga yang terbaca jelas.' },
+  { id:'akta', label:'Akta kelahiran', hint:'Foto atau pindai akta kelahiran calon santri.' },
+  { id:'rapor', label:'Rapor terakhir', hint:'Boleh beberapa foto halaman rapor, atau satu PDF.', multiple:true },
+  { id:'pasfoto', label:'Pas foto', hint:'Foto calon santri untuk kebutuhan pas foto 3×4.', images:true },
+  { id:'ijazah', label:'Ijazah atau SKL', hint:'Lampirkan jika sudah tersedia dan sesuai jenjang yang dipilih.' },
+];
 
 export function initPendaftaran() {
   const form = document.getElementById('registration-form');
   if (!form) return;
   const status = document.getElementById('registration-period');
   const receipt = document.getElementById('registration-receipt');
+  const successDialog = document.getElementById('registration-success');
   const levels = form.querySelector('[data-jenjang]');
   const steps = [...form.querySelectorAll('[data-registration-step]')];
   const indicators = [...form.querySelectorAll('[data-registration-indicator]')];
@@ -97,6 +106,8 @@ export function initPendaftaran() {
   next.addEventListener('click', advance);
   back.addEventListener('click', () => showStep(step - 1, true));
   retry.addEventListener('click', refresh);
+  successDialog.querySelectorAll('[data-registration-success-close]').forEach(button => button.addEventListener('click', () => successDialog.close()));
+  successDialog.addEventListener('close', () => receipt.focus());
   const resumed = () => { if (document.visibilityState === 'visible') refresh(); };
   document.addEventListener('visibilitychange', resumed);
   showStep(0);
@@ -112,11 +123,13 @@ export function initPendaftaran() {
       if (demoSettings()) { form.querySelector('.submission-status').textContent = 'Ini pratinjau demo. Isian belum dikirim ke Google Sheets.'; return false; }
       return true;
     },
-    onSuccess() {
+    onSuccess(confirmation) {
+      if (disposed) return;
       done = true; clearTimeout(timer); form.hidden = true;
       receipt.hidden = false;
-      receipt.textContent = 'Pendaftaran diterima. Pengurus akan menghubungi Anda melalui kontak yang dicantumkan.';
-      receipt.focus();
+      document.querySelectorAll('[data-registration-reference]').forEach(node => { node.textContent = confirmation.id; });
+      if (typeof successDialog.showModal === 'function') successDialog.showModal();
+      else receipt.focus();
     },
     onError(error) { if (error.status === 409 || error.status === 422) refresh(); },
   });
@@ -186,7 +199,8 @@ export function Pendaftaran(settings = {}) {
             <button id="registration-retry" type="button" class="btn btn-secondary" hidden>Coba lagi</button>
             <a href="https://wa.me/${pondokContact.whatsapp}" target="_blank" rel="noopener noreferrer">Tanya pengurus</a>
           </div>
-          <p id="registration-receipt" class="submission-status" data-state="success" role="status" tabindex="-1" hidden></p>
+          <div id="registration-receipt" class="registration-receipt" role="status" tabindex="-1" hidden><span class="registration-success-mark" aria-hidden="true">✓</span><h3>Formulir pendaftaran berhasil diisi</h3><p>Data pendaftaran Anda sudah tersimpan. Pengurus akan menghubungi Anda melalui kontak yang dicantumkan untuk tahap selanjutnya.</p><p class="registration-reference">Kode pengiriman <code data-registration-reference></code></p></div>
+          <dialog id="registration-success" class="registration-success-dialog" aria-labelledby="registration-success-title" aria-describedby="registration-success-description"><span class="registration-success-mark" aria-hidden="true">✓</span><span class="registration-success-kicker">PENDAFTARAN TERKIRIM</span><h2 id="registration-success-title">Formulir pendaftaran berhasil diisi</h2><p id="registration-success-description">Data Anda sudah tersimpan. Pengurus akan menghubungi Anda melalui nomor WhatsApp yang dicantumkan untuk tahap selanjutnya.</p><p class="registration-reference">Kode pengiriman <code data-registration-reference></code></p><button type="button" class="btn btn-primary" data-registration-success-close>Oke, mengerti</button></dialog>
           <form id="registration-form" hidden novalidate>
             <ol class="registration-indicators" aria-label="Tahap pengisian">${['Calon santri','Orang tua / wali','Lampiran'].map(label => `<li data-registration-indicator>${label}</li>`).join('')}</ol>
             <progress max="3" value="1" aria-label="Progres pengisian pendaftaran"></progress>
@@ -243,15 +257,7 @@ export function Pendaftaran(settings = {}) {
             <fieldset data-registration-step hidden>
             <legend tabindex="-1">Periksa dan Kirim</legend>
             <p class="attachment-help">Pastikan data calon santri dan wali sudah benar. Gunakan tombol Kembali untuk memperbaiki isian.</p>
-            <div class="form-group attachment-box">
-              <label class="form-label" for="reg-files">Dokumen pendukung <span>(opsional)</span></label>
-              <p id="reg-files-help" class="attachment-help">${ATTACHMENT_HELP}</p>
-              <input id="reg-files" data-form-files type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.docx,.xlsx,.pptx" aria-describedby="reg-files-help reg-files-feedback" />
-              <ul data-file-list class="attachment-list"></ul>
-              <p id="reg-files-feedback" data-file-feedback class="attachment-feedback" aria-live="polite"></p>
-              <button type="button" data-clear-files class="attachment-clear" hidden>Kosongkan lampiran</button>
-              <p class="attachment-privacy">Isian dan lampiran diterima melalui akun Google pondok. Berkas hanya dapat dibuka oleh pengurus yang memiliki akses.</p>
-            </div>
+            <div class="registration-documents"><h3>Lengkapi dokumen pendukung</h3><p class="attachment-help">${REGISTRATION_ATTACHMENT_HELP}</p><div class="registration-document-grid">${registrationDocuments.map(({id,label,hint,multiple,images}) => `<div class="registration-document attachment-box" data-file-group><label class="form-label" for="reg-${id}-files">${label} <span>(opsional)</span></label><p id="reg-${id}-help" class="attachment-help">${hint}</p><input id="reg-${id}-files" data-form-files data-file-label="${label}" type="file" ${multiple ? 'multiple' : ''} accept=".jpg,.jpeg,.png,.webp${images ? '' : ',.pdf'}" aria-describedby="reg-${id}-help reg-${id}-feedback"><ul data-file-list class="attachment-list"></ul><p id="reg-${id}-feedback" data-file-feedback class="attachment-feedback" aria-live="polite"></p><button type="button" data-clear-files class="attachment-clear" aria-label="Kosongkan lampiran ${label}" hidden>Kosongkan lampiran</button></div>`).join('')}</div><p data-attachments-summary class="registration-attachments-summary" role="status">Belum ada dokumen dipilih.</p><p class="attachment-privacy">Isian dan lampiran diterima melalui akun Google pondok. Berkas hanya dapat dibuka oleh pengurus yang memiliki akses.</p></div>
             </fieldset>
             <div class="form-trap" aria-hidden="true"><label for="reg-website">Website<input id="reg-website" data-website type="text" tabindex="-1" autocomplete="off" /></label></div>
             <!-- Notifikasi -->

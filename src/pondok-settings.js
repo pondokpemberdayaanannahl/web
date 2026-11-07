@@ -29,8 +29,20 @@ export function tiktokUrl(handle) {
   return typeof handle === 'string' && /^[a-z0-9._]{2,24}$/i.test(handle) ? `https://www.tiktok.com/@${handle}` : '';
 }
 
-export function jenjangCards(levels = defaultLevels, choose = false) {
-  return levels.length ? `<div class="jenjang-grid">${levels.map(({ title, description }) => {
+function levelIllustration(title) {
+  const name = String(title).toUpperCase();
+  if (/\b(?:SMA|SMK|MA)\b|ALIYAH|MENENGAH ATAS/.test(name)) return 'sma';
+  if (/\b(?:SD|MI)\b|IBTIDAIYAH|DASAR/.test(name)) return 'sd';
+  return 'smp';
+}
+
+export function jenjangCards(levels = defaultLevels, choose = false, { illustrated = false } = {}) {
+  const showIllustrations = illustrated && !choose;
+  return levels.length ? `<div class="jenjang-grid${showIllustrations ? ' jenjang-grid-illustrated' : ''}">${levels.map(({ title, description }) => {
+    if (showIllustrations) {
+      const illustration = `/images/education/jenjang-${levelIllustration(title)}-v1`;
+      return `<article class="jenjang-card jenjang-card-illustrated"><div class="jenjang-visual"><img src="${illustration}-1200.webp" srcset="${illustration}-600.webp 600w, ${illustration}-1200.webp 1200w" sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1248px) calc((100vw - 92px) / 3), 384px" width="1200" height="800" alt="Ilustrasi suasana belajar santri putra jenjang ${escapeHtml(title)}" loading="lazy" decoding="async"></div><div class="jenjang-card-body"><h3>${escapeHtml(title)}</h3>${description ? `<p>${escapeHtml(description)}</p>` : ''}<a class="jenjang-register-link" href="#/pendaftaran" aria-label="Informasi pendaftaran jenjang ${escapeHtml(title)}">Info pendaftaran <span aria-hidden="true">↗</span></a></div></article>`;
+    }
     const body = `<span class="jenjang-copy"><strong>${escapeHtml(title)}</strong>${description ? `<small>${escapeHtml(description)}</small>` : ''}</span>`;
     return choose ? `<label class="jenjang-card"><input type="radio" name="jenjang" value="${escapeHtml(title)}" required>${body}</label>` : `<article class="jenjang-card">${body}</article>`;
   }).join('')}</div>` : '<p>Informasi jenjang belum tersedia. Silakan hubungi pengurus.</p>';

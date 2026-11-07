@@ -70,7 +70,7 @@ export class Router {
       // Fade in
       requestAnimationFrame(() => {
         app.style.opacity = '1';
-        app.style.transform = 'translateY(0)';
+        app.style.transform = 'none';
       });
 
       // Re-init features

@@ -12,7 +12,7 @@ import * as pondok from '../src/data/pondok.js';
 import { socialIcon } from '../src/components/social-icon.js';
 import { categoryCards } from '../src/components/category-cards.js';
 import { leadership } from '../src/data/leadership.js';
-import { ATTACHMENT_HELP } from '../src/google-forms.js';
+import { ATTACHMENT_HELP, REGISTRATION_ATTACHMENT_HELP } from '../src/google-forms.js';
 import { jenjangCards, tiktokUrl } from '../src/pondok-settings.js';
 
 const document = () => parseHTML('<html><head></head><body></body></html>').document;
@@ -22,7 +22,7 @@ test('content catalog covers the real public pages while excluding form controls
   const names = { beranda:'Beranda',tentang:'Tentang',program:'Program',pendaftaran:'Pendaftaran',donasi:'Donasi',kontak:'Kontak',berita:'Berita',galeri:'Galeri' };
   for (const [id, name] of Object.entries(names)) {
     const doc = document();
-    const context = { registrationTimelineHtml, ...images, ...formatting, ...pondok, socialIcon, categoryCards, leadership, ATTACHMENT_HELP, jenjangCards, tiktokUrl, document: doc, window: {}, supabase: null, bindSubmission() {} };
+    const context = { registrationTimelineHtml, ...images, ...formatting, ...pondok, socialIcon, categoryCards, leadership, ATTACHMENT_HELP, REGISTRATION_ATTACHMENT_HELP, jenjangCards, tiktokUrl, document: doc, window: {}, supabase: null, bindSubmission() {} };
     const code = readFileSync(new URL(`../src/pages/${id}.js`, import.meta.url), 'utf8').replace(/^import .*;\r?$/gm, '').replaceAll('export ', '');
     vm.runInNewContext(code, context);
     const html = context[name]();

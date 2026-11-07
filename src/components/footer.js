@@ -48,7 +48,7 @@ export function Footer(settings = {}) {
             </div>
             <div class="footer-contact-item">
               <i data-lucide="mail" style="width:16px;height:16px"></i>
-              <span>info@annahl.id</span>
+              <a href="mailto:${pondokContact.email}">${pondokContact.email}</a>
             </div>
           </div>
 

@@ -1,0 +1,68 @@
+{
+  "simulation": true,
+  "productionWrites": false,
+  "requests": [
+    {
+      "id": "04f726da-cc35-4dff-a8bf-ad5d33cba878",
+      "kind": "pendaftaran",
+      "files": [
+        {
+          "name": "Kartu Keluarga - uji-kk.pdf",
+          "bytes": 45
+        },
+        {
+          "name": "Akta kelahiran - uji-akta.pdf",
+          "bytes": 45
+        },
+        {
+          "name": "Rapor terakhir 1 - uji-rapor-1.pdf",
+          "bytes": 45
+        },
+        {
+          "name": "Rapor terakhir 2 - uji-rapor-2.pdf",
+          "bytes": 45
+        },
+        {
+          "name": "Pas foto - uji-pasfoto.png",
+          "bytes": 68
+        },
+        {
+          "name": "Ijazah atau SKL - uji-ijazah.pdf",
+          "bytes": 45
+        }
+      ],
+      "acknowledged": false
+    },
+    {
+      "id": "04f726da-cc35-4dff-a8bf-ad5d33cba878",
+      "kind": "pendaftaran",
+      "files": [
+        {
+          "name": "Kartu Keluarga - uji-kk.pdf",
+          "bytes": 45
+        },
+        {
+          "name": "Akta kelahiran - uji-akta.pdf",
+          "bytes": 45
+        },
+        {
+          "name": "Rapor terakhir 1 - uji-rapor-1.pdf",
+          "bytes": 45
+        },
+        {
+          "name": "Rapor terakhir 2 - uji-rapor-2.pdf",
+          "bytes": 45
+        },
+        {
+          "name": "Pas foto - uji-pasfoto.png",
+          "bytes": 68
+        },
+        {
+          "name": "Ijazah atau SKL - uji-ijazah.pdf",
+          "bytes": 45
+        }
+      ],
+      "acknowledged": true
+    }
+  ]
+}

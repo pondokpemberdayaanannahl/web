@@ -132,6 +132,66 @@ test('YouTube news validates links, previews safely, keeps the link on edit, and
   await ui.fire('news-media-photo','click');await ui.fire('draft-btn','click');row=JSON.parse(ui.saved.get('annahl-demo-content-v1')).berita.find(item=>item.id===row.id);assert.equal(row.youtube_id,null);
 });
 
+test('news list manages gallery videos in place with preview, edit, delete, and category filters', async () => {
+  const ui = fixture(true, true); await tick();
+  await ui.click({ dataset: { action: 'new-video' } });
+  ui.$('judul').value = 'Video galeri santri'; ui.$('kategori').value = 'Kegiatan'; ui.$('video-link').value = 'https://youtu.be/aqz-KE-bpKQ';
+  await ui.fire('editor-form', 'submit');
+  const row = JSON.parse(ui.saved.get('annahl-demo-content-v1')).galeri_video[0];
+  await ui.click({ dataset: { go: 'berita' } });
+  assert.match(ui.$('daftar-berita').innerHTML, /Video galeri santri/);
+  assert.match(ui.$('daftar-berita').innerHTML, /data-edit="[^"]+" data-type="video"/);
+  assert.match(ui.$('daftar-berita').innerHTML, /Tonton video/);
+  assert.match(ui.$('daftar-berita').innerHTML, /Video YouTube/);
+  assert.equal(ui.$('nav-news-count').textContent, 4);
+  ui.$('news-kind').value = 'video'; await ui.fire('news-kind', 'change');
+  ui.$('news-filter').value = 'Kegiatan'; await ui.fire('news-filter', 'change');
+  assert.match(ui.$('news-page-info').textContent, /1 konten/);
+  await ui.click({ dataset: { view: row.id, type: 'video' } });
+  assert.match(ui.$('preview-content').innerHTML, /youtube-nocookie\.com\/embed\/aqz-KE-bpKQ/);
+  await ui.fire('preview-close', 'click');
+  await ui.click({ dataset: { edit: row.id, type: 'video' } });
+  assert.equal(ui.$('preview-btn').hidden, false);
+  assert.equal(ui.$('video-link').value, 'https://youtu.be/aqz-KE-bpKQ');
+  ui.$('judul').value = 'Video galeri diperbarui'; ui.$('video-link').value = 'https://youtu.be/M7lc1UVf-VE';
+  await ui.fire('preview-btn', 'click');
+  assert.match(ui.$('preview-content').innerHTML, /youtube-nocookie\.com\/embed\/M7lc1UVf-VE/);
+  await ui.fire('preview-close', 'click'); await ui.fire('editor-form', 'submit');
+  const state = JSON.parse(ui.saved.get('annahl-demo-content-v1'));
+  assert.equal(state.galeri_video[0].youtube_id, 'M7lc1UVf-VE');
+  assert.equal(state.berita.length, 3, 'Editing the video must not create a duplicate news post');
+  assert.match(ui.$('daftar-berita').innerHTML, /Video galeri diperbarui/);
+  await ui.click({ dataset: { delete: row.id, type: 'video' } });
+  assert.doesNotMatch(ui.$('daftar-berita').innerHTML, /Video galeri diperbarui/);
+  assert.equal(JSON.parse(ui.saved.get('annahl-demo-content-v1')).galeri_video.length, 0);
+});
+
+test('new YouTube posts remain visible after saving through incompatible filters and support archive/restore', async () => {
+  const ui = fixture(true, true); await tick();
+  await ui.click({ dataset: { go: 'berita' } });
+  ui.$('news-kind').value = 'photo'; ui.$('news-status').value = 'draft'; ui.$('news-filter').value = 'Akademik'; ui.$('news-search').value = 'Nama lama';
+  await ui.fire('news-kind', 'change');
+  await ui.click({ dataset: { action: 'new-news-video' } });
+  assert.equal(ui.$('video-field').hidden, false);
+  ui.$('judul').value = 'Video berita terbaru'; ui.$('isi').value = 'Cerita santri.'; ui.$('kategori').value = 'Ekskul'; ui.$('video-link').value = 'https://youtube.com/shorts/aqz-KE-bpKQ';
+  await ui.fire('editor-form', 'input');
+  await ui.fire('editor-form', 'submit');
+  assert.equal(ui.$('news-kind').value, 'video');
+  assert.equal(ui.$('news-status').value, 'published');
+  assert.equal(ui.$('news-search').value, ''); assert.equal(ui.$('news-filter').value, '');
+  assert.match(ui.$('daftar-berita').innerHTML, /Video berita terbaru/);
+  assert.match(ui.$('daftar-berita').innerHTML, /data-post-type="berita"/);
+  const row = JSON.parse(ui.saved.get('annahl-demo-content-v1')).berita.find(item => item.judul === 'Video berita terbaru');
+  await ui.click({ dataset: { delete: row.id, type: 'berita' } });
+  assert.doesNotMatch(ui.$('daftar-berita').innerHTML, /Video berita terbaru/);
+  ui.$('news-status').value = 'trash'; await ui.fire('news-status', 'change');
+  assert.match(ui.$('daftar-berita').innerHTML, /Pulihkan ke draft/);
+  await ui.click({ dataset: { restore: row.id, type: 'berita' } });
+  ui.$('news-status').value = 'draft'; await ui.fire('news-status', 'change');
+  assert.match(ui.$('daftar-berita').innerHTML, /Video berita terbaru/);
+  assert.equal(JSON.parse(ui.saved.get('annahl-demo-content-v1')).berita.find(item => item.id === row.id).youtube_id, 'aqz-KE-bpKQ');
+});
+
 test('autosave recovers editor text and server draft/archive/restore workflow stays unpublished', async () => {
   const ui = fixture(true, true); await tick();
   await ui.click({ dataset: { action: 'new-news' } });

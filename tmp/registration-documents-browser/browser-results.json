@@ -1,0 +1,37 @@
+{
+  "simulation": true,
+  "failure": {
+    "formVisible": true,
+    "status": "Uji lokal: penyimpanan belum dikonfirmasi. Silakan coba lagi.",
+    "successDialogOpen": false,
+    "visibleDocumentEntries": 6
+  },
+  "attachmentPhone": {
+    "documentEntries": 6,
+    "documentGroups": 5,
+    "scrollWidth": 375,
+    "width": 390
+  },
+  "success390": {
+    "bottom": 668.875,
+    "heading": "Formulir pendaftaran berhasil diisi",
+    "open": true,
+    "scrollWidth": 375,
+    "top": 175.125,
+    "viewportHeight": 844,
+    "width": 390
+  },
+  "success320": {
+    "bottom": 682.609375,
+    "scrollWidth": 305,
+    "top": 117.375,
+    "viewportHeight": 800,
+    "width": 320
+  },
+  "receipt": {
+    "formHidden": true,
+    "text": "✓Formulir pendaftaran berhasil diisiData pendaftaran Anda sudah tersimpan. Pengurus akan menghubungi Anda melalui kontak yang dicantumkan untuk tahap selanjutnya.Kode pengiriman 04f726da-cc35-4dff-a8bf-ad5d33cba878",
+    "visible": true
+  },
+  "productionSubmissionsWritten": 0
+}

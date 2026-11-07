@@ -160,8 +160,8 @@ function annahl_office_zip(string $bytes, string $root): bool {
     return isset($names['[Content_Types].xml'], $names[$root]);
 }
 
-function annahl_files(mixed $input): array {
-    if (!is_array($input) || count($input) > 3) annahl_fail(422, 'Lampirkan paling banyak 3 berkas.');
+function annahl_files(mixed $input, int $maxFiles = 3): array {
+    if (!is_array($input) || count($input) > $maxFiles) annahl_fail(422, "Lampirkan paling banyak $maxFiles berkas.");
     $result = []; $total = 0;
     $office = ['docx' => ['word/document.xml', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'], 'xlsx' => ['xl/workbook.xml', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'], 'pptx' => ['ppt/presentation.xml', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']];
     foreach ($input as $file) {
@@ -213,7 +213,7 @@ function annahl_submission(array $input, ?array $settings = null): array {
         if (!preg_match('/^[1-9]\d{0,11}$/D', $payload['jumlah'])) annahl_fail(422, 'Isi nominal donasi dengan angka yang valid.');
         if (!in_array($payload['metode'], ['Transfer Bank BSI','GoPay','OVO','DANA','QRIS'], true)) annahl_fail(422, 'Pilih metode pembayaran yang tersedia.');
     }
-    return ['id'=>strtolower($id), 'kind'=>$kind, 'payload'=>$payload, 'files'=>annahl_files($input['files'] ?? [])] + ($kind === 'pendaftaran' ? ['periodYear'=>(int)$year] : []);
+    return ['id'=>strtolower($id), 'kind'=>$kind, 'payload'=>$payload, 'files'=>annahl_files($input['files'] ?? [], $kind === 'pendaftaran' ? 8 : 3)] + ($kind === 'pendaftaran' ? ['periodYear'=>(int)$year] : []);
 }
 
 function annahl_forward(array $config, array $record): array {

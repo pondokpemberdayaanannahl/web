@@ -115,6 +115,17 @@ test('same-ID retries are acknowledged once; changed content cannot overwrite th
   assert.equal(app.sheets['Konfirmasi Donasi'].rows[1][4],12345);
 });
 
+test('registration accepts categorized documents while donation limits and retry safety are preserved',()=>{
+  const app=fixture(), data={...record(Array.from({length:8},(_,i)=>'%PDF-1.4 dokumen '+i)),kind:'pendaftaran',payload:{nama:'Santri Uji',tempatLahir:'Bogor',tanggalLahir:'2013-01-01',jenisKelamin:'Laki-laki',asalSekolah:'Sekolah Uji',jenjang:'SD',namaWali:'Wali Uji',noWA:'000000000000',email:'',alamat:'Alamat Uji'}};
+  data.files[0].name='Kartu Keluarga - uji.pdf';
+  assert.equal(app.call(data).ok,true); assert.equal(app.call(data).ok,true);
+  assert.equal([...app.files.values()].filter(file=>file.blob).length,8);
+  assert.ok([...app.files.values()].some(file=>file.name==='Kartu Keluarga - uji.pdf'));
+  assert.equal(app.sheets.Pendaftaran.rows.length,2);
+  assert.equal(fixture().call(record(['%PDF-1','%PDF-2','%PDF-3','%PDF-4'])).code,'invalid');
+  assert.equal(fixture().call({...data,files:[...data.files,data.files[0]]}).code,'invalid');
+});
+
 test('partial upload or Sheet failure retries reuse private folders and uploaded bytes',()=>{
   for(const failure of ['upload','sheet']) {
     const app=fixture(), data=record(['%PDF-1.4 one','%PDF-1.4 two']);

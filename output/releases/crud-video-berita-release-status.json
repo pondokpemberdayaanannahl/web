@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-07",
+  "archive": "An-Nahl-Update-CRUD-Video-Berita-2026-11-07.zip",
+  "bytes": 205730,
+  "entries": 43,
+  "sha256": "042adefbf1aa9fd41a7aa97ce4e71736f7cd3cedbd4d11bb0caef87178d62789",
+  "unitTestsPassed": 132,
+  "hostingerBuildChecked": true,
+  "hostingerDeployed": false,
+  "databaseMigrationRequired": false,
+  "desktopDemoCreatedPreviewedEdited": true,
+  "mobileBrowserVerified": false,
+  "browserStoppedReason": "Windows browser URL could not be determined reliably by Computer Use",
+  "publicLive": {
+    "publicReadOnly": true,
+    "publishedNews": 5,
+    "galleryVideos": 3,
+    "combinedPosts": 8,
+    "videosInNewsList": 3,
+    "galleryVideosKeepOriginalIdentity": true,
+    "productionWrites": false
+  }
+}

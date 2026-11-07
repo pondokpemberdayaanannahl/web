@@ -115,7 +115,7 @@ function formsValidate_(record) {
   if (record.kind === 'donasi' && !/^[1-9]\d{0,11}$/.test(record.payload.jumlah)) throw formsError_('invalid');
   if (record.kind === 'pendaftaran' && (!record.payload.namaWali.trim() || !/^\+?[\d\s()-]{8,24}$/.test(record.payload.noWA))) throw formsError_('invalid');
   if (record.periodYear !== undefined && (record.kind !== 'pendaftaran' || !Number.isInteger(record.periodYear) || record.periodYear < 2000 || record.periodYear > 2099)) throw formsError_('invalid');
-  if (!Array.isArray(record.files) || record.files.length > 3) throw formsError_('invalid');
+  if (!Array.isArray(record.files) || record.files.length > (record.kind === 'pendaftaran' ? 8 : 3)) throw formsError_('invalid');
   const types = ['image/jpeg','image/png','image/webp','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.openxmlformats-officedocument.presentationml.presentation'];
   let total = 0;
   record.files.forEach(function(file) {

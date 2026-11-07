@@ -1,0 +1,39 @@
+PEMBARUAN WEBSITE AN-NAHL
+7 November 2026
+
+ISI PEMBARUAN
+- Kartu SD, SMP, dan SMA memakai ilustrasi santri putra yang selaras dengan warna pondok.
+- Popup berita tampil di atas halaman. Foto terlihat utuh; isi dapat di-scroll; tombol tutup tetap tersedia. Esc juga menutup popup.
+- Setelah pendaftaran dikonfirmasi tersimpan, muncul notifikasi sukses dan kode pengiriman. Bukti tetap terlihat setelah notifikasi ditutup.
+- Lampiran dipisah menjadi Kartu Keluarga, akta kelahiran, rapor, pas foto, serta ijazah/SKL. Rapor dapat berisi beberapa halaman.
+- Maksimal 8 berkas pendaftaran; 10 MB per berkas dan 15 MB total. Batas lampiran donasi tetap 3 berkas.
+- Jenis dokumen dicantumkan di awal nama file pada Drive.
+- Persentase dan bar progres pada kartu donasi dihilangkan.
+- Email kontak: pondokpemberdayaanannahl@gmail.com.
+- Peta mengarah ke Pondok Pemberdayaan Ummat An-Nahl, Pamijahan, Bogor.
+- Paket juga mencakup perubahan galeri, editor website, serta CRUD video yang telah dikerjakan sebelumnya.
+
+UNGGAH MANUAL KE HOSTINGER
+1. Buka File Manager dan masuk ke public_html.
+2. Cadangkan index.html, admin.html, login.html, folder assets, dan api/forms-core.php.
+3. Unggah ZIP ini ke public_html, lalu ekstrak di folder tersebut.
+4. Ganti tiga file HTML dan api/forms-core.php. Gabungkan folder assets dan images/education dengan folder yang sudah ada.
+5. Muat ulang halaman website serta panel pengurus dengan Ctrl+F5.
+PENTING: api/forms-core.php harus ikut diperbarui agar pendaftaran menerima lebih dari tiga lampiran.
+ZIP tidak menyertakan konfigurasi privat. Tidak perlu mengubah forms-config.php atau media-config.php.
+
+GOOGLE SUDAH DIPERBARUI
+Deployment Rekap An-Nahl versi 6 sudah aktif dengan batas delapan dokumen pendaftaran.
+URL deployment yang digunakan website tetap sama. Tidak perlu menjalankan SQL atau memperbarui Apps Script lagi.
+
+CARA MELIHAT BERITA
+Klik foto atau Baca selengkapnya. Scroll di area isi untuk membaca bagian bawah.
+Gunakan tombol X di atas atau tombol Esc untuk menutup.
+
+VALIDASI
+139 pengujian kode lulus; 36 pemeriksaan PHP lulus; uji HTTP PHP ke Google tiruan lulus.
+Build dan pemeriksaan Hostinger lulus. Tampilan diperiksa pada desktop 1280 px serta HP 390 dan 320 px.
+Alur pengiriman formulir diuji memakai enam lampiran dummy pada server tiruan lokal.
+Percobaan gagal menyisakan isian/lampiran, lalu pengiriman ulang memakai ID yang sama dan menampilkan bukti sukses.
+Pengujian tidak menambah pendaftar atau lampiran ke rekap Google produksi.
+Website Hostinger belum diunggah otomatis; gunakan langkah manual di atas.

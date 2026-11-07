@@ -1,0 +1,26 @@
+PEMBARUAN AN-NAHL: CRUD VIDEO DI DAFTAR BERITA
+7 November 2026
+
+UNGGAH MANUAL KE HOSTINGER
+1. Cadangkan index.html, admin.html, login.html, dan folder assets di public_html.
+2. Unggah An-Nahl-Update-CRUD-Video-Berita-2026-11-07.zip ke public_html, lalu ekstrak.
+3. Ganti tiga file HTML dan gabungkan file dalam assets; biarkan aset lama tetap ada.
+4. Muat ulang halaman dan panel dengan Ctrl+F5.
+Tidak perlu menjalankan SQL tambahan untuk pembaruan ini.
+
+CARA MENGELOLA VIDEO
+Buka Berita. Daftar sekarang memuat postingan berita dan video yang sebelumnya dibuat lewat Galeri.
+Pilih jenis Video YouTube untuk melihat video saja; pencarian, kategori, dan status tetap dapat dipakai.
+Klik Tonton video untuk memeriksa isi, Edit untuk mengganti judul/link/kategori, atau Hapus.
+Video asal Galeri ditandai Juga tampil di Galeri; perubahan berlaku pada video yang sama.
+Hapus video asal Galeri mengikuti konfirmasi penghapusan permanen yang sudah ada.
+Postingan video yang dibuat sebagai berita masuk Arsip ketika dihapus, dan bisa dipulihkan sebagai draft.
+Untuk menambah postingan video baru, klik + Video YouTube, isi judul/caption/link, lalu terbitkan.
+Setelah menyimpan, daftar menyesuaikan filter yang menghalangi postingan tersebut muncul.
+
+VALIDASI
+132 pengujian kode lulus. Build dan pemeriksaan Hostinger lulus.
+Pembacaan Supabase publik berhasil: 5 berita + 3 video Galeri = 8 postingan dalam daftar gabungan.
+Tambah, pratinjau, dan edit video telah diperiksa di browser desktop dengan data demo lokal.
+Pengecekan tampilan HP belum selesai karena kontrol browser berhenti.
+Paket belum diunggah ke Hostinger. Data produksi tidak diubah saat pengujian.

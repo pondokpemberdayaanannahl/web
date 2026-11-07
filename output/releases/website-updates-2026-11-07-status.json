@@ -1,0 +1,264 @@
+{
+  "date": "2026-11-07",
+  "archive": "An-Nahl-Pembaruan-Jenjang-Pendaftaran-Berita-2026-11-07.zip",
+  "bytes": 891704,
+  "entries": 50,
+  "sha256": "d1fc6fd9aebc882b46ca4da753dc1f608129bbcfb6c8d5ff16248bf7d5948b56",
+  "hostingerDeployed": false,
+  "unitTestsPassed": 139,
+  "phpValidationChecks": 36,
+  "phpHttpMockPassed": true,
+  "hostingerBuildChecked": true,
+  "generatedIllustrations": 3,
+  "publicIllustrationFiles": 6,
+  "illustrationPromptSet": "output/imagegen/jenjang/prompts.json",
+  "educationBrowser": [
+    {
+      "cards": 3,
+      "height": 844,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:5173/images/education/jenjang-sd-v1-600.webp"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:5173/images/education/jenjang-smp-v1-600.webp"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:5173/images/education/jenjang-sma-v1-600.webp"
+        }
+      ],
+      "scrollWidth": 375,
+      "top": 98,
+      "width": 390
+    },
+    {
+      "cards": 3,
+      "height": 800,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:5173/images/education/jenjang-sd-v1-600.webp"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:5173/images/education/jenjang-smp-v1-600.webp"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:5173/images/education/jenjang-sma-v1-600.webp"
+        }
+      ],
+      "scrollWidth": 305,
+      "width": 320
+    },
+    {
+      "cards": 3,
+      "height": 720,
+      "images": [
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:5173/images/education/jenjang-sd-v1-600.webp"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:5173/images/education/jenjang-smp-v1-600.webp"
+        },
+        {
+          "loaded": true,
+          "src": "http://127.0.0.1:5173/images/education/jenjang-sma-v1-600.webp"
+        }
+      ],
+      "scrollWidth": 1265,
+      "width": 1280
+    }
+  ],
+  "registrationBrowser": {
+    "simulation": true,
+    "failure": {
+      "formVisible": true,
+      "status": "Uji lokal: penyimpanan belum dikonfirmasi. Silakan coba lagi.",
+      "successDialogOpen": false,
+      "visibleDocumentEntries": 6
+    },
+    "attachmentPhone": {
+      "documentEntries": 6,
+      "documentGroups": 5,
+      "scrollWidth": 375,
+      "width": 390
+    },
+    "success390": {
+      "bottom": 668.875,
+      "heading": "Formulir pendaftaran berhasil diisi",
+      "open": true,
+      "scrollWidth": 375,
+      "top": 175.125,
+      "viewportHeight": 844,
+      "width": 390
+    },
+    "success320": {
+      "bottom": 682.609375,
+      "scrollWidth": 305,
+      "top": 117.375,
+      "viewportHeight": 800,
+      "width": 320
+    },
+    "receipt": {
+      "formHidden": true,
+      "text": "✓Formulir pendaftaran berhasil diisiData pendaftaran Anda sudah tersimpan. Pengurus akan menghubungi Anda melalui kontak yang dicantumkan untuk tahap selanjutnya.Kode pengiriman 04f726da-cc35-4dff-a8bf-ad5d33cba878",
+      "visible": true
+    },
+    "productionSubmissionsWritten": 0
+  },
+  "registrationTransport": {
+    "simulation": true,
+    "productionWrites": false,
+    "requests": [
+      {
+        "id": "04f726da-cc35-4dff-a8bf-ad5d33cba878",
+        "kind": "pendaftaran",
+        "files": [
+          {
+            "name": "Kartu Keluarga - uji-kk.pdf",
+            "bytes": 45
+          },
+          {
+            "name": "Akta kelahiran - uji-akta.pdf",
+            "bytes": 45
+          },
+          {
+            "name": "Rapor terakhir 1 - uji-rapor-1.pdf",
+            "bytes": 45
+          },
+          {
+            "name": "Rapor terakhir 2 - uji-rapor-2.pdf",
+            "bytes": 45
+          },
+          {
+            "name": "Pas foto - uji-pasfoto.png",
+            "bytes": 68
+          },
+          {
+            "name": "Ijazah atau SKL - uji-ijazah.pdf",
+            "bytes": 45
+          }
+        ],
+        "acknowledged": false
+      },
+      {
+        "id": "04f726da-cc35-4dff-a8bf-ad5d33cba878",
+        "kind": "pendaftaran",
+        "files": [
+          {
+            "name": "Kartu Keluarga - uji-kk.pdf",
+            "bytes": 45
+          },
+          {
+            "name": "Akta kelahiran - uji-akta.pdf",
+            "bytes": 45
+          },
+          {
+            "name": "Rapor terakhir 1 - uji-rapor-1.pdf",
+            "bytes": 45
+          },
+          {
+            "name": "Rapor terakhir 2 - uji-rapor-2.pdf",
+            "bytes": 45
+          },
+          {
+            "name": "Pas foto - uji-pasfoto.png",
+            "bytes": 68
+          },
+          {
+            "name": "Ijazah atau SKL - uji-ijazah.pdf",
+            "bytes": 45
+          }
+        ],
+        "acknowledged": true
+      }
+    ]
+  },
+  "appsScript": {
+    "date": "2026-11-07",
+    "project": "Rekap An-Nahl",
+    "version": 6,
+    "existingDeploymentUpdated": true,
+    "registrationFileLimit": 8,
+    "donationFileLimit": 3,
+    "exactEditorMatch": true,
+    "remoteDiagnosticsPreserved": true,
+    "productionSubmissionsWritten": 0
+  },
+  "publicBrowser": {
+    "article": {
+      "desktop": {
+        "closeBottom": 76.81036376953125,
+        "closeTop": 32.81036376953125,
+        "contentBottom": 696.8103618621826,
+        "contentTop": 24.810361862182617,
+        "height": 720,
+        "open": true,
+        "photoLoaded": true,
+        "rootTransform": "none",
+        "width": 1280
+      },
+      "scrolled": {
+        "closeBottom": 76,
+        "closeTop": 32,
+        "height": 720,
+        "scrollTop": 120
+      },
+      "phone390": {
+        "closeBottom": 64,
+        "closeTop": 20,
+        "contentBottom": 832,
+        "contentTop": 12,
+        "height": 844,
+        "scrollWidth": 390,
+        "width": 390
+      },
+      "phone320": {
+        "closeTop": 20,
+        "contentBottom": 788,
+        "contentTop": 12,
+        "height": 800,
+        "scrollWidth": 320,
+        "width": 320
+      },
+      "escapeCloses": true
+    },
+    "donation": {
+      "cards": 3,
+      "percentagesRemoved": true,
+      "progressBarsRemoved": true,
+      "targets": [
+        "Target: Rp 150.000.000",
+        "Target: Rp 500.000.000",
+        "Target: Rp 200.000.000"
+      ]
+    },
+    "contact": {
+      "emailLinks": [
+        "mailto:pondokpemberdayaanannahl@gmail.com"
+      ],
+      "mapLink": "Pondok Pemberdayaan Ummat An-Nahl, Pamijahan, Bogor, Jawa Barat",
+      "mapQuery": "Pondok Pemberdayaan Ummat An-Nahl, Pamijahan, Bogor, Jawa Barat",
+      "oldEmailPresent": false,
+      "phone390": {
+        "email": "pondokpemberdayaanannahl@gmail.com",
+        "scrollWidth": 375,
+        "width": 390
+      },
+      "phone320": {
+        "email": "pondokpemberdayaanannahl@gmail.com",
+        "scrollWidth": 305,
+        "width": 320
+      },
+      "resolvedGoogleMapsCid": "6651691324861478948"
+    },
+    "productionSubmissionsWritten": 0
+  },
+  "realGoogleRegistrationUploadTested": false
+}

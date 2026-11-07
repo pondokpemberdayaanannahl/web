@@ -11,11 +11,11 @@ import {Footer} from '../src/components/footer.js';
 import {WhatsAppButton} from '../src/components/whatsapp.js';
 import {socialIcon} from '../src/components/social-icon.js';
 import {jenjangCards,tiktokHandle,tiktokUrl} from '../src/pondok-settings.js';
-import {ATTACHMENT_HELP} from '../src/google-forms.js';
+import {ATTACHMENT_HELP,REGISTRATION_ATTACHMENT_HELP} from '../src/google-forms.js';
 
 function markup(file,component){
  const {document}=parseHTML('<html><body></body></html>');
- const context={ registrationTimelineHtml,...pondok,...images,socialIcon,jenjangCards,tiktokUrl,ATTACHMENT_HELP,window:{},document};
+ const context={ registrationTimelineHtml,...pondok,...images,socialIcon,jenjangCards,tiktokUrl,ATTACHMENT_HELP,REGISTRATION_ATTACHMENT_HELP,window:{},document};
  const source=readFileSync(new URL(`../src/pages/${file}.js`,import.meta.url),'utf8').replace(/^import .*;\r?$/gm,'').replaceAll('export ','');
  vm.runInNewContext(source,context);return context[component]();
 }
@@ -45,9 +45,9 @@ test('home programs remain visible and registration starts locked while loading 
  assert.doesNotMatch(registration.body?.textContent || registration.toString(),/Rp 350|SPP \/ Bulan/);
 });
 
-test('published levels render as compact cards; TikTok requires a valid configured handle',()=>{
+test('published levels render the configured names; TikTok requires a valid configured handle',()=>{
  const {document}=parseHTML(Program({ levels:[{title:'Jenjang Baru',description:'Deskripsi singkat'}] }));
- assert.deepEqual([...document.querySelectorAll('.jenjang-card strong')].map(node=>node.textContent),['Jenjang Baru']);
+ assert.deepEqual([...document.querySelectorAll('.jenjang-card h3')].map(node=>node.textContent),['Jenjang Baru']);
  assert.doesNotMatch(Footer(),/aria-label="TikTok"/);
  assert.match(Footer({ tiktok:tiktokHandle('https://www.tiktok.com/@pondok_uji') }),/https:\/\/www\.tiktok\.com\/@pondok_uji/);
  assert.throws(()=>tiktokHandle('https://tiktok.com.example/@orang'));
@@ -63,7 +63,7 @@ test('contact, footer, WhatsApp and maps consistently use the supplied Bogor add
  assert.match(html,/tel:\+6285720000265/);assert.match(footer,/tel:\+6285720000265/);
  assert.match(whatsapp,/wa\.me\/6285720000265/);assert.match(html,/wa\.me\/6285720000265/);
  const embed=new URL(contact.querySelector('iframe').getAttribute('src'));
- assert.equal(embed.hostname,'www.google.com');assert.equal(embed.searchParams.get('q'),pondok.pondokContact.address);assert.equal(embed.searchParams.get('output'),'embed');
+ assert.equal(embed.hostname,'www.google.com');assert.equal(embed.searchParams.get('q'),pondok.pondokMapQuery);assert.equal(embed.searchParams.get('output'),'embed');
  const link=new URL(contact.querySelector('.contact-map-link a').getAttribute('href'));
- assert.equal(link.searchParams.get('api'),'1');assert.equal(link.searchParams.get('query'),pondok.pondokContact.address);
+ assert.equal(link.searchParams.get('api'),'1');assert.equal(link.searchParams.get('query'),pondok.pondokMapQuery);
 });

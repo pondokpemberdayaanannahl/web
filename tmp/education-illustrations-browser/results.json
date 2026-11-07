@@ -1,0 +1,63 @@
+[
+  {
+    "cards": 3,
+    "height": 844,
+    "images": [
+      {
+        "loaded": true,
+        "src": "http://127.0.0.1:5173/images/education/jenjang-sd-v1-600.webp"
+      },
+      {
+        "loaded": true,
+        "src": "http://127.0.0.1:5173/images/education/jenjang-smp-v1-600.webp"
+      },
+      {
+        "loaded": true,
+        "src": "http://127.0.0.1:5173/images/education/jenjang-sma-v1-600.webp"
+      }
+    ],
+    "scrollWidth": 375,
+    "top": 98,
+    "width": 390
+  },
+  {
+    "cards": 3,
+    "height": 800,
+    "images": [
+      {
+        "loaded": true,
+        "src": "http://127.0.0.1:5173/images/education/jenjang-sd-v1-600.webp"
+      },
+      {
+        "loaded": true,
+        "src": "http://127.0.0.1:5173/images/education/jenjang-smp-v1-600.webp"
+      },
+      {
+        "loaded": true,
+        "src": "http://127.0.0.1:5173/images/education/jenjang-sma-v1-600.webp"
+      }
+    ],
+    "scrollWidth": 305,
+    "width": 320
+  },
+  {
+    "cards": 3,
+    "height": 720,
+    "images": [
+      {
+        "loaded": true,
+        "src": "http://127.0.0.1:5173/images/education/jenjang-sd-v1-600.webp"
+      },
+      {
+        "loaded": true,
+        "src": "http://127.0.0.1:5173/images/education/jenjang-smp-v1-600.webp"
+      },
+      {
+        "loaded": true,
+        "src": "http://127.0.0.1:5173/images/education/jenjang-sma-v1-600.webp"
+      }
+    ],
+    "scrollWidth": 1265,
+    "width": 1280
+  }
+]

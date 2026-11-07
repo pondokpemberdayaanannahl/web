@@ -1,5 +1,5 @@
 import './styles/gallery-albums.css';
-import { PAGE_SIZE, createDemoStore, createSupabaseStore, validateImage, youtubeId } from './admin-data.js';
+import { PAGE_SIZE, createDemoStore, createSupabaseStore, listNewsPosts, validateImage, youtubeId } from './admin-data.js';
 import { renderBody, safeUrl } from './content-format.js';
 import { draftKey, saveDraft, readDraft, optimizeImage } from './editor-tools.js';
 import { loadPhotoLibrary, filterPhotoLibrary, LIBRARY_PAGE_SIZE } from './photo-library.js';
@@ -61,14 +61,16 @@ function cover(row, className = 'row-cover', fullSize = false) {
   return src ? `<img src="${src}" alt="" class="${className}" loading="lazy" decoding="async" />` : `<span class="${className} cover-placeholder" aria-hidden="true">N</span>`;
 }
 function newsRow(row, compact = false) {
-  if (/^[\w-]{11}$/.test(row.youtube_id || '') && !row.gambar_url) row={...row,gambar_url:`https://img.youtube.com/vi/${row.youtube_id}/hqdefault.jpg`};
+  const video = /^[\w-]{11}$/.test(row.youtube_id || '');
+  if (video && !row.gambar_url) row={...row,gambar_url:`https://img.youtube.com/vi/${row.youtube_id}/hqdefault.jpg`};
   const id = escape(row.id);
-  const canEdit = currentRole === 'admin' || row.author_id === currentUserId && row.status === 'draft';
+  const type = row.contentType === 'video' ? 'video' : 'berita';
+  const canEdit = currentRole === 'admin' || type === 'berita' && row.author_id === currentUserId && row.status === 'draft';
   const status = row.deleted_at ? 'Diarsipkan' : row.status === 'draft' ? 'Draft' : 'Terbit';
   const actions = row.deleted_at
     ? currentRole === 'admin' ? `<button class="row-action" data-restore="${id}" data-type="berita">Pulihkan ke draft</button>` : ''
-    : `${canEdit ? `<button class="row-action" data-edit="${id}" data-type="berita" aria-label="Edit ${escape(row.judul)}">Edit</button>` : ''}<button class="row-action" data-history="${id}" data-type="berita">Riwayat</button>${currentRole === 'admin' ? `<button class="row-action danger" data-delete="${id}" data-type="berita">Hapus</button>` : ''}`;
-  return `<article class="post-card${compact ? ' post-card-compact' : ''}"><header class="post-card-header"><span class="post-avatar" aria-hidden="true"><img src="/brand/an-nahl.png" alt="" width="678" height="366" decoding="async" /></span><div><strong>Postingan An-Nahl</strong><time>${formatDate(row.updated_at || row.dibuat_pada)}</time></div><span class="status-label">${status}</span></header>${row.gambar_url || row.thumbnail_url ? cover(row, 'post-cover', true) : ''}<div class="post-card-body"><span class="category">${escape(row.kategori)}</span><h3>${escape(row.judul)}</h3>${row.caption ? `<p>${escape(row.caption)}</p>` : ''}${isDemo ? '<small>Contoh di ruang demo</small>' : ''}</div><footer class="post-card-actions"><button class="row-action" data-view="${id}" data-type="berita">Lihat postingan</button>${actions}</footer></article>`;
+    : `${canEdit ? `<button class="row-action" data-edit="${id}" data-type="${type}" aria-label="Edit ${escape(row.judul)}">Edit</button>` : ''}${type === 'berita' ? `<button class="row-action" data-history="${id}" data-type="berita">Riwayat</button>` : ''}${currentRole === 'admin' ? `<button class="row-action danger" data-delete="${id}" data-type="${type}" aria-label="Hapus ${escape(row.judul)}">Hapus</button>` : ''}`;
+  return `<article class="post-card${compact ? ' post-card-compact' : ''}" data-post-type="${type}"><header class="post-card-header"><span class="post-avatar" aria-hidden="true"><img src="/brand/an-nahl.png" alt="" width="678" height="366" decoding="async" /></span><div><strong>Postingan An-Nahl</strong><time>${formatDate(row.updated_at || row.dibuat_pada)}</time></div><span class="status-label">${status}</span></header>${row.gambar_url || row.thumbnail_url ? cover(row, 'post-cover', true) : ''}<div class="post-card-body"><div class="post-card-labels"><span class="category">${escape(row.kategori)}</span>${video ? '<span class="post-video-label">▶ Video YouTube</span>' : ''}</div><h3>${escape(row.judul)}</h3>${row.caption ? `<p>${escape(row.caption)}</p>` : ''}${type === 'video' ? '<small>Juga tampil di Galeri</small>' : ''}${isDemo ? '<small>Contoh di ruang demo</small>' : ''}</div><footer class="post-card-actions"><button class="row-action" data-view="${id}" data-type="${type}" aria-label="${video ? 'Tonton' : 'Lihat'} ${escape(row.judul)}">${video ? 'Tonton video' : 'Lihat postingan'}</button>${actions}</footer></article>`;
 }
 function mediaCard(row) {
   // YouTube thumbnails are loaded only when the video tab is opened.
@@ -77,7 +79,8 @@ function mediaCard(row) {
   return `<div class="media-card">${cover(image, 'media-cover')}<div class="media-info"><span class="category">${escape(row.kategori)}</span><h3>${escape(row.judul)}</h3><div class="row-actions"><button class="row-action" data-edit="${escape(row.id)}" data-type="${mediaType}" aria-label="Edit ${escape(row.judul)}">Edit</button><button class="row-action danger" data-delete="${escape(row.id)}" data-type="${mediaType}" aria-label="Hapus ${escape(row.judul)}">Hapus</button></div></div></div>`;
 }
 function summaryRow(row) {
-  return `<article class="recent-post">${cover(row)}<div><h3>${escape(row.judul)}</h3><p>${escape(row.kategori)} · ${formatDate(row.updated_at || row.dibuat_pada)}</p></div><button class="row-action" data-view="${escape(row.id)}" data-type="berita" aria-label="Lihat ${escape(row.judul)}">Lihat <span aria-hidden="true">↗</span></button></article>`;
+  if (/^[\w-]{11}$/.test(row.youtube_id || '') && !row.gambar_url) row = { ...row, thumbnail_url: `https://img.youtube.com/vi/${row.youtube_id}/mqdefault.jpg` };
+  return `<article class="recent-post">${cover(row)}<div><h3>${escape(row.judul)}</h3><p>${escape(row.kategori)} · ${formatDate(row.updated_at || row.dibuat_pada)}</p></div><button class="row-action" data-view="${escape(row.id)}" data-type="${row.contentType === 'video' ? 'video' : 'berita'}" aria-label="Lihat ${escape(row.judul)}">Lihat <span aria-hidden="true">↗</span></button></article>`;
 }
 function pagination(prefix, page, count, pageSize = PAGE_SIZE) {
   const pages = Math.max(1, Math.ceil(count / pageSize));
@@ -89,13 +92,13 @@ async function loadSummary() {
   if (!store) return;
   const source = store, request = ++summaryRequest;
   loading('recent-news', true);
-  const [counts, recent] = await Promise.allSettled([source.counts(), source.list('berita', { limit: 4, status: 'published' })]);
+  const [counts, recent] = await Promise.allSettled([source.counts(), listNewsPosts(source, { limit: 4, status: 'published' })]);
   if (store !== source || request !== summaryRequest) return;
   if (counts.status === 'fulfilled') {
     $('stat-news').textContent = counts.value.berita;
     $('stat-photos').textContent = counts.value.foto;
     $('stat-videos').textContent = counts.value.video;
-    $('nav-news-count').textContent = counts.value.berita;
+    $('nav-news-count').textContent = counts.value.berita + counts.value.video;
   } else {
     for (const id of ['stat-news', 'stat-photos', 'stat-videos']) $(id).textContent = '—';
     toast('Ringkasan belum dapat dimuat. Coba muat ulang.', true);
@@ -113,7 +116,7 @@ async function loadNews(resetScroll = false) {
   list.inert = true;
   loading('daftar-berita', true);
   try {
-    const result = await source.list('berita', { search: $('news-search').value.trim(), category: $('news-filter').value, status: $('news-status').value, page: newsPage, limit: NEWS_PAGE_SIZE });
+    const result = await listNewsPosts(source, { search: $('news-search').value.trim(), category: $('news-filter').value, status: $('news-status').value, mediaKind: $('news-kind').value, page: newsPage, limit: NEWS_PAGE_SIZE });
     if (source !== store || request !== newsRequest) return;
     newsCount = result.count || 0;
     if (newsPage > 1 && !result.data.length) { newsPage = Math.max(1, Math.ceil(newsCount / NEWS_PAGE_SIZE)); return loadNews(true); }
@@ -358,9 +361,10 @@ function openEditor(type = 'berita', row = null, preset = '') {
   $('gambar').required = type === 'foto' && !row;
   $('photo-optional').textContent = type === 'foto' ? '(wajib)' : '(opsional)';
   $('video-field').hidden = type !== 'video'; $('video-link').disabled = type !== 'video'; $('video-link').required = type === 'video';
-  $('preview-btn').hidden = type !== 'berita';
+  $('preview-btn').hidden = !['berita', 'video'].includes(type);
   $('existing-image-note').hidden = !row?.gambar_url;
   if (row) {
+    if (row.kategori && !categories[type].includes(row.kategori)) $('kategori').innerHTML += `<option>${escape(row.kategori)}</option>`;
     $('judul').value = row.judul; $('kategori').value = row.kategori;
     $('isi').value = row.isi || ''; $('video-link').value = row.youtube_id ? `https://youtu.be/${row.youtube_id}` : '';
     $('image-caption').value = row.caption || '';
@@ -379,6 +383,7 @@ function openEditor(type = 'berita', row = null, preset = '') {
       $('autosave-status').textContent = 'Teks dipulihkan dari browser. Foto unggahan perlu dipilih kembali.';
     }
   }
+  if (type === 'video') { $('editor-message').textContent = 'Video ini juga tampil di Galeri. Perubahan disimpan untuk keduanya.'; $('editor-message').dataset.state = 'info'; }
   syncNewsMedia();updateCounters();
   $('editor-dialog').showModal();
   $('editor-dialog').scrollTop = 0;
@@ -402,7 +407,7 @@ function persistDraft() {
   try {
     saveDraft(localStorage, activeDraftKey, { judul: $('judul').value, isi: $('isi').value, kategori: $('kategori').value, caption: $('image-caption').value, mediaKind:newsMediaKind,videoLink:$('video-link').value });
     draftStored = true;
-    $('autosave-status').textContent = 'Teks tersimpan di browser · foto belum tersimpan';
+    $('autosave-status').textContent = newsMediaKind === 'video' ? 'Teks dan link video tersimpan di browser' : 'Teks tersimpan di browser · foto belum tersimpan';
   } catch { draftStored = false; $('autosave-status').textContent = 'Autosave gagal. Simpan draft sebelum menutup halaman.'; }
 }
 $('editor-form').addEventListener('input', () => { dirty = true; draftStored = false; updateCounters(); clearTimeout(draftTimer); draftTimer = setTimeout(persistDraft, 650); });
@@ -460,8 +465,9 @@ $('import-legacy-photos').addEventListener('click',async()=>{
   finally{button.disabled=false;button.textContent='Salin foto lama';}
 });
 $('preview-btn').addEventListener('click', () => {
-  const video=editorType==='berita'&&newsMediaKind==='video' ? youtubeId($('video-link').value) : null;
-  if(editorType==='berita'&&newsMediaKind==='video'&&!video){$('editor-message').textContent='Tempelkan link YouTube yang valid untuk melihat pratinjau.';return;}
+  const isVideo = editorType === 'video' || editorType === 'berita' && newsMediaKind === 'video';
+  const video = isVideo ? youtubeId($('video-link').value) : null;
+  if(isVideo&&!video){$('editor-message').textContent='Tempelkan link YouTube yang valid untuk melihat pratinjau.';return;}
   $('preview-content').innerHTML = postPreview($('judul').value.trim() || 'Judul berita Anda', $('kategori').value, $('isi').value, previewUrl || driveSelection?.full || editedRow?.gambar_url, $('image-caption').value,video);
   $('preview-dialog').showModal();
 });
@@ -566,7 +572,19 @@ async function submitContent(event, status = 'published') {
     dirty = false; $('editor-dialog').close();
     toast(isDemo ? 'Tersimpan di ruang demo. Tidak diterbitkan ke website.' : 'Konten berhasil disimpan.');
     if (currentPanel === 'overview') loadSummary();
-    else { loadSummary(); if (currentPanel === 'berita') loadNews(); if (currentPanel === 'galeri') loadMedia(); }
+    else {
+      loadSummary();
+      if (currentPanel === 'berita') {
+        newsPage = 1;
+        const kind = values.youtube_id ? 'video' : 'photo';
+        if ($('news-kind').value && $('news-kind').value !== kind) $('news-kind').value = kind;
+        if ($('news-filter').value !== values.kategori) $('news-filter').value = '';
+        if (!values.judul.toLocaleLowerCase('id').includes($('news-search').value.trim().toLocaleLowerCase('id'))) $('news-search').value = '';
+        if ($('news-status').value && $('news-status').value !== (values.status || 'published')) $('news-status').value = values.status || 'published';
+        loadNews(true);
+      }
+      if (currentPanel === 'galeri') loadMedia();
+    }
   } catch (error) {
     $('editor-message').dataset.state = '';
     $('editor-message').textContent = `Gagal menyimpan. ${error.message}`;
@@ -594,6 +612,7 @@ $('dashboard-view').addEventListener('click', async event => {
   }
   if (button.dataset.go) { if (button.dataset.kind) setMedia(button.dataset.kind); return navigate(button.dataset.go); }
   if (button.dataset.action === 'new-news') return openEditor('berita');
+  if (button.dataset.action === 'new-news-video') { openEditor('berita'); newsMediaKind = 'video'; syncNewsMedia(); return; }
   if (button.dataset.action === 'new-extracurricular') return openEditor('berita', null, 'Ekskul');
   if (['new-photo', 'new-video'].includes(button.dataset.action)) { if (currentRole === 'admin') { setMedia(button.dataset.action === 'new-photo' ? 'foto' : 'video'); navigate('galeri'); openEditor(mediaType); } return; }
   if (button.dataset.localPhoto) { showLibraryImage(button.dataset.localPhoto); return; }
@@ -601,7 +620,7 @@ $('dashboard-view').addEventListener('click', async event => {
   if (button.dataset.action === 'refresh') return navigate(currentPanel, false);
   const id = button.dataset.edit || button.dataset.delete || button.dataset.restore || button.dataset.history || button.dataset.view;
   if (!id) return;
-  if (button.dataset.type !== 'berita' && currentRole !== 'admin') return;
+  if (button.dataset.type !== 'berita' && currentRole !== 'admin' && !button.dataset.view) return;
   const source = store;
   button.disabled = true;
   try {
@@ -631,6 +650,7 @@ $('dashboard-view').addEventListener('click', async event => {
 $('news-search').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { newsPage = 1; loadNews(true); }, 250); });
 $('news-filter').addEventListener('change', () => { newsPage = 1; loadNews(true); });
 $('news-status').addEventListener('change', () => { newsPage = 1; loadNews(true); });
+$('news-kind').addEventListener('change', () => { newsPage = 1; loadNews(true); });
 async function loadInbox() {
   if (!store || currentRole !== 'admin') return;
   const source = store, kind = currentPanel, request = ++inboxRequest;

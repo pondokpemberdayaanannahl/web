@@ -14,16 +14,16 @@ export function Program(settings = {}) {
       <div class="hero-overlay"></div>
       <div class="hero-pattern"></div>
       <div class="hero-content">
-        <span class="section-label" style="color: var(--green-300)">PROGRAM</span>
+        <span class="section-label" style="color: var(--green-300)">JENJANG PENDIDIKAN</span>
         <h1 style="font-size: 44px">Jenjang Pendidikan</h1>
         <p class="hero-subtitle">Kurikulum terpadu yang memadukan pendidikan agama, akademik, dan keterampilan hidup.</p>
       </div>
     </section>
 
-    <section class="section" data-content-key="education-levels">
+    <section class="section education-levels-section" data-content-key="education-levels">
       <div class="container">
-        <div class="section-header"><span class="section-label">JENJANG</span><h2 class="section-title">Pilih jenjang pendidikan</h2></div>
-        <div data-content-ignore>${jenjangCards(settings.levels)}</div>
+        <div class="section-header"><span class="section-label">JENJANG</span><h2 class="section-title">Pilih jenjang pendidikan</h2><p class="section-subtitle">Pilihan pendidikan formal untuk santri putra An-Nahl.</p></div>
+        <div data-content-ignore>${jenjangCards(settings.levels, false, { illustrated: true })}</div>
       </div>
     </section>
 
@@ -103,7 +103,7 @@ export function Program(settings = {}) {
       <div class="container">
         <div class="cta-donasi-content">
           <h2 class="reveal">Tertarik Bergabung?</h2>
-          <p class="reveal reveal-delay-1">Jadilah bagian dari keluarga besar Pesantren An-Nahl. Daftarkan putra-putri Anda sekarang.</p>
+          <p class="reveal reveal-delay-1">Jadilah bagian dari keluarga besar Pesantren An-Nahl. Daftarkan putra Anda sekarang.</p>
           <div class="reveal reveal-delay-2">
             <a href="#/pendaftaran" class="btn btn-white">Daftar Sekarang</a>
           </div>

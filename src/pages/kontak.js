@@ -66,7 +66,7 @@ export function Kontak(settings = {}) {
                 </div>
                 <div>
                   <strong style="display:block;margin-bottom:4px">Email</strong>
-                  <span style="color:var(--neutral-700);font-size:15px">info@annahl.id</span>
+                  <a href="mailto:${pondokContact.email}" style="color:var(--neutral-700);font-size:15px;overflow-wrap:anywhere">${pondokContact.email}</a>
                 </div>
               </div>
               <div style="display:flex;gap:var(--space-md);align-items:flex-start">

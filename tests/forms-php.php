@@ -44,6 +44,9 @@ verify(annahl_files([$file])[0]['sha256']===hash('sha256',$pdf),'File hash and b
 rejected(fn()=>annahl_files([['name'=>'uji.pdf','data'=>base64_encode('<?php echo 1;')]]),422);
 rejected(fn()=>annahl_files([['name'=>'uji.exe','data'=>base64_encode($pdf)]]),422);
 rejected(fn()=>annahl_files(array_fill(0,4,$file)),422);
+verify(count(annahl_submission(array_replace($registration,['files'=>array_fill(0,8,$file)]),$settings)['files']) === 8,'Registration accepts separate document uploads');
+rejected(fn()=>annahl_submission(array_replace($registration,['files'=>array_fill(0,9,$file)]),$settings),422);
+rejected(fn()=>annahl_submission(array_replace($donation,['files'=>array_fill(0,4,$file)])),422);
 rejected(fn()=>annahl_files([['name'=>'uji.pdf','data'=>base64_encode(str_repeat('x',ANNAHL_FILE_LIMIT + 1))]]),422);
 $bigPdf = ['name'=>'uji.pdf','data'=>base64_encode('%PDF-'.str_repeat('x',6 * 1024 * 1024 - 5))];
 verify(count(annahl_files([$bigPdf,$bigPdf])) === 2,'Larger attachments below the combined cap accepted');

@@ -575,6 +575,7 @@ dialog.lightbox::backdrop { background:#000c; }
 .submission-status { margin-top:18px; font-size:15px; line-height:1.6; }
 .submission-status[data-state="success"] { color:var(--green-800); }
 .submission-status[data-state="error"] { color:#a12b22; }
+.donation-program-target { margin:0 0 var(--space-md); color:var(--neutral-500); font-size:13px; line-height:1.6; }
 .article-detail-body ul { list-style:disc; padding-left:24px; margin:16px 0; }
 .article-detail-body .photo-caption { color:var(--neutral-500); font-size:13px; }
 .attachment-box { padding:20px; border:1px dashed var(--green-300); border-radius:var(--radius-md); background:var(--green-50); }
@@ -694,6 +695,8 @@ body:has(.payment-dialog[open]) { overflow:hidden; }
 .extracurricular-card .card-title { margin:0; font-size:18px; line-height:1.5; overflow-wrap:anywhere; }
 .contact-map-link { text-align:center; margin-top:24px; }
 .footer-contact-item>* { min-width:0; overflow-wrap:anywhere; }
+.footer-contact-item a { color:inherit; }
+.footer-contact-item a:hover { color:var(--white); text-decoration:underline; }
 @media(min-width:769px) and (max-width:1100px) { .pondok-extracurricular-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 .jenjang-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); gap:10px; }
 .jenjang-card { display:flex; align-items:center; gap:10px; min-width:0; min-height:66px; padding:12px 14px; border:1px solid var(--neutral-200); border-radius:12px; background:var(--white); }
@@ -704,6 +707,21 @@ label.jenjang-card { cursor:pointer; }
 .jenjang-copy { display:grid; gap:2px; min-width:0; overflow-wrap:anywhere; }
 .jenjang-copy strong { color:var(--green-900); }
 .jenjang-copy small { color:var(--neutral-700); font-size:13px; line-height:1.4; }
+.education-levels-section { background:linear-gradient(180deg,#fafbf7,#f1f5ed); padding-block:clamp(48px,6vw,76px); }
+.education-levels-section .section-header { margin-bottom:36px; }
+.jenjang-grid-illustrated { grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; }
+.jenjang-card-illustrated { flex-direction:column; align-items:stretch; gap:0; padding:0; border-color:#dce5d9; border-radius:20px; overflow:hidden; box-shadow:0 6px 22px #153c2a0a; transition:transform .22s ease,box-shadow .22s ease; }
+.jenjang-visual { aspect-ratio:3/2; overflow:hidden; background:#e6ecdc; }
+.jenjang-visual img { display:block; width:100%; height:100%; object-fit:cover; transition:transform .4s ease; }
+.jenjang-card-body { display:flex; flex:1; flex-direction:column; gap:9px; padding:21px 23px 17px; }
+.jenjang-card-body h3 { margin:0; color:var(--green-950); font:700 27px/1.25 var(--font-heading); letter-spacing:-.025em; overflow-wrap:anywhere; }
+.jenjang-card-body p { margin:0 0 12px; color:var(--neutral-700); font-size:14px; line-height:1.6; }
+.jenjang-register-link { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:auto; padding:13px 0 0; border-top:1px solid #e7ede2; color:var(--green-800); font-size:13px; font-weight:600; }
+.jenjang-register-link>span { display:grid; place-items:center; width:29px; height:29px; flex:none; border-radius:50%; color:var(--green-800); background:#edf3e7; font-size:18px; }
+.jenjang-register-link:focus-visible { outline:2px solid var(--green-700); outline-offset:4px; border-radius:4px; }
+@media(hover:hover) { .jenjang-card-illustrated:hover { transform:translateY(-4px); box-shadow:0 12px 30px #153c2a13; } .jenjang-card-illustrated:hover .jenjang-visual img { transform:scale(1.025); } }
+@media(max-width:767px) { .education-levels-section .section-header { margin-bottom:26px; } .jenjang-grid-illustrated { grid-template-columns:1fr; max-width:480px; margin-inline:auto; gap:20px; } .jenjang-card-body { padding:18px 20px 15px; } .jenjang-card-body h3 { font-size:25px; } .jenjang-card-body p { font-size:13px; } }
+@media(prefers-reduced-motion:reduce) { .jenjang-card-illustrated,.jenjang-visual img { transition:none; } .jenjang-card-illustrated:hover,.jenjang-card-illustrated:hover .jenjang-visual img { transform:none; } }
 .registration-flow {
   --step-size: 44px;
   position: relative;

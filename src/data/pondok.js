@@ -1,11 +1,13 @@
-// Public information supplied by the pondok, updated 31 October 2026.
+// Public information supplied by the pondok, updated 7 November 2026.
 export const pondokContact = {
   address: 'Jln. Gunung Salak Endah No. 01, Kp. Pasar Kemis, RT/RW 003/003, Ds. Gunung Picung, Kec. Pamijahan, Kab. Bogor, Jawa Barat, Indonesia',
   phone: '0857-2000-0265',
   telephone: '+6285720000265',
   whatsapp: '6285720000265',
+  email: 'pondokpemberdayaanannahl@gmail.com',
 };
-const mapQuery = encodeURIComponent(pondokContact.address);
+export const pondokMapQuery = 'Pondok Pemberdayaan Ummat An-Nahl, Pamijahan, Bogor, Jawa Barat';
+const mapQuery = encodeURIComponent(pondokMapQuery);
 // Search URL format: https://developers.google.com/maps/documentation/urls/get-started
 export const pondokMapUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
 export const pondokMapEmbed = `https://www.google.com/maps?q=${mapQuery}&output=embed`;

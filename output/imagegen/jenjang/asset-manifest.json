@@ -1,0 +1,44 @@
+[
+  {
+    "path": "public/images/education/jenjang-sd-v1-600.webp",
+    "width": 600,
+    "height": 400,
+    "bytes": 53070,
+    "sha256": "f6fbeb3c4afa85c26aeef18d0e6627e2acd43d30739f40af0474942ffc66858f"
+  },
+  {
+    "path": "public/images/education/jenjang-sd-v1-1200.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 178412,
+    "sha256": "41fb30bb227ce7ccc36014c77290be4d22c3496ec865927b22ab3906a1cce20b"
+  },
+  {
+    "path": "public/images/education/jenjang-smp-v1-600.webp",
+    "width": 600,
+    "height": 400,
+    "bytes": 47276,
+    "sha256": "812b7c96f67332756a4778816d8fc7e1e891814b03f08762032360be70d90396"
+  },
+  {
+    "path": "public/images/education/jenjang-smp-v1-1200.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 174296,
+    "sha256": "5873f4d1bba93db94c39e230fd0b38e9294b99f50b466b8d74d1be8df74f9f50"
+  },
+  {
+    "path": "public/images/education/jenjang-sma-v1-600.webp",
+    "width": 600,
+    "height": 400,
+    "bytes": 48258,
+    "sha256": "637ecbc4b66c3c1b07ec2ada62a6e61fedd3b70303860507d0c837dbe4516d7c"
+  },
+  {
+    "path": "public/images/education/jenjang-sma-v1-1200.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 173750,
+    "sha256": "23949aa20e4f2a29a4a4349969b6c2778e9e8bde4e118759940c278b82c75378"
+  }
+]

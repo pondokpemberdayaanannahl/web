@@ -23,6 +23,34 @@ export function youtubeId(input) {
   } catch { return null; }
 }
 
+// Keep each post in its original table while offering one manageable news list.
+export async function listNewsPosts(store, { search = '', category = '', status = '', mediaKind = '', page = 1, limit = PAGE_SIZE } = {}) {
+  const options = { search, category, status, mediaKind, page, limit };
+  const withType = (rows, contentType) => rows.map(row => ({ ...row, contentType }));
+  if (mediaKind === 'photo' || status === 'draft' || status === 'trash') {
+    const result = await store.list('berita', options);
+    return { ...result, data: withType(result.data, 'berita') };
+  }
+  const end = page * limit;
+  const batchSize = Math.min(end, 200);
+  const prefix = async type => {
+    const rows = [];
+    let count = 0, batch = 1;
+    do {
+      const result = await store.list(type, { ...options, page: batch++, limit: batchSize });
+      count = result.count ?? result.data.length;
+      rows.push(...result.data);
+      if (!result.data.length) break;
+    } while (rows.length < end && rows.length < count);
+    return { data: withType(rows, type), count };
+  };
+  const results = await Promise.all([prefix('berita'), prefix('video')]);
+  const rows = results.flatMap(result => result.data).sort((a, b) =>
+    String(b.dibuat_pada).localeCompare(String(a.dibuat_pada)) ||
+    a.contentType.localeCompare(b.contentType) || String(a.id).localeCompare(String(b.id)));
+  return { data: rows.slice((page - 1) * limit, end), count: results.reduce((sum, result) => sum + result.count, 0) };
+}
+
 // Metadata stays in this tab. Binary files stay in memory, never in Web Storage.
 export function createDemoStore(storage = sessionStorage) {
   const key = 'annahl-demo-content-v1';
@@ -43,8 +71,8 @@ export function createDemoStore(storage = sessionStorage) {
     return state[tables[type]];
   };
   return {
-    async list(type, { search = '', category = '', status = '', page = 1, limit = PAGE_SIZE } = {}) {
-      const filtered = rows(type).filter(row => (type !== 'berita' || (status === 'trash' ? row.deleted_at : !row.deleted_at && (!status || row.status === status))) && (!category || row.kategori === category) && row.judul.toLocaleLowerCase('id').includes(search.toLocaleLowerCase('id'))).sort((a, b) => b.dibuat_pada.localeCompare(a.dibuat_pada));
+    async list(type, { search = '', category = '', status = '', mediaKind = '', page = 1, limit = PAGE_SIZE } = {}) {
+      const filtered = rows(type).filter(row => (type !== 'berita' || ((status === 'trash' ? row.deleted_at : !row.deleted_at && (!status || row.status === status)) && (!mediaKind || (mediaKind === 'video' ? !!row.youtube_id : !row.youtube_id)))) && (!category || row.kategori === category) && row.judul.toLocaleLowerCase('id').includes(search.toLocaleLowerCase('id'))).sort((a, b) => b.dibuat_pada.localeCompare(a.dibuat_pada) || String(a.id).localeCompare(String(b.id)));
       return { data: filtered.slice((page - 1) * limit, page * limit), count: filtered.length };
     },
     async counts() { return Object.fromEntries(Object.keys(tables).map(type => [type, rows(type).filter(row => type !== 'berita' || !row.deleted_at && row.status === 'published').length])); },
@@ -119,12 +147,14 @@ export function createSupabaseStore(client, { userId, role = 'editor', media = n
   let library = media;
   const check = result => { if (result.error) throw new Error(result.error.message); return result; };
   return {
-    async list(type, { search = '', category = '', status = '', page = 1, limit = PAGE_SIZE } = {}) {
+    async list(type, { search = '', category = '', status = '', mediaKind = '', page = 1, limit = PAGE_SIZE } = {}) {
       const fields = type === 'video' ? 'id,judul,kategori,youtube_id,dibuat_pada' : `id,judul,kategori,gambar_url,thumbnail_url,caption,dibuat_pada${type === 'berita' ? ',status,deleted_at,updated_at,author_id,youtube_id' : ''}`;
       let query = client.from(tables[type]).select(fields, { count: 'exact' }).order('dibuat_pada', { ascending: false }).order('id');
       if (type === 'berita') {
         query = status === 'trash' ? query.not('deleted_at', 'is', null) : query.is('deleted_at', null);
         if (status && status !== 'trash') query = query.eq('status', status);
+        if (mediaKind === 'video') query = query.not('youtube_id', 'is', null);
+        else if (mediaKind === 'photo') query = query.is('youtube_id', null);
       }
       if (category) query = query.eq('kategori', category);
       if (search) query = query.ilike('judul', `%${search.replace(/[\\%_]/g, '\\$&')}%`);

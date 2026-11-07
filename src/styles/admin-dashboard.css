@@ -72,6 +72,11 @@
 .recent-post p { margin-top: 4px; color: var(--muted); font-size: 11px; }
 .recent-post .row-action { background: #fff; color: #263a30; white-space: nowrap; padding-inline: 9px; }
 
+.news-heading-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.post-card-labels { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.post-video-label { color:var(--forest); background:var(--honey-soft); border-radius:5px; padding:3px 7px; font-size:11px; font-weight:650; }
+@media(max-width:620px) { .news-heading-actions { width:100%; } .news-heading-actions .button { flex:1; font-size:11px; padding:10px 9px; } }
+
 /* Photo-first editor and preview */
 #editor-dialog { width: min(940px, calc(100vw - 24px)); }
 #editor-dialog .editor-body { padding-top: 16px; }

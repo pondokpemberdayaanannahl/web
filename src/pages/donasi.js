@@ -30,9 +30,9 @@ export function Donasi() {
         </div>
         <div class="grid-3">
           ${[
-            { icon: 'graduation-cap', title: 'Beasiswa Santri Dhuafa', desc: 'Bantu santri dari keluarga kurang mampu untuk tetap bisa menempuh pendidikan di pesantren.', target: 'Rp 150.000.000', progress: 72 },
-            { icon: 'building', title: 'Pembangunan Fasilitas', desc: 'Dukungan untuk pembangunan asrama baru, perpustakaan, dan laboratorium yang lebih layak.', target: 'Rp 500.000.000', progress: 45 },
-            { icon: 'heart', title: 'Operasional Pesantren', desc: 'Donasi untuk kebutuhan operasional harian pesantren, termasuk makan, listrik, dan gaji pengajar.', target: 'Rp 200.000.000', progress: 60 },
+            { icon: 'graduation-cap', title: 'Beasiswa Santri Dhuafa', desc: 'Bantu santri dari keluarga kurang mampu untuk tetap bisa menempuh pendidikan di pesantren.', target: 'Rp 150.000.000' },
+            { icon: 'building', title: 'Pembangunan Fasilitas', desc: 'Dukungan untuk pembangunan asrama baru, perpustakaan, dan laboratorium yang lebih layak.', target: 'Rp 500.000.000' },
+            { icon: 'heart', title: 'Operasional Pesantren', desc: 'Donasi untuk kebutuhan operasional harian pesantren, termasuk makan, listrik, dan gaji pengajar.', target: 'Rp 200.000.000' },
           ].map((p, i) => `
             <div class="card reveal reveal-delay-${i}" style="text-align:center">
               <div class="card-icon" style="margin:0 auto var(--space-lg)">
@@ -40,15 +40,7 @@ export function Donasi() {
               </div>
               <h3 class="card-title">${p.title}</h3>
               <p class="card-text">${p.desc}</p>
-              <div style="margin-bottom:var(--space-md)">
-                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
-                  <span style="color:var(--green-700);font-weight:600">${p.progress}% terkumpul</span>
-                  <span style="color:var(--neutral-500)">Target: ${p.target}</span>
-                </div>
-                <div style="height:8px;background:var(--neutral-200);border-radius:100px;overflow:hidden">
-                  <div style="height:100%;width:${p.progress}%;background:linear-gradient(90deg,var(--green-600),var(--green-400));border-radius:100px;transition:width 1.5s ease"></div>
-                </div>
-              </div>
+              <p class="donation-program-target">Target: ${p.target}</p>
               <button class="btn btn-primary donation-program-button" type="button" data-donate-program="${p.title}">Donasi sekarang <span aria-hidden="true">→</span></button>
             </div>
           `).join('')}

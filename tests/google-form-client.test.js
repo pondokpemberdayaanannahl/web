@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { validateAttachments, encodeAttachments, getGoogleFormToken, sendGoogleSubmission } from '../src/google-forms.js';
+import { validateAttachments, encodeAttachments, getGoogleFormToken, sendGoogleSubmission, REGISTRATION_FILE_LIMIT } from '../src/google-forms.js';
 
 const id = '11111111-2222-4333-8444-555555555555';
 const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -19,6 +19,20 @@ test('file encoding preserves every byte and content hash for reliable retries',
   assert.deepEqual(Buffer.from(encoded.data,'base64'), Buffer.from(bytes));
   assert.equal(encoded.sha256,createHash('sha256').update(bytes).digest('hex'));
   assert.equal(encoded.bytes,bytes.length);
+});
+
+test('separate registration documents preserve categories and bytes within the unchanged size limits', async () => {
+  const labels = ['Kartu Keluarga', 'Akta kelahiran', 'Rapor terakhir 1', 'Rapor terakhir 2', 'Pas foto', 'Ijazah atau SKL'];
+  const files = labels.map(() => new File(['%PDF-1.4 dokumen uji'], 'dokumen.pdf', { type:'application/pdf' }));
+  const encoded = await encodeAttachments(files, { maxFiles:REGISTRATION_FILE_LIMIT, labels });
+  assert.deepEqual(encoded.map(file => file.name), labels.map(label => `${label} - dokumen.pdf`));
+  assert.equal(encoded[0].sha256, createHash('sha256').update('%PDF-1.4 dokumen uji').digest('hex'));
+  assert.ok(encoded.every(file => Buffer.from(file.data, 'base64').toString() === '%PDF-1.4 dokumen uji'));
+  await assert.rejects(encodeAttachments([...files, ...files], { maxFiles:REGISTRATION_FILE_LIMIT }), /8 berkas/);
+  assert.throws(() => validateAttachments(files), /3 berkas/, 'Donation attachment limits remain separate');
+  assert.throws(() => validateAttachments(Array.from({length:8}, () => ({name:'uji.pdf',size:2*1024*1024})), {maxFiles:REGISTRATION_FILE_LIMIT}), /15 MB/);
+  const [long] = await encodeAttachments([new File(['x'], '名'.repeat(110)+'.pdf')], { labels:['Kartu Keluarga'] });
+  assert.ok(Buffer.byteLength(long.name,'utf8') <= 180); assert.ok(long.name.endsWith('.pdf'));
 });
 
 test('form client sends to same-site PHP only and verifies the exact acknowledged ID', async () => {

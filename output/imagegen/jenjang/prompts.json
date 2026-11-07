@@ -1,0 +1,33 @@
+{
+  "mode": "Built-in image_gen",
+  "date": "2026-11-07",
+  "assets": [
+    {
+      "level": "SD",
+      "original": "output/imagegen/jenjang/jenjang-sd-original.png",
+      "webAssets": [
+        "public/images/education/jenjang-sd-v1-600.webp",
+        "public/images/education/jenjang-sd-v1-1200.webp"
+      ],
+      "prompt": "Use case: illustration-story.\nAsset type: landscape editorial illustration for a card on an Indonesian boys' Islamic boarding school website (An-Nahl).\nStyle: sophisticated warm digital gouache illustration with subtle paper grain, softly modeled shapes, clean organic silhouettes, carefully drawn natural hands and faces. A polished educational brand illustration, calm and welcoming, not a childish cartoon, not a photograph, no photorealistic claims.\nComposition: horizontal landscape 3:2, scene readable at small card sizes, subject and main activity in the middle two thirds, generous safe margins. Fill the entire canvas with the scene; no white frame.\nPalette: deep forest green, muted sage, warm ivory, a few restrained honey-gold accents. Gentle daylight, lush West Java greenery and modest Indonesian pesantren architecture in the background.\nAll students are male Indonesian Muslim santri, appropriately modest clothing and black or white peci caps. No female figures. No logos, no watermark, no writing, no letters, no Arabic calligraphy, no UI, no cards, no borders. Open books have subtle abstract marks only.\nScene: elementary education. Two boys aged 8–10 in clean white shirts and dark green trousers, sitting at a low wooden table in a bright open-sided learning pavilion, enjoying a colorful open schoolbook together. One boy gently points at the page; the other smiles attentively. A pencil and a small stack of books support the learning theme. Friendly and curious, serene school garden beyond."
+    },
+    {
+      "level": "SMP",
+      "original": "output/imagegen/jenjang/jenjang-smp-original.png",
+      "webAssets": [
+        "public/images/education/jenjang-smp-v1-600.webp",
+        "public/images/education/jenjang-smp-v1-1200.webp"
+      ],
+      "prompt": "Use case: illustration-story.\nAsset type: landscape editorial illustration for a card on an Indonesian boys' Islamic boarding school website (An-Nahl).\nStyle: sophisticated warm digital gouache illustration with subtle paper grain, softly modeled shapes, clean organic silhouettes, carefully drawn natural hands and faces. A polished educational brand illustration, calm and welcoming, not a childish cartoon, not a photograph, no photorealistic claims.\nComposition: horizontal landscape 3:2, scene readable at small card sizes, subject and main activity in the middle two thirds, generous safe margins. Fill the entire canvas with the scene; no white frame.\nPalette: deep forest green, muted sage, warm ivory, a few restrained honey-gold accents. Gentle daylight, lush West Java greenery and modest Indonesian pesantren architecture in the background.\nAll students are male Indonesian Muslim santri, appropriately modest clothing and black or white peci caps. No female figures. No logos, no watermark, no writing, no letters, no Arabic calligraphy, no UI, no cards, no borders. Open books have subtle abstract marks only.\nScene: junior secondary education. Two boys aged 13–14 in neat white shirts and charcoal trousers with peci caps, learning together at a wooden study desk on a shaded pesantren veranda. A simple globe and an open notebook suggest exploration and academic growth. One holds a pencil naturally while discussing a page. Calm thoughtful expressions. Layered green garden and simple arches behind them."
+    },
+    {
+      "level": "SMA",
+      "original": "output/imagegen/jenjang/jenjang-sma-original.png",
+      "webAssets": [
+        "public/images/education/jenjang-sma-v1-600.webp",
+        "public/images/education/jenjang-sma-v1-1200.webp"
+      ],
+      "prompt": "Use case: illustration-story.\nAsset type: landscape editorial illustration for a card on an Indonesian boys' Islamic boarding school website (An-Nahl).\nStyle: sophisticated warm digital gouache illustration with subtle paper grain, softly modeled shapes, clean organic silhouettes, carefully drawn natural hands and faces. A polished educational brand illustration, calm and welcoming, not a childish cartoon, not a photograph, no photorealistic claims.\nComposition: horizontal landscape 3:2, scene readable at small card sizes, subject and main activity in the middle two thirds, generous safe margins. Fill the entire canvas with the scene; no white frame.\nPalette: deep forest green, muted sage, warm ivory, a few restrained honey-gold accents. Gentle daylight, lush West Java greenery and modest Indonesian pesantren architecture in the background.\nAll students are male Indonesian Muslim santri, appropriately modest clothing and black or white peci caps. No female figures. No logos, no watermark, no writing, no letters, no Arabic calligraphy, no UI, no cards, no borders. Open books have subtle abstract marks only.\nScene: senior secondary education. Two young men aged 16–18 in neat white shirts, charcoal trousers, and peci caps, collaborating on a laptop at a wooden table in an airy school library. One types naturally, the other holds an open notebook. A small stack of books, soft shelves, and a leafy courtyard hint at preparation for the future. Confident, focused, friendly expressions. Laptop screen contains only simple abstract geometric shapes, absolutely no text."
+    }
+  ]
+}

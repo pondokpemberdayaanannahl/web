@@ -9,6 +9,7 @@ import { renderBody, plainText, safeUrl } from '../content-format.js';
 
 // Data berita dari database (diisi saat halaman dibuka)
 let articles = [];
+let articleTrigger = null, articleOverflow = '';
 
 export function escapeHtml(teks) {
   return String(teks ?? '')
@@ -103,12 +104,12 @@ export function Berita() {
     </section>
 
     <!-- Article Detail Modal -->
-    <div id="article-modal" class="article-modal" onclick="if(event.target===this)closeArticle()">
+    <dialog id="article-modal" class="article-modal" aria-labelledby="article-detail-title" onclick="if(event.target===this)closeArticle()">
       <div class="article-modal-content">
-        <button class="article-modal-close" onclick="closeArticle()">&times;</button>
-        <div id="article-modal-body"></div>
+        <div class="article-modal-header"><span>Berita An-Nahl</span><button type="button" class="article-modal-close" aria-label="Tutup berita" onclick="closeArticle()" autofocus>&times;</button></div>
+        <div id="article-modal-body" tabindex="0" role="region" aria-label="Isi berita"></div>
       </div>
-    </div>
+    </dialog>
   `;
 }
 
@@ -121,37 +122,46 @@ if (!document.getElementById('berita-styles')) {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      width: 100%;
+      max-width: none;
+      height: 100dvh;
+      max-height: none;
+      margin: 0;
+      border: 0;
+      background: transparent;
       z-index: 2000;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
-      overflow-y: auto;
-      padding: 40px 20px;
-      backdrop-filter: blur(4px);
+      overflow: hidden;
+      padding: 24px 20px;
     }
-    .article-modal.open { display: flex; }
+    .article-modal[open] { display: flex; }
+    .article-modal::backdrop { background:rgba(5,25,13,.6); backdrop-filter:blur(4px); }
     .article-modal-content {
+      display: flex;
+      flex-direction: column;
       background: var(--white);
       border-radius: var(--radius-lg);
       max-width: 800px;
       width: 100%;
       position: relative;
-      margin-top: 40px;
-      margin-bottom: 40px;
+      max-height: calc(100dvh - 48px);
+      overflow: hidden;
       box-shadow: 0 24px 48px rgba(0,0,0,0.2);
       animation: slideUp 0.4s var(--ease-out);
     }
+    .article-modal-header { display:flex; flex:none; justify-content:space-between; align-items:center; gap:12px; padding:8px 14px 8px 22px; border-bottom:1px solid var(--neutral-200); background:var(--white); }
+    .article-modal-header>span { font-size:13px; font-weight:600; color:var(--green-900); }
+    #article-modal-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .article-modal-close {
-      position: absolute;
-      top: 16px;
-      right: 20px;
+      position: static;
       font-size: 32px;
       color: var(--neutral-500);
-      background: none;
+      background: var(--green-50);
       border: none;
       cursor: pointer;
       z-index: 10;
@@ -169,12 +179,15 @@ if (!document.getElementById('berita-styles')) {
     }
     .article-detail-cover {
       width: 100%;
-      aspect-ratio: 16/9;
-      object-fit: cover;
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      display: block;
+      height: auto;
+      max-height: min(48dvh, 420px);
+      object-fit: contain;
+      background: var(--neutral-50);
     }
+    .article-detail-video { display:block; width:100%; aspect-ratio:16/9; border:0; background:#0a1710; }
     .article-detail-body {
-      padding: 40px;
+      padding: 28px 32px;
     }
     .article-detail-body h2 {
       font-size: 28px;
@@ -212,10 +225,11 @@ if (!document.getElementById('berita-styles')) {
     @media (max-width: 768px) {
       .article-detail-body { padding: 24px; }
       .article-detail-body h2 { font-size: 22px; }
-      .article-modal { padding: 20px 12px; }
-      .article-modal-content { margin-top: 20px; }
+      .article-modal { padding: 12px; }
+      .article-modal-content { max-height: calc(100dvh - 24px); }
       .article-related { padding: 20px 24px; }
     }
+    @media(prefers-reduced-motion:reduce) { .article-modal-content { animation:none; } }
   `;
   document.head.appendChild(style);
 }
@@ -232,7 +246,7 @@ window.showArticle = function(slug) {
     ${article.youtube ? `<iframe class="article-detail-video" src="https://www.youtube-nocookie.com/embed/${article.youtube}" title="${article.title}" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>` : `<img src="${article.img}" alt="${article.title}" class="article-detail-cover" />`}
     <div class="article-detail-body">
       <span class="badge">${article.category}</span>
-      <h2>${article.title}</h2>
+      <h2 id="article-detail-title">${article.title}</h2>
       <div class="article-detail-meta">
         <span style="font-size:14px;color:var(--neutral-500)">${article.date}</span>
       </div>
@@ -254,16 +268,32 @@ window.showArticle = function(slug) {
       </div>
     ` : ''}
   `;
-  modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.getElementById('article-modal-body').scrollTop = 0;
+  if (!modal.open) {
+    articleTrigger = document.activeElement;
+    articleOverflow = document.body.style.overflow;
+    modal.showModal();
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
 };
+
+function clearArticle(modal) {
+  const wasOpen = modal.classList.contains('open');
+  modal.classList.remove('open');
+  modal.querySelector('#article-modal-body')?.replaceChildren();
+  if (wasOpen) {
+    document.body.style.overflow = articleOverflow;
+    if (articleTrigger?.isConnected) articleTrigger.focus({ preventScroll: true });
+    articleTrigger = null;
+  }
+}
 
 window.closeArticle = function() {
   const modal = document.getElementById('article-modal');
   if (modal) {
-    modal.classList.remove('open');
-    document.getElementById('article-modal-body').innerHTML='';
-    document.body.style.overflow = '';
+    if (modal.open) modal.close();
+    clearArticle(modal);
   }
 };
 
@@ -272,6 +302,9 @@ window.closeArticle = function() {
 window.initNewsFilter = async function() {
   const grid = document.getElementById('news-grid');
   if (!grid) return;
+  const modal = document.getElementById('article-modal');
+  modal.addEventListener('cancel',event=>{event.preventDefault();window.closeArticle();});
+  modal.addEventListener('close',()=>clearArticle(modal));
   grid.addEventListener('click',event=>{
     if(event.defaultPrevented)return;
     const card=event.target.closest('[data-slug]');
